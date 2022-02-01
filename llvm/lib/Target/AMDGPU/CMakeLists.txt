@@ -146,6 +146,10 @@ add_llvm_target(AMDGPUCodeGen
   GCNDPPCombine.cpp
   GCNPreRAOptimizations.cpp
   SIModeRegister.cpp
+ 
+  ADDITIONAL_HEADERS
+  OptSched/include/opt-sched/Scheduler
+
 
   LINK_COMPONENTS
   Analysis
@@ -177,3 +181,6 @@ add_subdirectory(Disassembler)
 add_subdirectory(MCTargetDesc)
 add_subdirectory(TargetInfo)
 add_subdirectory(Utils)
+add_subdirectory(OptSched)
+
+target_link_libraries(LLVMAMDGPUCodeGen PRIVATE LLVMOptSched)

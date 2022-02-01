@@ -333,10 +333,26 @@ nextIfDebug(MachineBasicBlock::iterator I,
 
 /// Instantiate a ScheduleDAGInstrs that will be owned by the caller.
 ScheduleDAGInstrs *MachineScheduler::createMachineScheduler() {
+  MachineSchedRegistry::ScheduleDAGCtor Ctor;
+
   // Select the scheduler, or set the default.
-  MachineSchedRegistry::ScheduleDAGCtor Ctor = MachineSchedOpt;
+  Ctor = MachineSchedOpt;
   if (Ctor != useDefaultMachineSched)
     return Ctor(this);
+
+  // Use OptSched by default
+  MachineSchedRegistry *it = &DefaultSchedRegistry;
+
+  while (it->getName() != "optsched" && it->getNext() != nullptr) {
+    it = it->getNext();
+  }
+
+  if (it->getName() == "optsched") {
+    Ctor = it->getCtor();
+    return Ctor(this);
+  }
+
+  llvm::report_fatal_error(llvm::StringRef("Didn't find OptSched scheduler"), false);
 
   // Get the default scheduler set by the target for this function.
   ScheduleDAGInstrs *Scheduler = PassConfig->createMachineScheduler(this);

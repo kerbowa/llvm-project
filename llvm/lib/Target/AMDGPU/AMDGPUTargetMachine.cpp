@@ -49,6 +49,7 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Vectorize.h"
+#include "OptSched/lib/Wrapper/OptimizingScheduler.cpp"
 
 using namespace llvm;
 
