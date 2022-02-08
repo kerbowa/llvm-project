@@ -343,16 +343,16 @@ ScheduleDAGInstrs *MachineScheduler::createMachineScheduler() {
   // Use OptSched by default
   MachineSchedRegistry *it = &DefaultSchedRegistry;
 
-  while (it->getName() != "optsched" && it->getNext() != nullptr) {
+  while (it->getName() != "gcn-optsched" && it->getNext() != nullptr) {
     it = it->getNext();
   }
 
-  if (it->getName() == "optsched") {
+  if (it->getName() == "gcn-optsched") {
     Ctor = it->getCtor();
     return Ctor(this);
   }
 
-  llvm::report_fatal_error(llvm::StringRef("Didn't find OptSched scheduler"), false);
+  llvm::report_fatal_error(llvm::StringRef("Didn't find gcn-optsched scheduler"), false);
 
   // Get the default scheduler set by the target for this function.
   ScheduleDAGInstrs *Scheduler = PassConfig->createMachineScheduler(this);
