@@ -1031,10 +1031,11 @@ TargetPassConfig *R600TargetMachine::createPassConfig(PassManagerBase &PM) {
 
 ScheduleDAGInstrs *GCNPassConfig::createMachineScheduler(
   MachineSchedContext *C) const {
-  const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
-  if (ST.enableSIScheduler())
-    return createSIMachineScheduler(C);
-  return createGCNMaxOccupancyMachineScheduler(C);
+  //const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
+  //if (ST.enableSIScheduler())
+  //  return createSIMachineScheduler(C);
+  //return createGCNMaxOccupancyMachineScheduler(C);
+  return createOptSchedGCN();
 }
 
 bool GCNPassConfig::addPreISel() {
