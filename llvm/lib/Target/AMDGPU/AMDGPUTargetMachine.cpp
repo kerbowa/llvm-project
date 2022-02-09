@@ -50,6 +50,8 @@
 #include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Vectorize.h"
 #include "OptSched/lib/Wrapper/OptimizingScheduler.cpp"
+#include "OptSched/lib/Wrapper/AMDGPU/GCNOptSched.cpp"
+#include "OptSched/lib/Wrapper/AMDGPU/OptSchedGCNTarget.cpp"
 
 using namespace llvm;
 

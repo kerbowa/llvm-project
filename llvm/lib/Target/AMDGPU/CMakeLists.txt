@@ -146,10 +146,12 @@ add_llvm_target(AMDGPUCodeGen
   GCNDPPCombine.cpp
   GCNPreRAOptimizations.cpp
   SIModeRegister.cpp
+  OptSched/lib/Wrapper/AMDGPU/GCNOptSched.cpp
+  OptSched/lib/Wrapper/AMDGPU/OptSchedDDGWrapperGCN.cpp
+  OptSched/lib/Wrapper/AMDGPU/OptSchedGCNTarget.cpp
  
   ADDITIONAL_HEADERS
   OptSched/include/opt-sched/Scheduler
-
 
   LINK_COMPONENTS
   Analysis
