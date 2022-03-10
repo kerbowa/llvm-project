@@ -183,6 +183,6 @@ add_subdirectory(Disassembler)
 add_subdirectory(MCTargetDesc)
 add_subdirectory(TargetInfo)
 add_subdirectory(Utils)
-add_subdirectory(OptSched)
+add_llvm_external_project(OptSched)
 
-target_link_libraries(LLVMAMDGPUCodeGen PRIVATE LLVMOptSched)
+#target_link_libraries(LLVMAMDGPUCodeGen PRIVATE LLVMOptSched)

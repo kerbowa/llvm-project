@@ -69,7 +69,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-
+#include "../Target/AMDGPU/OptSched/lib/Wrapper/OptSchedReg.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "machine-scheduler"
@@ -343,11 +343,11 @@ ScheduleDAGInstrs *MachineScheduler::createMachineScheduler() {
   // Use OptSched by default
   MachineSchedRegistry *it = &DefaultSchedRegistry;
 
-  while (it->getName() != "gcn-optsched" && it->getNext() != nullptr) {
+  while (it->getName() != "optsched" && it->getNext() != nullptr) {
     it = it->getNext();
   }
 
-  if (it->getName() == "gcn-optsched") {
+  if (it->getName() == "optsched") {
     Ctor = it->getCtor();
     return Ctor(this);
   }

@@ -219,3 +219,9 @@ add_subdirectory(SelectionDAG)
 add_subdirectory(AsmPrinter)
 add_subdirectory(MIRParser)
 add_subdirectory(GlobalISel)
+
+set(OPTSCHED_TARGET_DEPS "../Target/AMDGPU")
+target_include_directories(LLVMCodeGen PRIVATE ${OPTSCHED_TARGET_DEPS})
+
+
+target_link_libraries(LLVMCodeGen PRIVATE LLVMOptSched)

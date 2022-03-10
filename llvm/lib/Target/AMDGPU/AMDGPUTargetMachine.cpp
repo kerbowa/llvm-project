@@ -49,9 +49,9 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Vectorize.h"
-#include "OptSched/lib/Wrapper/OptimizingScheduler.cpp"
-#include "OptSched/lib/Wrapper/AMDGPU/GCNOptSched.cpp"
-#include "OptSched/lib/Wrapper/AMDGPU/OptSchedGCNTarget.cpp"
+//#include "OptSched/lib/Wrapper/OptimizingScheduler.h"
+//#include "OptSched/lib/Wrapper/AMDGPU/GCNOptSched.cpp"
+//#include "OptSched/lib/Wrapper/AMDGPU/OptSchedGCNTarget.cpp"
 
 using namespace llvm;
 
@@ -1031,11 +1031,11 @@ TargetPassConfig *R600TargetMachine::createPassConfig(PassManagerBase &PM) {
 
 ScheduleDAGInstrs *GCNPassConfig::createMachineScheduler(
   MachineSchedContext *C) const {
-  //const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
-  //if (ST.enableSIScheduler())
-  //  return createSIMachineScheduler(C);
-  //return createGCNMaxOccupancyMachineScheduler(C);
-  return createOptSchedGCN();
+  const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
+  if (ST.enableSIScheduler())
+    return createSIMachineScheduler(C);
+  return createGCNMaxOccupancyMachineScheduler(C);
+  //return llvm::opt_sched::createOptSched(C);
 }
 
 bool GCNPassConfig::addPreISel() {
