@@ -659,7 +659,6 @@ bool GCNSubtarget::useVGPRIndexMode() const {
 bool GCNSubtarget::useAA() const { return UseAA; }
 
 unsigned GCNSubtarget::getOccupancyWithNumSGPRs(unsigned SGPRs) const {
-  printf("Target-AMDGPU-AMDGPUSubTarget.cpp getMaxWavesPerEu %d gen > GFX10 %d", getMaxWavesPerEU(), getGeneration() >= AMDGPUSubtarget::GFX10);
   if (getGeneration() >= AMDGPUSubtarget::GFX10)
     return getMaxWavesPerEU();
 

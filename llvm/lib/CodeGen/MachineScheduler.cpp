@@ -69,7 +69,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-#include "../Target/AMDGPU/OptSched/lib/Wrapper/OptSchedReg.h"
+//#include "../Target/AMDGPU/OptSched/lib/Wrapper/OptSchedReg.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "machine-scheduler"
@@ -341,18 +341,18 @@ ScheduleDAGInstrs *MachineScheduler::createMachineScheduler() {
     return Ctor(this);
 
   // Use OptSched by default
-  MachineSchedRegistry *it = &DefaultSchedRegistry;
+  //MachineSchedRegistry *it = &DefaultSchedRegistry;
 
-  while (it->getName() != "optsched" && it->getNext() != nullptr) {
-    it = it->getNext();
-  }
+  //while (it->getName() != "optsched" && it->getNext() != nullptr) {
+  //  it = it->getNext();
+  //}
 
-  if (it->getName() == "optsched") {
-    Ctor = it->getCtor();
-    return Ctor(this);
-  }
+  //if (it->getName() == "optsched") {
+  //  Ctor = it->getCtor();
+  //  return Ctor(this);
+  //}
 
-  llvm::report_fatal_error(llvm::StringRef("Didn't find gcn-optsched scheduler"), false);
+  //llvm::report_fatal_error(llvm::StringRef("Didn't find gcn-optsched scheduler"), false);
 
   // Get the default scheduler set by the target for this function.
   ScheduleDAGInstrs *Scheduler = PassConfig->createMachineScheduler(this);

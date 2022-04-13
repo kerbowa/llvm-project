@@ -177,6 +177,14 @@ add_subdirectory(Disassembler)
 add_subdirectory(MCTargetDesc)
 add_subdirectory(TargetInfo)
 add_subdirectory(Utils)
+include_directories("OptSched/include" "OptSched/lib")
+target_include_directories(LLVMAMDGPUCodeGen
+	PRIVATE
+        ${HIP_PATH}/include
+        ${HIP_PATH}/../include)
+message(STATUS "HIP_LIB: ${HIP_LIBRARIES}")
+
+target_link_libraries(LLVMAMDGPUCodeGen PRIVATE ${HIP_LIBRARIES})
 add_llvm_external_project(OptSched)
 
 #target_link_libraries(LLVMAMDGPUCodeGen PRIVATE LLVMOptSched)
