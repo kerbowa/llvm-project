@@ -14,7 +14,7 @@
 #define LLVM_CODEGEN_PBQP_GRAPH_H
 
 #include "llvm/ADT/STLExtras.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <iterator>
 #include <limits>

@@ -72,7 +72,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Printable.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <limits>

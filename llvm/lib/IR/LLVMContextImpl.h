@@ -41,7 +41,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/StringSaver.h"
 #include "llvm/Support/YAMLTraits.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

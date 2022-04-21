@@ -38,7 +38,7 @@
 #include "HexagonSubtarget.h"
 #include "HexagonTargetMachine.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <deque>
 #include <map>
 #include <set>

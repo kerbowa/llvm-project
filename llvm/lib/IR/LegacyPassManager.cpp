@@ -32,7 +32,7 @@
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/Support/Timer.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <unordered_set>
 using namespace llvm;
 

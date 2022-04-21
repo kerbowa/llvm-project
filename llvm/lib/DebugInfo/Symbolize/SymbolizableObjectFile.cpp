@@ -21,7 +21,7 @@
 #include "llvm/Object/SymbolSize.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/DataExtractor.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 using namespace object;

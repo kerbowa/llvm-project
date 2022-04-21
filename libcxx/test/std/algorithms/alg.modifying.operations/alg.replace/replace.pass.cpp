@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter, class T>
 //   requires OutputIterator<Iter, Iter::reference>
@@ -15,7 +15,7 @@
 //   constexpr void      // constexpr after C++17
 //   replace(Iter first, Iter last, const T& old_value, const T& new_value);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

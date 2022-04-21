@@ -13,7 +13,7 @@
 #include "clang/Rewrite/Core/RewriteRope.h"
 #include "clang/Basic/LLVM.h"
 #include "llvm/Support/Casting.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstring>
 

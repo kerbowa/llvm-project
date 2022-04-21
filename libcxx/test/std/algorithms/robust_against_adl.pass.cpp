@@ -9,9 +9,9 @@
 // UNSUPPORTED: clang-8
 // UNSUPPORTED: c++03
 
-// <algorithm>
+// <std::algorithm>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 
 #include "test_macros.h"

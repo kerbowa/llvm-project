@@ -9,7 +9,7 @@
 // This file is a part of ThreadSanitizer/AddressSanitizer runtime.
 //
 //===----------------------------------------------------------------------===//
-#include <algorithm>
+#include <std::algorithm>
 
 #include "sanitizer_common/sanitizer_allocator_internal.h"
 #include "sanitizer_common/sanitizer_common.h"

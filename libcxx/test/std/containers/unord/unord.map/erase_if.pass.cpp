@@ -14,7 +14,7 @@
 //   erase_if(unordered_map<Key, T, Hash, Pred, Allocator>& c, Predicate pred);
 
 #include <unordered_map>
-#include <algorithm>
+#include <std::algorithm>
 
 #include "test_macros.h"
 #include "test_allocator.h"

@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter, class OutIter,
 //          EquivalenceRelation<auto, InIter::value_type> Pred>
@@ -17,7 +17,7 @@
 //   constexpr OutIter        // constexpr after C++17
 //   unique_copy(InIter first, InIter last, OutIter result, Pred pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

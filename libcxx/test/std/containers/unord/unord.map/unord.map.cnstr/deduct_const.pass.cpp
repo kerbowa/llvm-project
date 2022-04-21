@@ -56,7 +56,7 @@
 //               Allocator)
 //   -> unordered_map<Key, T, Hash, equal_to<Key>, Allocator>;
 
-#include <algorithm> // std::is_permutation
+#include <std::algorithm> // std::is_permutation
 #include <cassert>
 #include <climits> // INT_MAX
 #include <type_traits>

@@ -49,7 +49,7 @@
 #include "llvm/Support/LEB128.h"
 #include "llvm/Support/TargetParser.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <climits>
 #include <cstddef>

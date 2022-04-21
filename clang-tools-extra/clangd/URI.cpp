@@ -14,7 +14,7 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/Path.h"
-#include <algorithm>
+#include <std::algorithm>
 
 LLVM_INSTANTIATE_REGISTRY(clang::clangd::URISchemeRegistry)
 

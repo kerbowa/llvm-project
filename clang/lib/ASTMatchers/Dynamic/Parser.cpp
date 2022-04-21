@@ -20,7 +20,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/ManagedStatic.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstddef>

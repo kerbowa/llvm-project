@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter, class T>
 //   requires OutputIterator<Iter, RvalueOf<Iter::reference>::type>
@@ -14,7 +14,7 @@
 //   constexpr Iter         // constexpr after C++17
 //   remove(Iter first, Iter last, const T& value);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 

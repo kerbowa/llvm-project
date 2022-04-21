@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 
-#include <algorithm>
+#include <std::algorithm>
 
 #include "lldb/Target/Process.h"
 #include "lldb/Target/RegisterContext.h"

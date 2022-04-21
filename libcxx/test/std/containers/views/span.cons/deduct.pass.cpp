@@ -28,7 +28,7 @@
 
 
 #include <span>
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <string>

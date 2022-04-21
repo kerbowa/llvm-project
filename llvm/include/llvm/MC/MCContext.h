@@ -31,7 +31,7 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MD5.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

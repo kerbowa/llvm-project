@@ -46,7 +46,7 @@
 #include "llvm/Transforms/Instrumentation.h"
 #include "llvm/Transforms/Instrumentation/GCOVProfiler.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <string>
 #include <utility>

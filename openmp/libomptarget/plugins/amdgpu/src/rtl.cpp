@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <assert.h>
 #include <cstdio>
 #include <cstdlib>

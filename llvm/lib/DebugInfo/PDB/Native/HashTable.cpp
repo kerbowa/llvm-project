@@ -13,7 +13,7 @@
 #include "llvm/Support/BinaryStreamWriter.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MathExtras.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdint>
 #include <utility>

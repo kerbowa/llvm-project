@@ -47,7 +47,7 @@
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

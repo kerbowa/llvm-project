@@ -39,7 +39,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Transforms/Utils/Local.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 using namespace llvm;

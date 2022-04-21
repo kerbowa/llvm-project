@@ -61,7 +61,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SaveAndRestore.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>

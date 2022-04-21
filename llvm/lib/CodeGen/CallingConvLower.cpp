@@ -23,7 +23,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SaveAndRestore.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 

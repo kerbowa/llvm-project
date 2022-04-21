@@ -1470,7 +1470,7 @@ TEST_F(SymbolCollectorTest, CanonicalSTLHeader) {
           AllOf(QName("std::string"), DeclURI(TestHeaderURI),
                 IncludeHeader("<string>")),
           AllOf(Labeled("move(T &&)"), IncludeHeader("<utility>")),
-          AllOf(Labeled("move(I, I, O)"), IncludeHeader("<algorithm>"))));
+          AllOf(Labeled("move(I, I, O)"), IncludeHeader("<std::algorithm>"))));
 }
 
 TEST_F(SymbolCollectorTest, IWYUPragma) {

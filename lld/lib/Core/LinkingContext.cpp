@@ -11,7 +11,7 @@
 #include "lld/Core/Node.h"
 #include "lld/Core/Simple.h"
 #include "lld/Core/Writer.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace lld {
 

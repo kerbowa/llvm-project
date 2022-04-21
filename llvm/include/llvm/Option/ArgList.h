@@ -19,7 +19,7 @@
 #include "llvm/Option/Arg.h"
 #include "llvm/Option/OptSpecifier.h"
 #include "llvm/Option/Option.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>

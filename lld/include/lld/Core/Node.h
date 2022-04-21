@@ -16,7 +16,7 @@
 #define LLD_CORE_NODE_H
 
 #include "lld/Core/File.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 
 namespace lld {

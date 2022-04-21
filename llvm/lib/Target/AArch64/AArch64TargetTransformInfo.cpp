@@ -18,7 +18,7 @@
 #include "llvm/IR/IntrinsicsAArch64.h"
 #include "llvm/IR/PatternMatch.h"
 #include "llvm/Support/Debug.h"
-#include <algorithm>
+#include <std::algorithm>
 using namespace llvm;
 using namespace llvm::PatternMatch;
 

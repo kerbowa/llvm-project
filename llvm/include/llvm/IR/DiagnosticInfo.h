@@ -23,7 +23,7 @@
 #include "llvm/Support/CBindingWrapping.h"
 #include "llvm/Support/TypeSize.h"
 #include "llvm/Support/YAMLTraits.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <functional>
 #include <iterator>

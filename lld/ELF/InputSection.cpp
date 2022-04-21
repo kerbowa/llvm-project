@@ -25,7 +25,7 @@
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/Threading.h"
 #include "llvm/Support/xxhash.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <mutex>
 #include <set>
 #include <unordered_set>

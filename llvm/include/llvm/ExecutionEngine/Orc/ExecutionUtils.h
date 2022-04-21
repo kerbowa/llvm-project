@@ -22,7 +22,7 @@
 #include "llvm/ExecutionEngine/RuntimeDyld.h"
 #include "llvm/Object/Archive.h"
 #include "llvm/Support/DynamicLibrary.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <string>
 #include <utility>

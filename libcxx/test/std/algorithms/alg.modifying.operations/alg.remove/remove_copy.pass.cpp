@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter, OutputIterator<auto, InIter::reference> OutIter, class T>
 //   requires HasEqualTo<InIter::value_type, T>
 //   constexpr OutIter         // constexpr after C++17
 //   remove_copy(InIter first, InIter last, OutIter result, const T& value);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

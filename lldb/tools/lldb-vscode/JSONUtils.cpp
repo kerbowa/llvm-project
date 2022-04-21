@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <iomanip>
 #include <sstream>
 

@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<BidirectionalIterator Iter>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   constexpr bool  // constexpr in C++20
 //   prev_permutation(Iter first, Iter last);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

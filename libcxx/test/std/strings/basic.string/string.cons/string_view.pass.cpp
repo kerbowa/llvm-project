@@ -13,7 +13,7 @@
 #include <string>
 #include <string_view>
 #include <stdexcept>
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

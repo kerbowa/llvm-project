@@ -26,7 +26,7 @@
 // map(initializer_list<Key>, Allocator)
 //   -> map<Key, less<Key>, Allocator>;
 
-#include <algorithm> // std::equal
+#include <std::algorithm> // std::equal
 #include <cassert>
 #include <climits> // INT_MAX
 #include <functional>

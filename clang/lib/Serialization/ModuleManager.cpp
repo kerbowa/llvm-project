@@ -32,7 +32,7 @@
 #include "llvm/Support/GraphWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/VirtualFileSystem.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 #include <string>

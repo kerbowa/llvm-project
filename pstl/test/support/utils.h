@@ -9,7 +9,7 @@
 
 // File contains common utilities that tests rely on
 
-// Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
+// Do not #include <std::algorithm>, because if we do we will not detect accidental dependencies.
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>

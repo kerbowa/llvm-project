@@ -41,7 +41,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/MathExtras.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <iterator>
 #include <limits>

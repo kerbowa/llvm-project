@@ -100,7 +100,7 @@ class TestStdGen(unittest.TestCase):
 
   def testParseSymbolPage_MulHeadersInSameDiv(self):
     # Multile <code> blocks in a Div.
-    # Defined in header <algorithm>
+    # Defined in header <std::algorithm>
     # Defined in header <utility>
     html = """
 <table class="t-dcl-begin"><tbody>
@@ -122,7 +122,7 @@ class TestStdGen(unittest.TestCase):
 </tbody></table>
 """
     self.assertEqual(_ParseSymbolPage(html, "foo"),
-                     set(['<algorithm>', '<utility>']))
+                     set(['<std::algorithm>', '<utility>']))
 
   def testParseSymbolPage_MulSymbolsInSameTd(self):
     # defined in header <cstdint>

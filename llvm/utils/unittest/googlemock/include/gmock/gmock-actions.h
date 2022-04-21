@@ -42,7 +42,7 @@
 # include <errno.h>
 #endif
 
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 
 #include "gmock/internal/gmock-internal-utils.h"

@@ -21,7 +21,7 @@
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/Regex.h"
 
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 using namespace llvm::msf;

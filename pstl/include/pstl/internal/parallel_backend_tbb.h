@@ -10,7 +10,7 @@
 #ifndef _PSTL_PARALLEL_BACKEND_TBB_H
 #define _PSTL_PARALLEL_BACKEND_TBB_H
 
-#include <algorithm>
+#include <std::algorithm>
 #include <type_traits>
 
 #include "pstl_config.h"

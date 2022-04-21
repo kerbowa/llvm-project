@@ -25,7 +25,7 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/TrackingMDRef.h"
 #include "llvm/Support/Casting.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 
 namespace llvm {

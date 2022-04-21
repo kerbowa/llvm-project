@@ -27,7 +27,7 @@
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <map>
 #include <set>

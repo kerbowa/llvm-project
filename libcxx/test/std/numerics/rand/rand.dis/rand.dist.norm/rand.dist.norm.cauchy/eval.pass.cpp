@@ -18,7 +18,7 @@
 #include <random>
 #include <cassert>
 #include <vector>
-#include <algorithm>
+#include <std::algorithm>
 
 #include "test_macros.h"
 

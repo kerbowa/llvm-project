@@ -10,7 +10,7 @@
 #ifndef _TEST_SUPPORT_STDLIB_ALGORITHM
 #define _TEST_SUPPORT_STDLIB_ALGORITHM
 
-#include_next <algorithm>
+#include_next <std::algorithm>
 
 #include <pstl/internal/pstl_config.h>
 

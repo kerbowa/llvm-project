@@ -13,7 +13,7 @@
 #include "llvm/ADT/iterator.h"
 #include "llvm/ADT/simple_ilist.h"
 #include "llvm/Support/Allocator.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <iterator>

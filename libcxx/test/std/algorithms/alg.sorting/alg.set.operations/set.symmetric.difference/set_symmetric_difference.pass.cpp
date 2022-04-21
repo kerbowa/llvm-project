@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: clang-8
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter1, InputIterator InIter2, typename OutIter>
 //   requires OutputIterator<OutIter, InIter1::reference>
@@ -19,7 +19,7 @@
 //   set_symmetric_difference(InIter1 first1, InIter1 last1, InIter2 first2, InIter2 last2,
 //                            OutIter result);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

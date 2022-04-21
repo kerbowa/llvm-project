@@ -8,7 +8,7 @@
 
 #include "Object.h"
 #include "llvm/ADT/DenseSet.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace llvm {
 namespace objcopy {

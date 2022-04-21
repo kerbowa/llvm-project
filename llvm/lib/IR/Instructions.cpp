@@ -38,7 +38,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/TypeSize.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdint>
 #include <vector>

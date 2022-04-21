@@ -23,7 +23,7 @@
 #include "llvm/Support/NativeFormatting.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/Program.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstdio>

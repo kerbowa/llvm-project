@@ -14,7 +14,7 @@
 #define LLVM_SUPPORT_BRANCHPROBABILITY_H
 
 #include "llvm/Support/DataTypes.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <climits>
 #include <numeric>

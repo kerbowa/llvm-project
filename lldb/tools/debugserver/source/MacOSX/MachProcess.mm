@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <uuid/uuid.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <chrono>
 #include <map>
 

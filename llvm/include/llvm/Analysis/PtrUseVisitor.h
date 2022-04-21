@@ -37,7 +37,7 @@
 #include "llvm/IR/Use.h"
 #include "llvm/IR/User.h"
 #include "llvm/Support/Casting.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <type_traits>
 

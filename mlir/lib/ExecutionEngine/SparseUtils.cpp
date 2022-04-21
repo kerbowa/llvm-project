@@ -18,7 +18,7 @@
 
 #ifdef MLIR_CRUNNERUTILS_DEFINE_FUNCTIONS
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cctype>
 #include <cinttypes>

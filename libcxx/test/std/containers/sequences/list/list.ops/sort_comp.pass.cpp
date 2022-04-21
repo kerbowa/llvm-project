@@ -12,7 +12,7 @@
 
 #include <list>
 #include <functional>
-#include <algorithm>  // for is_permutation
+#include <std::algorithm>  // for is_permutation
 #include <random>
 #include <vector>
 #include <cassert>

@@ -7,7 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace Fortran::runtime::io {
 

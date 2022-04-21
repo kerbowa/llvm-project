@@ -31,7 +31,7 @@
 #include "llvm/Support/Mutex.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <functional>
 #include <map>

@@ -8,13 +8,13 @@
 
 // UNSUPPORTED: c++03
 
-// <algorithm>
+// <std::algorithm>
 
 // template<class T, class Compare>
 //   T
 //   max(initializer_list<T> t, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

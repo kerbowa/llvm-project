@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 // REQUIRES: c++03 || c++11 || c++14
 
 // template<RandomAccessIterator Iter, Callable<auto, Iter::difference_type> Rand>
@@ -17,7 +17,7 @@
 
 #define _LIBCPP_DISABLE_DEPRECATION_WARNINGS
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 

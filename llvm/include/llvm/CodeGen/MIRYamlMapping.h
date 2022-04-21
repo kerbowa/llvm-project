@@ -21,7 +21,7 @@
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/YAMLTraits.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <string>
 #include <vector>

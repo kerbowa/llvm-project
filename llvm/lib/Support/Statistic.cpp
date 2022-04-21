@@ -31,7 +31,7 @@
 #include "llvm/Support/Timer.h"
 #include "llvm/Support/YAMLTraits.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 using namespace llvm;
 

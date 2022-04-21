@@ -57,7 +57,7 @@
 #include "llvm/Transforms/IPO/WholeProgramDevirt.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Debugify.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 using namespace llvm;
 using namespace opt_tool;

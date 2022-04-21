@@ -15,7 +15,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/type_traits.h"
 #include "gtest/gtest.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <random>
 #include <vector>
 

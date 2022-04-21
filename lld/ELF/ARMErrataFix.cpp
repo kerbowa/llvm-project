@@ -26,7 +26,7 @@
 #include "lld/Common/Strings.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 using namespace llvm::ELF;

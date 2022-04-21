@@ -13,7 +13,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
 #include "KaleidoscopeJIT.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdint>

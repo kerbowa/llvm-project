@@ -11,7 +11,7 @@
 #include "flang/Semantics/symbol.h"
 #include "flang/Semantics/type.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 
 namespace Fortran::semantics {

@@ -343,7 +343,7 @@ template <class T> unspecified2 end(const valarray<T>& v);
 #include <cstddef>
 #include <cmath>
 #include <initializer_list>
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <new>
 

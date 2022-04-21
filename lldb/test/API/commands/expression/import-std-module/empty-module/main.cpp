@@ -1,4 +1,4 @@
-#include <algorithm>
+#include <std::algorithm>
 
 int main(int argc, char **argv) {
   // Makes sure we have the mock libc headers in the debug information.

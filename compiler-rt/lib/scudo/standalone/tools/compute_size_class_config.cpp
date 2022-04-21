@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 struct Alloc {

@@ -40,7 +40,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <functional>
 #include <iterator>

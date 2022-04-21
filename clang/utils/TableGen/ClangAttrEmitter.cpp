@@ -29,7 +29,7 @@
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/StringMatcher.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstddef>

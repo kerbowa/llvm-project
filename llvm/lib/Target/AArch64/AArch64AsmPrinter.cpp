@@ -56,7 +56,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Transforms/Instrumentation/HWAddressSanitizer.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdint>
 #include <map>

@@ -26,7 +26,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <algorithm> // For std::max.
+#include <std::algorithm> // For std::max.
 
 #define DEBUG_TYPE "registerbankinfo"
 

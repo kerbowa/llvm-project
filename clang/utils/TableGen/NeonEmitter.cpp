@@ -38,7 +38,7 @@
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/SetTheory.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstddef>

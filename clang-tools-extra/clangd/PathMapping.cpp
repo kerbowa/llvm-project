@@ -14,7 +14,7 @@
 #include "llvm/Support/Errno.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/Path.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <tuple>
 
 namespace clang {

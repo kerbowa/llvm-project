@@ -16,7 +16,7 @@
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/GenericDomTree.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <utility>
 

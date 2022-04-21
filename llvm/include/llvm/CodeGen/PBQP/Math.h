@@ -11,7 +11,7 @@
 
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/STLExtras.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <functional>
 #include <memory>

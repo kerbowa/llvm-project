@@ -9,7 +9,7 @@
 // UNSUPPORTED: target-is-mips64,target-is-mips64el
 
 #include "xray/xray_interface.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdio>
 #include <iterator>

@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <memory>
 #include <random>

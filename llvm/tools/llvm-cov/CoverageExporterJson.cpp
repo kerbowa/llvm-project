@@ -53,7 +53,7 @@
 #include "llvm/Support/JSON.h"
 #include "llvm/Support/ThreadPool.h"
 #include "llvm/Support/Threading.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <limits>
 #include <mutex>
 #include <utility>

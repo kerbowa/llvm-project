@@ -2,7 +2,7 @@
 #include <vector>
 #include <pthread.h>
 #include <malloc.h>
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace std;
 

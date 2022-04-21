@@ -20,7 +20,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Mutex.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 #include <map>
 #include <mutex>

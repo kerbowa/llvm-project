@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator Iter, Callable<auto, Iter::reference> Function>
 //   requires CopyConstructible<Function>
 //   constexpr Function   // constexpr after C++17
 //   for_each(Iter first, Iter last, Function f);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

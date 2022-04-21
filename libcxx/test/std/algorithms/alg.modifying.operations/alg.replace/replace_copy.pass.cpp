@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter, typename OutIter, class T>
 //   requires OutputIterator<OutIter, InIter::reference>
@@ -16,7 +16,7 @@
 //   replace_copy(InIter first, InIter last, OutIter result, const T& old_value,
 //                                                           const T& new_value);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

@@ -28,7 +28,7 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FormattedStream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <tuple>
 

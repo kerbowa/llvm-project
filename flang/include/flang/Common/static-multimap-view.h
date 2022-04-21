@@ -8,7 +8,7 @@
 
 #ifndef FORTRAN_COMMON_STATIC_MULTIMAP_VIEW_H_
 #define FORTRAN_COMMON_STATIC_MULTIMAP_VIEW_H_
-#include <algorithm>
+#include <std::algorithm>
 #include <utility>
 
 /// StaticMultimapView is a constexpr friendly multimap implementation over

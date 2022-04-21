@@ -34,7 +34,7 @@
 #include <unistd.h>
 #endif
 
-#include <algorithm>
+#include <std::algorithm>
 #include <fstream>
 #include <vector>
 

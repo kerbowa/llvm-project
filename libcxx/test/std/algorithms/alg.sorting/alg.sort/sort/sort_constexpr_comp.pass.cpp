@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<RandomAccessIterator Iter, StrictWeakOrder<auto, Iter::value_type> Compare>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   void
 //   sort(Iter first, Iter last, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <functional>
 

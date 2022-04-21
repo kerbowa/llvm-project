@@ -16,7 +16,7 @@
 
 #include "llvm/ADT/EquivalenceClasses.h"
 #include "llvm/IR/BasicBlock.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 namespace llvm {

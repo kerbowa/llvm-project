@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter, class OutIter>
 //   requires OutputIterator<OutIter, RvalueOf<InIter::value_type>::type>
@@ -16,7 +16,7 @@
 //   constexpr OutIter        // constexpr after C++17
 //   unique_copy(InIter first, InIter last, OutIter result);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

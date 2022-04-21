@@ -14,7 +14,7 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Parallel.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <set>
 #include <utility>
 

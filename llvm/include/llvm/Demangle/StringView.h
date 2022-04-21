@@ -14,7 +14,7 @@
 #define LLVM_DEMANGLE_STRINGVIEW_H
 
 #include "DemangleConfig.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstring>
 

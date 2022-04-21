@@ -17,7 +17,7 @@
 #include "FuzzerRandom.h"
 #include "FuzzerSHA1.h"
 #include "FuzzerTracePC.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <chrono>
 #include <numeric>
 #include <random>

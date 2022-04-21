@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter>
 //   requires LessThanComparable<Iter::value_type>
 //   Iter
 //   is_sorted_until(Iter first, Iter last);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

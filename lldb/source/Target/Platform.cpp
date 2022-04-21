@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <csignal>
 #include <fstream>
 #include <memory>

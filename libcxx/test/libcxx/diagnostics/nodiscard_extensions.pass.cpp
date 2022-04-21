@@ -22,7 +22,7 @@
 // be tested here and in nodiscard_extensions.fail.cpp. They should also
 // be listed in `UsingLibcxx.rst` in the documentation for the extension.
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <iterator>
 #include <memory>

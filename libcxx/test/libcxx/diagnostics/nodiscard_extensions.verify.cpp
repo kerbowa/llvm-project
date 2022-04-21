@@ -22,7 +22,7 @@
 
 // ADDITIONAL_COMPILE_FLAGS: -D_LIBCPP_ENABLE_NODISCARD
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <iterator>
 #include <memory>

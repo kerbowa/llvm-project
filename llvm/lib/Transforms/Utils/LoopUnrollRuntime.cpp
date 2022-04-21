@@ -38,7 +38,7 @@
 #include "llvm/Transforms/Utils/LoopUtils.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 #include "llvm/Transforms/Utils/UnrollLoop.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 

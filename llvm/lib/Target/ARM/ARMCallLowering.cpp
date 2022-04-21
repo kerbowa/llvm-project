@@ -42,7 +42,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/LowLevelTypeImpl.h"
 #include "llvm/Support/MachineValueType.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdint>
 #include <utility>

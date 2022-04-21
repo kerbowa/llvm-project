@@ -31,7 +31,7 @@
 //   BinaryPredicate       pred_;      // exposition only
 // };
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

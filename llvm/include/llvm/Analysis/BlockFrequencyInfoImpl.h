@@ -34,7 +34,7 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/ScaledNumber.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

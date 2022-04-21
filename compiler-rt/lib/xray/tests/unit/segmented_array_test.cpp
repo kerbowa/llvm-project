@@ -2,7 +2,7 @@
 #include "xray_segmented_array.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <numeric>
 #include <vector>
 

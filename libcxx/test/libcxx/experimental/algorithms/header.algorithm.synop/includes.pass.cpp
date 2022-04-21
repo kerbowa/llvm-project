@@ -13,7 +13,7 @@
 #include "test_macros.h"
 
 #ifndef _LIBCPP_ALGORITHM
-#  error "<experimental/algorithm> must include <algorithm>"
+#  error "<experimental/algorithm> must include <std::algorithm>"
 #endif
 
 int main(int, char**)

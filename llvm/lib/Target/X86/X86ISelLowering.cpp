@@ -59,7 +59,7 @@
 #include "llvm/Support/KnownBits.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Target/TargetOptions.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <bitset>
 #include <cctype>
 #include <numeric>

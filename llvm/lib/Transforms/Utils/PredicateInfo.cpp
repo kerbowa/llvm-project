@@ -34,7 +34,7 @@
 #include "llvm/Support/DebugCounter.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Transforms/Utils.h"
-#include <algorithm>
+#include <std::algorithm>
 #define DEBUG_TYPE "predicateinfo"
 using namespace llvm;
 using namespace PatternMatch;

@@ -22,7 +22,7 @@
 #include "llvm/ADT/Optional.h"
 #include "llvm/Support/Compiler.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <chrono>
 #include <cstring>
 #include <memory>

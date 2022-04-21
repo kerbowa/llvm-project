@@ -10,7 +10,7 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signposts.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <map>
 #include <mutex>
 #include <utility>

@@ -186,7 +186,7 @@ template <class T, class Allocator, class Predicate>
 #include <limits>
 #include <initializer_list>
 #include <iterator>
-#include <algorithm>
+#include <std::algorithm>
 #include <type_traits>
 #include <version>
 

@@ -13,7 +13,7 @@
 // map& operator=(const map& m);
 
 #include <map>
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdio>
 #include <iterator>

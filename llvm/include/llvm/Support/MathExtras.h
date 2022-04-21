@@ -14,7 +14,7 @@
 #define LLVM_SUPPORT_MATHEXTRAS_H
 
 #include "llvm/Support/Compiler.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <climits>
 #include <cmath>

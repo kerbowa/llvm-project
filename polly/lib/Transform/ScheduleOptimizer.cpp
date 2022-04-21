@@ -71,7 +71,7 @@
 #include "isl/schedule_node.h"
 #include "isl/union_map.h"
 #include "isl/union_set.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdint>

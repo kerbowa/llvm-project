@@ -19,7 +19,7 @@
 //                    T init, BinaryOperation binary_op); // C++17
 
 #include <numeric>
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <functional>

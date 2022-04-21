@@ -27,7 +27,7 @@
 #include "llvm/Support/MD5.h"
 #include "llvm/Support/MathExtras.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>

@@ -21,7 +21,7 @@
 
 
 #include <string_view>
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <stdexcept>
 

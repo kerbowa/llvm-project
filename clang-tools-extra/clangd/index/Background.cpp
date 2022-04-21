@@ -45,7 +45,7 @@
 #include "llvm/Support/Threading.h"
 #include "llvm/Support/xxhash.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>

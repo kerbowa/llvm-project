@@ -12,7 +12,7 @@
 //   replace(const_iterator i1, const_iterator i2, const basic_string& str);
 
 #include <string>
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

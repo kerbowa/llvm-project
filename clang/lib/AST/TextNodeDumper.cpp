@@ -22,7 +22,7 @@
 #include "clang/Basic/Specifiers.h"
 #include "clang/Basic/TypeTraits.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <utility>
 
 using namespace clang;

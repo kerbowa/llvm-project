@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter1, InputIterator InIter2, typename OutIter,
 //          CopyConstructible Compare>
@@ -18,7 +18,7 @@
 //   set_intersection(InIter1 first1, InIter1 last1, InIter2 first2, InIter2 last2,
 //                    OutIter result, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

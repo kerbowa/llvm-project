@@ -14,7 +14,7 @@
 #include "clang/Analysis/FlowSensitive/DataflowWorklist.h"
 #include "clang/Tooling/Tooling.h"
 #include "gtest/gtest.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 #include <vector>
 

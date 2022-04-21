@@ -45,7 +45,7 @@
 #include "llvm/Support/Program.h"
 #include "llvm/Support/SaveAndRestore.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 #ifdef HAVE_BACKTRACE
 # include BACKTRACE_HEADER         // For backtrace().

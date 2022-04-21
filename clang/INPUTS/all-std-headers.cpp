@@ -1,4 +1,4 @@
-#include <algorithm> 
+#include <std::algorithm> 
 #include <bitset> 
 #include <cassert>
 #include <cctype>

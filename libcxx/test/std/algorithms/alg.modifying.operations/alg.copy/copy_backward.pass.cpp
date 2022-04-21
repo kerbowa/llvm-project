@@ -8,14 +8,14 @@
 
 // UNSUPPORTED: clang-8
 
-// <algorithm>
+// <std::algorithm>
 
 // template<BidirectionalIterator InIter, BidirectionalIterator OutIter>
 //   requires OutputIterator<OutIter, InIter::reference>
 //   constexpr OutIter   // constexpr after C++17
 //   copy_backward(InIter first, InIter last, OutIter result);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

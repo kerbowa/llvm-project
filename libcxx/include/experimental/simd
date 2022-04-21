@@ -650,7 +650,7 @@ public:
 */
 
 #include <experimental/__config>
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cstddef>
 #include <functional>

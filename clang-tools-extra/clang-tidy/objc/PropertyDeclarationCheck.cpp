@@ -14,7 +14,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/Regex.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace clang::ast_matchers;
 

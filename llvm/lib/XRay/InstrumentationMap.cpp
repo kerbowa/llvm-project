@@ -25,7 +25,7 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/YAMLTraits.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <system_error>

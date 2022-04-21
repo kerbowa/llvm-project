@@ -38,7 +38,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 #define DEBUG_TYPE "amdgpu-lower-module-lds"

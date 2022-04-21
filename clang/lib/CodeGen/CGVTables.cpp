@@ -22,7 +22,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Format.h"
 #include "llvm/Transforms/Utils/Cloning.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdio>
 
 using namespace clang;

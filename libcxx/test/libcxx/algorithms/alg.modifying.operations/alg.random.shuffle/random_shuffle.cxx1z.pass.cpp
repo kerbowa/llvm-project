@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template <class RandomAccessIterator>
 //     void
@@ -20,12 +20,12 @@
 //
 //  In C++17, random_shuffle has been removed.
 //  However, for backwards compatibility, if _LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
-//  is defined before including <algorithm>, then random_shuffle will be restored.
+//  is defined before including <std::algorithm>, then random_shuffle will be restored.
 
 // ADDITIONAL_COMPILE_FLAGS: -D_LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
 // ADDITIONAL_COMPILE_FLAGS: -D_LIBCPP_DISABLE_DEPRECATION_WARNINGS
 
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 #include "test_macros.h"

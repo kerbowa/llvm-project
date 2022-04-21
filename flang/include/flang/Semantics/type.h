@@ -13,7 +13,7 @@
 #include "flang/Common/idioms.h"
 #include "flang/Evaluate/expression.h"
 #include "flang/Parser/char-block.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <iosfwd>
 #include <map>
 #include <optional>

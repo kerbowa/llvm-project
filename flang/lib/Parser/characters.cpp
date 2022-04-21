@@ -8,7 +8,7 @@
 
 #include "flang/Parser/characters.h"
 #include "flang/Common/idioms.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <optional>
 #include <type_traits>

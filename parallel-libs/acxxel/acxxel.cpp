@@ -9,7 +9,7 @@
 #include "acxxel.h"
 #include "config.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <iostream>
 #include <string>
 

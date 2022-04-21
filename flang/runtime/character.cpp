@@ -13,7 +13,7 @@
 #include "tools.h"
 #include "flang/Common/bit-population-count.h"
 #include "flang/Common/uint128.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 
 namespace Fortran::runtime {

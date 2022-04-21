@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: c++03, c++11
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>

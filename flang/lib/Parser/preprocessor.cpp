@@ -12,7 +12,7 @@
 #include "flang/Parser/characters.h"
 #include "flang/Parser/message.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cinttypes>
 #include <cstddef>
 #include <ctime>

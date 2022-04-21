@@ -239,7 +239,7 @@
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/SymbolRemappingReader.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <memory>
 #include <string>

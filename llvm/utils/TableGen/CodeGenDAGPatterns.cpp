@@ -26,7 +26,7 @@
 #include "llvm/Support/TypeSize.h"
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdio>
 #include <iterator>
 #include <set>

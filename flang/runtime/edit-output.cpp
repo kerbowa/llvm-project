@@ -8,7 +8,7 @@
 
 #include "edit-output.h"
 #include "flang/Common/uint128.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace Fortran::runtime::io {
 

@@ -73,7 +73,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils/Local.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <iterator>
 #include <memory>

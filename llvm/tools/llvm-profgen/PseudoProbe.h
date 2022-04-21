@@ -13,7 +13,7 @@
 #include "llvm/IR/PseudoProbe.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/IPO/SampleProfileProbe.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <set>
 #include <sstream>
 #include <string>

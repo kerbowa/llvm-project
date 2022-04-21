@@ -31,7 +31,7 @@
 #include "flang/Semantics/scope.h"
 #include "flang/Semantics/symbol.h"
 #include "flang/Semantics/tools.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cmath>
 #include <complex>
 #include <cstdio>

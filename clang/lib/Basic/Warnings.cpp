@@ -24,7 +24,7 @@
 #include "clang/Basic/AllDiagnostics.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/DiagnosticOptions.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 #include <utility>
 using namespace clang;

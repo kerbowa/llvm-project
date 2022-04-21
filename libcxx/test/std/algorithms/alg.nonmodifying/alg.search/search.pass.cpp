@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter1, ForwardIterator Iter2>
 //   requires HasEqualTo<Iter1::value_type, Iter2::value_type>
@@ -17,7 +17,7 @@
 //   ForwardIterator search(ForwardIterator first, ForwardIterator last,
 //                          const Searcher& searcher); // C++17
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

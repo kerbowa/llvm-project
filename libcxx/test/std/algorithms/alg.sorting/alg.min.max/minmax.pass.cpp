@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<LessThanComparable T>
 //   pair<const T&, const T&>
 //   minmax(const T& a, const T& b);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

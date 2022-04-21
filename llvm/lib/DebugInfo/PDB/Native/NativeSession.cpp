@@ -36,7 +36,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 #include <utility>

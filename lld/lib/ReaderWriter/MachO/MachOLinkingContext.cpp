@@ -28,7 +28,7 @@
 #include "llvm/Support/Errc.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/Path.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using lld::mach_o::ArchHandler;
 using lld::mach_o::MachOFile;

@@ -22,7 +22,7 @@
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/CodeGen/TargetSchedule.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <limits>
 #include <memory>

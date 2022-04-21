@@ -52,7 +52,7 @@
 #include <stdlib.h>  // For strtoll/_strtoul64/malloc/free.
 #include <string.h>  // For memmove.
 
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 #include <vector>
 

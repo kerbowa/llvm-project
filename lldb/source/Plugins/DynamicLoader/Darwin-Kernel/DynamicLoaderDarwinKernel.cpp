@@ -30,7 +30,7 @@
 
 #include "DynamicLoaderDarwinKernel.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 
 //#define ENABLE_DEBUG_PRINTF // COMMENT THIS LINE OUT PRIOR TO CHECKIN

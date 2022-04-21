@@ -15,7 +15,7 @@
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdlib>
 

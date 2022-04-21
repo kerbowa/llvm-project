@@ -31,7 +31,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
 #include "llvm/Target/TargetMachine.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 #include <utility>

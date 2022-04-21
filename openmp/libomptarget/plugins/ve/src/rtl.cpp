@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstring>

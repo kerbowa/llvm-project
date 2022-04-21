@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator Iter, class T>
 //   requires HasEqualTo<Iter::value_type, T>
 //   constexpr Iter   // constexpr after C++17
 //   find(Iter first, Iter last, const T& value);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

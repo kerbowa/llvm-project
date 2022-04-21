@@ -26,7 +26,7 @@
 
 #include <limits.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>

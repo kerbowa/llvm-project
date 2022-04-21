@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter, Callable Generator>
 //   requires OutputIterator<Iter, Generator::result_type>
@@ -14,7 +14,7 @@
 //   constexpr void      // constexpr after c++17
 //   generate(Iter first, Iter last, Generator gen);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

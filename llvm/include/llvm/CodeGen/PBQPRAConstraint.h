@@ -15,7 +15,7 @@
 #ifndef LLVM_CODEGEN_PBQPRACONSTRAINT_H
 #define LLVM_CODEGEN_PBQPRACONSTRAINT_H
 
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <vector>
 

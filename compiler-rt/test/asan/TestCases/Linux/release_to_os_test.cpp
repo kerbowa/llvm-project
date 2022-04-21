@@ -7,7 +7,7 @@
 
 // REQUIRES: x86_64-target-arch
 
-#include <algorithm>
+#include <std::algorithm>
 #include <assert.h>
 #include <random>
 #include <stdint.h>

@@ -31,7 +31,7 @@
 #include "llvm/Support/ScaledNumber.h"
 #include "llvm/Support/StringSaver.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>

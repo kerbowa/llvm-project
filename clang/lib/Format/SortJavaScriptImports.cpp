@@ -23,7 +23,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Debug.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 
 #define DEBUG_TYPE "format-formatter"

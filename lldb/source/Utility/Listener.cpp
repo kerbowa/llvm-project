@@ -16,7 +16,7 @@
 
 #include "llvm/ADT/Optional.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <utility>
 

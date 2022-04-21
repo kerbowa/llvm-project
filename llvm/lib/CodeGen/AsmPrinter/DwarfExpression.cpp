@@ -19,7 +19,7 @@
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 

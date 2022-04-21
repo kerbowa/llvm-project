@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter, EquivalenceRelation<auto, Iter::value_type> Pred>
 //   requires CopyConstructible<Pred>
 //   constexpr Iter  // constexpr after C++17
 //   adjacent_find(Iter first, Iter last, Pred pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

@@ -4,7 +4,7 @@
 #include "../../runtime/descriptor.h"
 #include "../../runtime/io-api.h"
 #include "../../runtime/io-error.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 
 using namespace Fortran::runtime;

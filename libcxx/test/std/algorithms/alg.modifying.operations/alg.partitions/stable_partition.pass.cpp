@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<BidirectionalIterator Iter, Predicate<auto, Iter::value_type> Pred>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   Iter
 //   stable_partition(Iter first, Iter last, Pred pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 

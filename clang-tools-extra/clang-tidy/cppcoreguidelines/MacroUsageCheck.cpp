@@ -12,7 +12,7 @@
 #include "clang/Lex/Preprocessor.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Regex.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cctype>
 
 namespace clang {

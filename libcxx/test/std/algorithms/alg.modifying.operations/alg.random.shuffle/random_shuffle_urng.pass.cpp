@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<class RandomAccessIterator, class UniformRandomNumberGenerator>
 //     void shuffle(RandomAccessIterator first, RandomAccessIterator last,
 //                  UniformRandomNumberGenerator& g);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <random>
 #include <cassert>
 

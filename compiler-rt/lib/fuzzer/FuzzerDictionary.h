@@ -14,7 +14,7 @@
 #include "FuzzerDefs.h"
 #include "FuzzerIO.h"
 #include "FuzzerUtil.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <limits>
 
 namespace fuzzer {

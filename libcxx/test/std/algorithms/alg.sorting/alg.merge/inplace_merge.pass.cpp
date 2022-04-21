@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<BidirectionalIterator Iter>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   void
 //   inplace_merge(Iter first, Iter middle, Iter last);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <random>
 #include <cassert>
 

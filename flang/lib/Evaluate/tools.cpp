@@ -12,7 +12,7 @@
 #include "flang/Evaluate/traverse.h"
 #include "flang/Parser/message.h"
 #include "flang/Semantics/tools.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <variant>
 
 using namespace Fortran::parser::literals;

@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 // XFAIL: c++03, c++11, c++14
 
 // template<class T>
 //   const T&
 //   clamp(const T& v, const T& lo, const T& hi);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

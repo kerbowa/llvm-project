@@ -22,7 +22,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <climits>
 #include <cstddef>

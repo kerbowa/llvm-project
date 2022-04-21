@@ -1,6 +1,6 @@
 #include "../../runtime/buffer.h"
 #include "testing.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <cstring>
 #include <memory>

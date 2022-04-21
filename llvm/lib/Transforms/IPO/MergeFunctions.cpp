@@ -123,7 +123,7 @@
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/MergeFunctions.h"
 #include "llvm/Transforms/Utils/FunctionComparator.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <iterator>
 #include <set>

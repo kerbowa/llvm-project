@@ -17,7 +17,7 @@
 #include "clang/Basic/LLVM.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <utility>
 

@@ -22,7 +22,7 @@
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Allocator.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 namespace clang {

@@ -22,7 +22,7 @@
 
 #include <random>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 

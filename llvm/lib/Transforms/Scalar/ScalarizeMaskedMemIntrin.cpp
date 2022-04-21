@@ -36,7 +36,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 using namespace llvm;

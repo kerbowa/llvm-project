@@ -33,7 +33,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <memory>
 

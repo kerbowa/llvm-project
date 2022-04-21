@@ -20,7 +20,7 @@
 
 #include "llvm/Support/MathExtras.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 
 using namespace lldb;

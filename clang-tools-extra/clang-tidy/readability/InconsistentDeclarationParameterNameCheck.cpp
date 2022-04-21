@@ -10,7 +10,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 
 using namespace clang::ast_matchers;

@@ -26,7 +26,7 @@
 // multimap(initializer_list<Key>, Allocator)
 //   -> multimap<Key, less<Key>, Allocator>;
 
-#include <algorithm> // std::equal
+#include <std::algorithm> // std::equal
 #include <cassert>
 #include <climits> // INT_MAX
 #include <functional>

@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator Iter, Predicate<auto, Iter::value_type> Pred>
 //   requires CopyConstructible<Pred>
 //   constexpr Iter   // constexpr after C++17
 //   find_if_not(Iter first, Iter last, Pred pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

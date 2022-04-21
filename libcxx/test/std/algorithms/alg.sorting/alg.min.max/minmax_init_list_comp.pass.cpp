@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: c++03
 
-// <algorithm>
+// <std::algorithm>
 
 // template<class T, class Compare>
 //   pair<T, T>
@@ -16,7 +16,7 @@
 //
 //  Complexity: At most (3/2) * t.size() applications of the corresponding predicate.
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

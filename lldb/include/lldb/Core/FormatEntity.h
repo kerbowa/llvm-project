@@ -14,7 +14,7 @@
 #include "lldb/Utility/Status.h"
 #include "lldb/lldb-enumerations.h"
 #include "lldb/lldb-types.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <stddef.h>
 #include <stdint.h>
 

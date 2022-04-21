@@ -96,7 +96,7 @@
 #include "llvm/Transforms/IPO/FunctionAttrs.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Evaluator.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <map>
 #include <set>

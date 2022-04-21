@@ -11,7 +11,7 @@
 // iterator erase(const_iterator p)
 
 #include <deque>
-#include <algorithm>
+#include <std::algorithm>
 #include <iterator>
 #include <cassert>
 #include <cstddef>

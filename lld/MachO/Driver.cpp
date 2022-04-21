@@ -45,7 +45,7 @@
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/TextAPI/PackedVersion.h"
 
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm;
 using namespace llvm::MachO;

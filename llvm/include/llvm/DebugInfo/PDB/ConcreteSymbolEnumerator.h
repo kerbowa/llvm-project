@@ -12,7 +12,7 @@
 #include "llvm/DebugInfo/PDB/IPDBEnumChildren.h"
 #include "llvm/DebugInfo/PDB/PDBTypes.h"
 #include "llvm/Support/Casting.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <memory>
 

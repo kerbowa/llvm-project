@@ -50,7 +50,7 @@
 #include "llvm/Support/Program.h"
 #include "llvm/Support/Regex.h"
 #include "llvm/Support/ScopedPrinter.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <map>
 #include <string>
 #include <vector>

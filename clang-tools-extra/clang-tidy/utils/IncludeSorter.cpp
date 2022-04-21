@@ -9,7 +9,7 @@
 #include "IncludeSorter.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/Lexer.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace clang {
 namespace tidy {

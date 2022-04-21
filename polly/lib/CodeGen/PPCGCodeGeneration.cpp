@@ -37,7 +37,7 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "isl/union_map.h"
-#include <algorithm>
+#include <std::algorithm>
 
 extern "C" {
 #include "ppcg/cuda.h"

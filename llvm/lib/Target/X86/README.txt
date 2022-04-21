@@ -527,7 +527,7 @@ be pretty easy, and will nuke all the copies.
 //===---------------------------------------------------------------------===//
 
 This:
-        #include <algorithm>
+        #include <std::algorithm>
         inline std::pair<unsigned, bool> full_add(unsigned a, unsigned b)
         { return std::make_pair(a + b, a + b < a); }
         bool no_overflow(unsigned a, unsigned b)

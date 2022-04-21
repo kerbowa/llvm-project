@@ -44,7 +44,7 @@
 #include <wchar.h>
 #include <wctype.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <iomanip>
 #include <limits>
 #include <list>

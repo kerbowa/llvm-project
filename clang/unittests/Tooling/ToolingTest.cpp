@@ -22,7 +22,7 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "gtest/gtest.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 #include <vector>
 

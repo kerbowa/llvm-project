@@ -13,7 +13,7 @@
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/StringRef.h"
 #include "HexagonDepArch.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace llvm {
 namespace Hexagon {

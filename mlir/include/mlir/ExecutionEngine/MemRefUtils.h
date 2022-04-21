@@ -22,7 +22,7 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <functional>

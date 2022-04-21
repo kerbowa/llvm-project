@@ -15,7 +15,7 @@
 #include "benchmark/benchmark.h"
 #include "complexity.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <iomanip>  // for setprecision
 #include <iostream>

@@ -9,7 +9,7 @@
 #include "ForwardingReferenceOverloadCheck.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace clang::ast_matchers;
 

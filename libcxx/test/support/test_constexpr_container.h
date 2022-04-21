@@ -11,7 +11,7 @@
 // A dummy container with enough constexpr support to test the standard
 // insert iterators, such as `back_insert_iterator`.
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <utility>
 

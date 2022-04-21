@@ -8,13 +8,13 @@
 
 // UNSUPPORTED: clang-8
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter, OutputIterator<auto, InIter::reference> OutIter>
 //   constexpr OutIter   // constexpr after C++17
 //   copy(InIter first, InIter last, OutIter result);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

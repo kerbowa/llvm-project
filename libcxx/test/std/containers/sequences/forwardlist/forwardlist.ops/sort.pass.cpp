@@ -12,7 +12,7 @@
 
 #include <forward_list>
 #include <iterator>
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 #include <random>
 #include <cassert>

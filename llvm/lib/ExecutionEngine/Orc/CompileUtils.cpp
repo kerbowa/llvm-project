@@ -19,7 +19,7 @@
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
 #include "llvm/Target/TargetMachine.h"
 
-#include <algorithm>
+#include <std::algorithm>
 
 namespace llvm {
 namespace orc {

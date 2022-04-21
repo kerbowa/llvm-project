@@ -8,7 +8,7 @@
 
 #include "ObjectFileELF.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <unordered_map>
 

@@ -15,7 +15,7 @@
 #include "FuzzerPlatform.h"
 #include "FuzzerRandom.h"
 #include "FuzzerTracePC.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 #include <memory>
 #include <mutex>

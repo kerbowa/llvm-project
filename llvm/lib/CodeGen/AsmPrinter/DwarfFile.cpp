@@ -14,7 +14,7 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/MC/MCStreamer.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 
 using namespace llvm;

@@ -51,7 +51,7 @@
 
 #include "llvm/Support/Compiler.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <memory>

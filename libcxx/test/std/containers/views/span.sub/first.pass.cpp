@@ -20,7 +20,7 @@
 
 #include <span>
 #include <cassert>
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 
 #include "test_macros.h"

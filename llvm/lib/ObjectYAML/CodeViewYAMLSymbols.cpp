@@ -26,7 +26,7 @@
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/YAMLTraits.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <cstring>
 #include <string>

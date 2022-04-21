@@ -38,7 +38,7 @@
 #ifndef GMOCK_INCLUDE_GMOCK_GMOCK_MORE_ACTIONS_H_
 #define GMOCK_INCLUDE_GMOCK_GMOCK_MORE_ACTIONS_H_
 
-#include <algorithm>
+#include <std::algorithm>
 
 #include "gmock/gmock-generated-actions.h"
 

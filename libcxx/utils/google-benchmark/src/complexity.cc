@@ -17,7 +17,7 @@
 
 #include "benchmark/benchmark.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cmath>
 #include "check.h"
 #include "complexity.h"

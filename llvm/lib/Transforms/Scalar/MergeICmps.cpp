@@ -55,7 +55,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/BuildLibCalls.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <numeric>
 #include <utility>
 #include <vector>

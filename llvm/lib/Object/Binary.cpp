@@ -25,7 +25,7 @@
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <system_error>
 

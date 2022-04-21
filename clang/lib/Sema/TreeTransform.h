@@ -39,7 +39,7 @@
 #include "clang/Sema/SemaInternal.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace llvm::omp;
 

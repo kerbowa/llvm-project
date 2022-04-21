@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template <class InputIterator, class Predicate>
 //   bool
 //   none_of(InputIterator first, InputIterator last, Predicate pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

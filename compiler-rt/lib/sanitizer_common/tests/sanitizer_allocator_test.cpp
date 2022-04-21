@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 #include <random>
 #include <set>

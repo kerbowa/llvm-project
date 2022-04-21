@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: no-exceptions
 
-// <algorithm>
+// <std::algorithm>
 
 // template <class _Compare> struct __debug_less
 
@@ -19,7 +19,7 @@ struct DebugException {};
 #define _LIBCPP_DEBUG 0
 #define _LIBCPP_ASSERT(x, m) ((x) ? (void)0 : throw ::DebugException())
 
-#include <algorithm>
+#include <std::algorithm>
 #include <iterator>
 #include <cassert>
 

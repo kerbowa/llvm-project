@@ -32,7 +32,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdint>

@@ -44,7 +44,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MachineValueType.h"
 #include "llvm/Support/TypeSize.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <climits>
 #include <cstddef>

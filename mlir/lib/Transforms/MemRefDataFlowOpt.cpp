@@ -22,7 +22,7 @@
 #include "mlir/IR/Dominance.h"
 #include "mlir/Transforms/Passes.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include <algorithm>
+#include <std::algorithm>
 
 #define DEBUG_TYPE "memref-dataflow-opt"
 

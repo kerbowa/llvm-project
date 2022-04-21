@@ -8,7 +8,7 @@
 
 #include "Relation.h"
 
-#include <algorithm>
+#include <std::algorithm>
 
 namespace clang {
 namespace clangd {

@@ -20,7 +20,7 @@
 #include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/Object/ObjectFile.h"
 #include "llvm/Support/Error.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

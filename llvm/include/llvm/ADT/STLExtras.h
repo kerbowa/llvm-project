@@ -21,7 +21,7 @@
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/Config/abi-breaking.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -1477,7 +1477,7 @@ inline void sort(Container &&C, Compare Comp) {
 }
 
 //===----------------------------------------------------------------------===//
-//     Extra additions to <algorithm>
+//     Extra additions to <std::algorithm>
 //===----------------------------------------------------------------------===//
 
 /// Get the size of a range. This is a wrapper function around std::distance

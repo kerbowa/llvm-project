@@ -32,7 +32,7 @@
 // };
 
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

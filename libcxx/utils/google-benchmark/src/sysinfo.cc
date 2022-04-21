@@ -38,7 +38,7 @@
 #include <kstat.h>
 #endif
 
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <bitset>
 #include <cerrno>

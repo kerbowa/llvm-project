@@ -17,7 +17,7 @@
 #include "flang/Semantics/symbol.h"
 #include "flang/Semantics/tools.h"
 #include "flang/Semantics/type.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 namespace Fortran::semantics {

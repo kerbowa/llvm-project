@@ -23,7 +23,7 @@
 #include <sched.h>
 #include <stdlib.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 namespace __sanitizer {

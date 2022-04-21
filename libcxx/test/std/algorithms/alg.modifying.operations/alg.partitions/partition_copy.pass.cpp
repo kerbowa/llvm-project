@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template <class InputIterator, class OutputIterator1,
 //           class OutputIterator2, class Predicate>
@@ -15,7 +15,7 @@
 //                    OutputIterator1 out_true, OutputIterator2 out_false,
 //                    Predicate pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

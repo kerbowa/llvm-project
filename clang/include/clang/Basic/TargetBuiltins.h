@@ -15,7 +15,7 @@
 #ifndef LLVM_CLANG_BASIC_TARGETBUILTINS_H
 #define LLVM_CLANG_BASIC_TARGETBUILTINS_H
 
-#include <algorithm>
+#include <std::algorithm>
 #include <stdint.h>
 #include "clang/Basic/Builtins.h"
 #include "llvm/Support/MathExtras.h"

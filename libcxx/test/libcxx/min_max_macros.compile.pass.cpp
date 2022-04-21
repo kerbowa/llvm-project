@@ -32,7 +32,7 @@
 // and should not be edited manually.
 
 // Top level headers
-#include <algorithm>
+#include <std::algorithm>
 TEST_MACROS();
 #include <any>
 TEST_MACROS();

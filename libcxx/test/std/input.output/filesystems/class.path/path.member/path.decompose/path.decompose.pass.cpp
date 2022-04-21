@@ -44,7 +44,7 @@
 
 
 #include "filesystem_include.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <iterator>

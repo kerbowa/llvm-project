@@ -14,7 +14,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <algorithm>
+#include <std::algorithm>
 #include <atomic>
 #include <cassert>
 #include <cstdlib>

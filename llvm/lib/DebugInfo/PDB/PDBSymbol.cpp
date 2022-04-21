@@ -43,7 +43,7 @@
 #include "llvm/DebugInfo/PDB/PDBSymbolUnknown.h"
 #include "llvm/DebugInfo/PDB/PDBSymbolUsingNamespace.h"
 #include "llvm/DebugInfo/PDB/PDBTypes.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 
 using namespace llvm;

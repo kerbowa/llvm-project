@@ -14,7 +14,7 @@
 #include "llvm/ADT/ilist_node.h"
 #include "llvm/ADT/ilist_node_options.h"
 #include "llvm/Support/Compiler.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <functional>

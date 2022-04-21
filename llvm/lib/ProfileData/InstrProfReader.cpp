@@ -26,7 +26,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/SymbolRemappingReader.h"
 #include "llvm/Support/SwapByteOrder.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cctype>
 #include <cstddef>
 #include <cstdint>

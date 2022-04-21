@@ -19,7 +19,7 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <mutex>
 
 using namespace lldb_private;

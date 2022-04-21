@@ -16,7 +16,7 @@
 #include "complexity.h"
 #include "counter.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>

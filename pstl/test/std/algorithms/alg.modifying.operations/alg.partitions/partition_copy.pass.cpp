@@ -12,7 +12,7 @@
 // Tests for stable_partition and partition_copy
 #include "support/pstl_test_config.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdlib>
 #include <execution>
 #include <functional>

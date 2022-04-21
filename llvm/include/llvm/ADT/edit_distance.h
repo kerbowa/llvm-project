@@ -16,7 +16,7 @@
 #define LLVM_ADT_EDIT_DISTANCE_H
 
 #include "llvm/ADT/ArrayRef.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 
 namespace llvm {

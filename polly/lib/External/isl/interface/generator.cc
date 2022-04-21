@@ -33,7 +33,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <algorithm>
+#include <std::algorithm>
 #include <iostream>
 
 #include <clang/AST/Attr.h>

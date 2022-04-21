@@ -32,7 +32,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Transforms/IPO.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <utility>
 

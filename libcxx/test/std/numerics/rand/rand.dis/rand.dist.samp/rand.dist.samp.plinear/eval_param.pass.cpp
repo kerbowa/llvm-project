@@ -19,7 +19,7 @@
 #include <vector>
 #include <iterator>
 #include <numeric>
-#include <algorithm>   // for sort
+#include <std::algorithm>   // for sort
 #include <cassert>
 #include <limits>
 

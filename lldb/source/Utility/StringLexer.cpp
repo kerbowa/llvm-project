@@ -8,7 +8,7 @@
 
 #include "lldb/Utility/StringLexer.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <assert.h>
 #include <utility>
 

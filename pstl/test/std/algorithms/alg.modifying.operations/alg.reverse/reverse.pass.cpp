@@ -13,7 +13,7 @@
 
 #include <iterator>
 #include <execution>
-#include <algorithm>
+#include <std::algorithm>
 
 #include "support/utils.h"
 

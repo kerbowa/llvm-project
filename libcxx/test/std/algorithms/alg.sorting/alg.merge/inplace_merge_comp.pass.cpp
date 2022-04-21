@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<BidirectionalIterator Iter, StrictWeakOrder<auto, Iter::value_type> Compare>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   void
 //   inplace_merge(Iter first, Iter middle, Iter last, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <random>
 #include <cassert>

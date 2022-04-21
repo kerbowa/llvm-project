@@ -28,7 +28,7 @@
 #include "clang/Tooling/Refactoring/Rename/USRFinder.h"
 #include "clang/Tooling/Tooling.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <set>
 #include <string>
 #include <vector>

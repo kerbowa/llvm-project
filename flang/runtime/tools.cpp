@@ -8,7 +8,7 @@
 
 #include "tools.h"
 #include "terminator.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <cstring>
 

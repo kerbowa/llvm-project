@@ -39,7 +39,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/LoopUtils.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <utility>
 
 using namespace llvm;

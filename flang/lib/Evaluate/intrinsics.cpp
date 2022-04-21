@@ -17,7 +17,7 @@
 #include "flang/Evaluate/tools.h"
 #include "flang/Evaluate/type.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <map>
 #include <string>
 #include <utility>

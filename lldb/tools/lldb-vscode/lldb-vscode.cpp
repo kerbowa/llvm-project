@@ -32,7 +32,7 @@
 #include <unistd.h>
 #endif
 
-#include <algorithm>
+#include <std::algorithm>
 #include <chrono>
 #include <fstream>
 #include <map>

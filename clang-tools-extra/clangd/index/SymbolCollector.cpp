@@ -714,7 +714,7 @@ void SymbolCollector::finish() {
             IncludeHeader = HeaderFileURIs->toURI(IncludeHeader);
           else if (IncludeHeader == "<utility>" && QName == "std::move" &&
                    S->Signature.contains(','))
-            IncludeHeader = "<algorithm>";
+            IncludeHeader = "<std::algorithm>";
         }
       }
       // Otherwise find the approprate include header for the defining file.

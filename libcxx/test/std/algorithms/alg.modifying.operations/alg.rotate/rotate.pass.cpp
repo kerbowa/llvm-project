@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ShuffleIterator Iter>
 //   Iter
@@ -16,7 +16,7 @@
 // UNSUPPORTED: clang-4, clang-5, clang-6, clang-7, clang-8
 // UNSUPPORTED: apple-clang-9, apple-clang-10
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 

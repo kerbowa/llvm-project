@@ -79,7 +79,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Vectorize.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <tuple>

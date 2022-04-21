@@ -183,10 +183,10 @@ As of 2016-11-16, clang supports ``std::complex`` without these caveats.  It is
 tested with libstdc++ 4.8.5 and newer, but is known to work only with libc++
 newer than 2016-11-16.
 
-``<algorithm>``
+``<std::algorithm>``
 ---------------
 
-In C++14, many useful functions from ``<algorithm>`` (notably, ``std::min`` and
+In C++14, many useful functions from ``<std::algorithm>`` (notably, ``std::min`` and
 ``std::max``) become constexpr.  You can therefore use these in device code,
 when compiling with clang.
 

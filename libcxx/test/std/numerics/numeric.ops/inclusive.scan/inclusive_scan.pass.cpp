@@ -18,7 +18,7 @@
 //
 
 #include <numeric>
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <functional>

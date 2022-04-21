@@ -19,7 +19,7 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/WithColor.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>

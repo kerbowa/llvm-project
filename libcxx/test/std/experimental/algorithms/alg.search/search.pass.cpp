@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: c++03, c++11
 
-// <algorithm>
+// <std::algorithm>
 
 //   template<class ForwardIterator, class Searcher>
 //   ForwardIterator search(ForwardIterator first, ForwardIterator last,

@@ -23,7 +23,7 @@
 #include "llvm/Support/BinaryStreamWriter.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/Error.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <numeric>
 

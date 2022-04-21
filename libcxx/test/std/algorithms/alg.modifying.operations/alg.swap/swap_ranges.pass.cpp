@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter1, ForwardIterator Iter2>
 //   requires HasSwap<Iter1::reference, Iter2::reference>
 //   Iter2
 //   swap_ranges(Iter1 first1, Iter1 last1, Iter2 first2);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 

@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter>
 //   requires EqualityComparable<Iter::value_type>
 //   constexpr Iter  // constexpr after C++17
 //   adjacent_find(Iter first, Iter last);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

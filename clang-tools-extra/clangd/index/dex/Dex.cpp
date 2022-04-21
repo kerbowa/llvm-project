@@ -16,7 +16,7 @@
 #include "support/Trace.h"
 #include "llvm/ADT/StringSet.h"
 #include "llvm/Support/ScopedPrinter.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <queue>
 
 namespace clang {

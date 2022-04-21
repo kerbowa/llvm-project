@@ -26,7 +26,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/MachineValueType.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdint>
 #include <utility>
 

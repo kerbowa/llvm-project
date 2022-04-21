@@ -27,7 +27,7 @@
 #include "llvm/Support/Parallel.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/xxhash.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <atomic>
 #include <vector>
 

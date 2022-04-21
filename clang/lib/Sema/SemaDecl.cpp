@@ -45,7 +45,7 @@
 #include "clang/Sema/Template.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/Triple.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstring>
 #include <functional>
 #include <unordered_map>

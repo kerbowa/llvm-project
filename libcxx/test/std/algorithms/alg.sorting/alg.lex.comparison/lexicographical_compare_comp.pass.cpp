@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator Iter1, InputIterator Iter2, CopyConstructible Compare>
 //   requires Predicate<Compare, Iter1::value_type, Iter2::value_type>
@@ -15,7 +15,7 @@
 //   lexicographical_compare(Iter1 first1, Iter1 last1,
 //                           Iter2 first2, Iter2 last2, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

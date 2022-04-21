@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<RandomAccessIterator Iter, StrictWeakOrder<auto, Iter::value_type> Compare>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   constexpr void  // constexpr in C++20
 //   partial_sort(Iter first, Iter middle, Iter last, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <functional>
 

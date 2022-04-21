@@ -8,7 +8,7 @@
 
 #include "SymbolFileDWARF.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <set>
 
 #include "lldb/Host/PosixApi.h"

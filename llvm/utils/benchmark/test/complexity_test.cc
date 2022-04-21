@@ -1,5 +1,5 @@
 #undef NDEBUG
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>

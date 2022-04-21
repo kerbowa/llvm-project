@@ -30,7 +30,7 @@
 #include "llvm/MC/LaneBitmask.h"
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/MathExtras.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstddef>
 #include <functional>

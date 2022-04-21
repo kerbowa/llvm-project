@@ -19,7 +19,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/TableGen/Error.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstdint>

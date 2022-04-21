@@ -46,10 +46,10 @@ __cpp_lib_char8_t                                       201811L <atomic> <filesy
                                                                 <string> <string_view>
 __cpp_lib_chrono                                        201611L <chrono>
 __cpp_lib_chrono_udls                                   201304L <chrono>
-__cpp_lib_clamp                                         201603L <algorithm>
+__cpp_lib_clamp                                         201603L <std::algorithm>
 __cpp_lib_complex_udls                                  201309L <complex>
 __cpp_lib_concepts                                      202002L <concepts>
-__cpp_lib_constexpr_algorithms                          201806L <algorithm>
+__cpp_lib_constexpr_algorithms                          201806L <std::algorithm>
 __cpp_lib_constexpr_complex                             201711L <complex>
 __cpp_lib_constexpr_dynamic_alloc                       201907L <memory>
 __cpp_lib_constexpr_functional                          201907L <functional>
@@ -117,23 +117,23 @@ __cpp_lib_nonmember_container_access                    201411L <array> <deque> 
 __cpp_lib_not_fn                                        201603L <functional>
 __cpp_lib_null_iterators                                201304L <iterator>
 __cpp_lib_optional                                      201606L <optional>
-__cpp_lib_parallel_algorithm                            201603L <algorithm> <numeric>
+__cpp_lib_parallel_algorithm                            201603L <std::algorithm> <numeric>
 __cpp_lib_polymorphic_allocator                         201902L <memory>
 __cpp_lib_quoted_string_io                              201304L <iomanip>
-__cpp_lib_ranges                                        201811L <algorithm> <functional> <iterator>
+__cpp_lib_ranges                                        201811L <std::algorithm> <functional> <iterator>
                                                                 <memory> <ranges>
 __cpp_lib_raw_memory_algorithms                         201606L <memory>
 __cpp_lib_remove_cvref                                  201711L <type_traits>
 __cpp_lib_result_of_sfinae                              201210L <functional> <type_traits>
-__cpp_lib_robust_nonmodifying_seq_ops                   201304L <algorithm>
-__cpp_lib_sample                                        201603L <algorithm>
+__cpp_lib_robust_nonmodifying_seq_ops                   201304L <std::algorithm>
+__cpp_lib_sample                                        201603L <std::algorithm>
 __cpp_lib_scoped_lock                                   201703L <mutex>
 __cpp_lib_semaphore                                     201907L <semaphore>
 __cpp_lib_shared_mutex                                  201505L <shared_mutex>
 __cpp_lib_shared_ptr_arrays                             201611L <memory>
 __cpp_lib_shared_ptr_weak_type                          201606L <memory>
 __cpp_lib_shared_timed_mutex                            201402L <shared_mutex>
-__cpp_lib_shift                                         201806L <algorithm>
+__cpp_lib_shift                                         201806L <std::algorithm>
 __cpp_lib_smart_ptr_for_overwrite                       202002L <memory>
 __cpp_lib_source_location                               201907L <source_location>
 __cpp_lib_span                                          202002L <span>

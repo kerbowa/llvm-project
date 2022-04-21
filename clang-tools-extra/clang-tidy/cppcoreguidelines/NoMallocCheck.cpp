@@ -11,7 +11,7 @@
 #include "../utils/OptionsUtils.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <string>
 #include <vector>
 

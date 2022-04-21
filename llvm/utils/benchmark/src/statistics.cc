@@ -15,7 +15,7 @@
 
 #include "benchmark/benchmark.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cmath>
 #include <string>
 #include <vector>

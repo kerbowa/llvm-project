@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <numeric>
 #include <system_error>

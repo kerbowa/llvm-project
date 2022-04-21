@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<RandomAccessIterator Iter>
 //   requires ShuffleIterator<Iter> && LessThanComparable<Iter::value_type>
 //   constexpr void  // constexpr in C++20
 //   pop_heap(Iter first, Iter last);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <functional>
 

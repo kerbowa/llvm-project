@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: c++03, c++11, c++14
 
-// <algorithm>
+// <std::algorithm>
 
 // template <class PopulationIterator, class SampleIterator, class Distance,
 //           class UniformRandomNumberGenerator>
@@ -16,7 +16,7 @@
 //                       SampleIterator out, Distance n,
 //                       UniformRandomNumberGenerator &&g);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <random>
 #include <cassert>
 

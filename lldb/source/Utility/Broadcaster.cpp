@@ -15,7 +15,7 @@
 #include "lldb/Utility/Stream.h"
 #include "lldb/Utility/StreamString.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <utility>
 

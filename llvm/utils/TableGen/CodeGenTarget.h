@@ -23,7 +23,7 @@
 #include "SDNodeProperties.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TableGen/Record.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace llvm {
 

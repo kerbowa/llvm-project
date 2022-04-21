@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator InIter, typename OutIter>
 //   requires OutputIterator<OutIter, RvalueOf<InIter::reference>::type>
@@ -18,7 +18,7 @@
 // UNSUPPORTED: apple-clang-9, apple-clang-10, apple-clang-11
 // UNSUPPORTED: gcc-5, gcc-6, gcc-7, gcc-8
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 

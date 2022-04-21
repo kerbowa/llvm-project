@@ -25,7 +25,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace clang {
 namespace clangd {

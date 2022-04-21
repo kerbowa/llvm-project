@@ -10,7 +10,7 @@
 #include "clang/Lex/Lexer.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <algorithm>
+#include <std::algorithm>
 
 using namespace clang::ast_matchers;
 

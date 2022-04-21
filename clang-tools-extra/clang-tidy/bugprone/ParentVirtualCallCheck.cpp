@@ -12,7 +12,7 @@
 #include "clang/Tooling/FixIt.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cctype>
 
 using namespace clang::ast_matchers;

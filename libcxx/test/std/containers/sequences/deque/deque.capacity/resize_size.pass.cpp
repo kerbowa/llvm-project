@@ -11,7 +11,7 @@
 // void resize(size_type n);
 
 #include <deque>
-#include <algorithm>
+#include <std::algorithm>
 #include <iterator>
 #include <cassert>
 #include <cstddef>

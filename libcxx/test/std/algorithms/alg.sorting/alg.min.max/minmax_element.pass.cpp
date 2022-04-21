@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter>
 //   requires LessThanComparable<Iter::value_type>
 //   pair<Iter, Iter>
 //   minmax_element(Iter first, Iter last);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <random>
 #include <cassert>
 

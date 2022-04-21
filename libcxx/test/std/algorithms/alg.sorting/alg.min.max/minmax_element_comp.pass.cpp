@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter, StrictWeakOrder<auto, Iter::value_type> Compare>
 //   requires CopyConstructible<Compare>
 //   pair<Iter, Iter>
 //   minmax_element(Iter first, Iter last, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <random>
 #include <cassert>

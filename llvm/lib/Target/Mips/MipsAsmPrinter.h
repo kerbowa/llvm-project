@@ -19,7 +19,7 @@
 #include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/Support/Compiler.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <map>
 #include <memory>
 

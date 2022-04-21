@@ -59,7 +59,7 @@
 #include "isl/union_map.h"
 #include "isl/union_set.h"
 #include "isl/val.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>

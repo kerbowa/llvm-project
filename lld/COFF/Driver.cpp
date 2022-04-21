@@ -47,7 +47,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ToolDrivers/llvm-lib/LibDriver.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <future>
 #include <memory>
 

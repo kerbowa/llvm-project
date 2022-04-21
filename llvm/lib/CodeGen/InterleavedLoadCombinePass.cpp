@@ -41,7 +41,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <list>
 

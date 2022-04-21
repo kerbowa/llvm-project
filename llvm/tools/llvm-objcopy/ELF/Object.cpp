@@ -21,7 +21,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileOutputBuffer.h"
 #include "llvm/Support/Path.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>

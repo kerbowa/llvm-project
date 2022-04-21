@@ -20,7 +20,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/MDBuilder.h"
 #include "llvm/IR/Metadata.h"
-#include <algorithm>
+#include <std::algorithm>
 using namespace clang;
 using namespace CodeGen;
 

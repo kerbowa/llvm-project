@@ -9,7 +9,7 @@
 #ifndef LLDB_UTILITY_RANGEMAP_H
 #define LLDB_UTILITY_RANGEMAP_H
 
-#include <algorithm>
+#include <std::algorithm>
 #include <vector>
 
 #include "llvm/ADT/SmallVector.h"

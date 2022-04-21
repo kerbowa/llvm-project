@@ -27,7 +27,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetMachine.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <map>
 

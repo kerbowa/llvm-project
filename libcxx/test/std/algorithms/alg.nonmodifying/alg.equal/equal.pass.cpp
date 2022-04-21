@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator Iter1, InputIterator Iter2>
 //   requires HasEqualTo<Iter1::value_type, Iter2::value_type>
@@ -18,7 +18,7 @@
 //   constexpr bool     // constexpr after c++17
 //   equal(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

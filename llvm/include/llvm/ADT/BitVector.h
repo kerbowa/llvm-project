@@ -17,7 +17,7 @@
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/Support/MathExtras.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <climits>
 #include <cstdint>

@@ -96,7 +96,7 @@ extern void uses_stdio_h();
 
 
 /*!
-  \headerfile  <algorithm>
+  \headerfile  <std::algorithm>
 */
 extern void uses_argorithm();
 // CHECK: headerfile-comment-to-html.m:[[@LINE-1]]:13: FunctionDecl=uses_argorithm:{{.*}} FullCommentAsXML=[<Function file="{{[^"]+}}headerfile-comment-to-html.m" line="[[@LINE-1]]" column="13"><Name>uses_argorithm</Name><USR>c:@F@uses_argorithm</USR><Headerfile><Para>  &lt;algorithm&gt;</Para></Headerfile><Declaration>extern void uses_argorithm()</Declaration></Function>]

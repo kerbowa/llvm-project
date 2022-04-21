@@ -9,7 +9,7 @@
 #include "internal-unit.h"
 #include "descriptor.h"
 #include "io-error.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <type_traits>
 
 namespace Fortran::runtime::io {

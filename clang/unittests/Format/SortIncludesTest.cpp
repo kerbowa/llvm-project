@@ -620,10 +620,10 @@ TEST_F(SortIncludesTest, SupportOptionalCaseSensitiveSorting) {
       {"^\"", 1, 0, false}, {"^<.*\\.h>$", 2, 0, false}, {"^<", 3, 0, false}};
 
   StringRef UnsortedCode = "#include \"qt.h\"\n"
-                           "#include <algorithm>\n"
+                           "#include <std::algorithm>\n"
                            "#include <qtwhatever.h>\n"
                            "#include <Qtwhatever.h>\n"
-                           "#include <Algorithm>\n"
+                           "#include <std::algorithm>\n"
                            "#include \"vlib.h\"\n"
                            "#include \"Vlib.h\"\n"
                            "#include \"AST.h\"\n";
@@ -636,8 +636,8 @@ TEST_F(SortIncludesTest, SupportOptionalCaseSensitiveSorting) {
             "#include <Qtwhatever.h>\n"
             "#include <qtwhatever.h>\n"
             "\n"
-            "#include <Algorithm>\n"
-            "#include <algorithm>\n",
+            "#include <std::algorithm>\n"
+            "#include <std::algorithm>\n",
             sort(UnsortedCode));
 }
 
@@ -674,7 +674,7 @@ TEST_F(SortIncludesTest, SupportOptionalCaseSensitiveMachting) {
 
   StringRef UnsortedCode = "#include <QWidget>\n"
                            "#include \"qt.h\"\n"
-                           "#include <algorithm>\n"
+                           "#include <std::algorithm>\n"
                            "#include <windows.h>\n"
                            "#include <QLabel>\n"
                            "#include \"qa.h\"\n"
@@ -693,7 +693,7 @@ TEST_F(SortIncludesTest, SupportOptionalCaseSensitiveMachting) {
             "#include <QtGlobal>\n"
             "#include <queue>\n"
             "\n"
-            "#include <algorithm>\n",
+            "#include <std::algorithm>\n",
             sort(UnsortedCode));
 
   Style.IncludeCategories[2].RegexIsCaseSensitive = true;
@@ -709,7 +709,7 @@ TEST_F(SortIncludesTest, SupportOptionalCaseSensitiveMachting) {
             "\n"
             "#include <QtGlobal>\n"
             "\n"
-            "#include <algorithm>\n"
+            "#include <std::algorithm>\n"
             "#include <queue>\n",
             sort(UnsortedCode));
 }

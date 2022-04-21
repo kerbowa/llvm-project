@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 // XFAIL: c++03, c++11, c++14
 
 // template<class T, class Compare>
 //   const T&
 //   clamp(const T& v, const T& lo, const T& hi, Compare comp);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

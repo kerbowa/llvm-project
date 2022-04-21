@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <random>
 #include <set>
 

@@ -21,7 +21,7 @@
 #include "llvm/TableGen/StringMatcher.h"
 #include "llvm/TableGen/StringToOffsetTable.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include <algorithm>
+#include <std::algorithm>
 using namespace llvm;
 
 cl::OptionCategory GenIntrinsicCat("Options for -gen-intrinsic-enums");

@@ -11,7 +11,7 @@
 #include "lldb/Utility/Stream.h"
 #include "lldb/lldb-types.h"
 
-#include <algorithm>
+#include <std::algorithm>
 #include <iterator>
 #include <vector>
 

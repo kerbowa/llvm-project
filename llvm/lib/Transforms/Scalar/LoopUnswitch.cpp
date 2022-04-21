@@ -74,7 +74,7 @@
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/LoopUtils.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <map>
 #include <set>

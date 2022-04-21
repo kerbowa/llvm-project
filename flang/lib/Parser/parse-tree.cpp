@@ -12,7 +12,7 @@
 #include "flang/Parser/tools.h"
 #include "flang/Parser/user-state.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace Fortran::parser {
 

@@ -24,7 +24,7 @@
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include <algorithm>
+#include <std::algorithm>
 using namespace llvm;
 
 cl::OptionCategory AsmParserCat("Options for -gen-asm-parser");

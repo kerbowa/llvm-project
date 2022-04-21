@@ -10,7 +10,7 @@
 #ifndef _PSTL_PARALLEL_BACKEND_SERIAL_H
 #define _PSTL_PARALLEL_BACKEND_SERIAL_H
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cstddef>
 #include <memory>
 #include <numeric>

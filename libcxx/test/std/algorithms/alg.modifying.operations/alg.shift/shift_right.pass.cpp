@@ -8,14 +8,14 @@
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17
 
-// <algorithm>
+// <std::algorithm>
 
 // template<class ForwardIterator>
 // constexpr ForwardIterator
 //   shift_right(ForwardIterator first, ForwardIterator last,
 //               typename iterator_traits<ForwardIterator>::difference_type n);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_macros.h"

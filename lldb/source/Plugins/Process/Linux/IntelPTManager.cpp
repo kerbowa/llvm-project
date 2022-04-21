@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <algorithm>
+#include <std::algorithm>
 #include <fstream>
 
 #include "llvm/ADT/StringRef.h"

@@ -14,7 +14,7 @@
 //   erase_if(unordered_multiset<T, Hash, Compare, Allocator>& c, Predicate pred);
 
 #include <unordered_set>
-#include <algorithm>
+#include <std::algorithm>
 
 #include "test_macros.h"
 #include "test_allocator.h"

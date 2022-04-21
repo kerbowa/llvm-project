@@ -16,7 +16,7 @@
 
 #include "llvm/Support/Error.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <cstdlib>
 #include <random>
 #include <vector>

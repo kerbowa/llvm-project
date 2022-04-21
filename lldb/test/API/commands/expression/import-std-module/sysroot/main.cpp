@@ -1,4 +1,4 @@
-#include <algorithm>
+#include <std::algorithm>
 
 int main(int argc, char **argv) {
   libc_struct s;

@@ -36,7 +36,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <iostream>
 #include <map>
 #include <vector>

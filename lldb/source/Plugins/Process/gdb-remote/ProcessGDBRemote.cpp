@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include <algorithm>
+#include <std::algorithm>
 #include <csignal>
 #include <map>
 #include <memory>

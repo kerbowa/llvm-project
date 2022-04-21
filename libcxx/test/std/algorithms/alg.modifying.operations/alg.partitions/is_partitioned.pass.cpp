@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template <class InputIterator, class Predicate>
 //     constexpr bool       // constexpr after C++17
 //     is_partitioned(InputIterator first, InputIterator last, Predicate pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cstddef>
 #include <cassert>

@@ -8,7 +8,7 @@
 
 #include "connection.h"
 #include "environment.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace Fortran::runtime::io {
 

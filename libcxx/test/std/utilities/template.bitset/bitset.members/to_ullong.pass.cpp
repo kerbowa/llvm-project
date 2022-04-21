@@ -9,7 +9,7 @@
 // test unsigned long long to_ullong() const;
 
 #include <bitset>
-#include <algorithm>
+#include <std::algorithm>
 #include <type_traits>
 #include <climits>
 #include <cassert>

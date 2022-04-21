@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<class Iter, IntegralLike Size, Callable Generator>
 //   requires OutputIterator<Iter, Generator::result_type>
@@ -20,7 +20,7 @@
 #pragma warning(disable: 4244) // conversion from 'const double' to 'int', possible loss of data
 #endif
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 
 #include "test_iterators.h"

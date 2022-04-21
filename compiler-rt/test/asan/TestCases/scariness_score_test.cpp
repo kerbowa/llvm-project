@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <algorithm>
+#include <std::algorithm>
 
 #include <sanitizer/asan_interface.h>
 

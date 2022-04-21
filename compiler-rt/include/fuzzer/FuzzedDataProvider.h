@@ -13,7 +13,7 @@
 #ifndef LLVM_FUZZER_FUZZED_DATA_PROVIDER_H_
 #define LLVM_FUZZER_FUZZED_DATA_PROVIDER_H_
 
-#include <algorithm>
+#include <std::algorithm>
 #include <array>
 #include <climits>
 #include <cstddef>

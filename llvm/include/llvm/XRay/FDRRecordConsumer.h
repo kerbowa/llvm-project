@@ -10,7 +10,7 @@
 
 #include "llvm/Support/Error.h"
 #include "llvm/XRay/FDRRecords.h"
-#include <algorithm>
+#include <std::algorithm>
 #include <memory>
 #include <vector>
 

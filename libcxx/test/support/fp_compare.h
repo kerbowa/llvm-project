@@ -9,7 +9,7 @@
 #define SUPPORT_FP_COMPARE_H
 
 #include <cmath>      // for std::abs
-#include <algorithm>  // for std::max
+#include <std::algorithm>  // for std::max
 #include <cassert>
 
 // See https://www.boost.org/doc/libs/1_70_0/libs/test/doc/html/boost_test/testing_tools/extended_comparison/floating_point/floating_points_comparison_theory.html

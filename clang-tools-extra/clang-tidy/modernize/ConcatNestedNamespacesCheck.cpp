@@ -10,7 +10,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Lex/Lexer.h"
-#include <algorithm>
+#include <std::algorithm>
 
 namespace clang {
 namespace tidy {

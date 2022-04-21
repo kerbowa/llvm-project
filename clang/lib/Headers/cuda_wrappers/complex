@@ -36,9 +36,9 @@
 #include <cmath>
 #include <sstream>
 
-// Next, include our <algorithm> wrapper, to ensure that device overloads of
+// Next, include our <std::algorithm> wrapper, to ensure that device overloads of
 // std::min/max are available.
-#include <algorithm>
+#include <std::algorithm>
 
 #pragma clang force_cuda_host_device begin
 

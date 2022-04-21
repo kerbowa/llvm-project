@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<InputIterator Iter1, InputIterator Iter2,
 //          Predicate<auto, Iter1::value_type, Iter2::value_type> Pred>
@@ -18,7 +18,7 @@
 //   constexpr pair<Iter1, Iter2>   // constexpr after c++17
 //   mismatch(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2, Pred pred); // C++14
 
-#include <algorithm>
+#include <std::algorithm>
 #include <functional>
 #include <cassert>
 

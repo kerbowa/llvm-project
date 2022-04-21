@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
+// <std::algorithm>
 
 // template<ForwardIterator Iter, EquivalenceRelation<auto, Iter::value_type> Pred>
 //   requires OutputIterator<Iter, RvalueOf<Iter::reference>::type>
@@ -14,7 +14,7 @@
 //   constexpr Iter        // constexpr after C++17
 //   unique(Iter first, Iter last, Pred pred);
 
-#include <algorithm>
+#include <std::algorithm>
 #include <cassert>
 #include <memory>
 
