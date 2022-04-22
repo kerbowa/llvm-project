@@ -10,7 +10,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/DebugInfo/CodeView/GUID.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 using namespace llvm;

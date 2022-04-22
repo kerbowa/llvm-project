@@ -1,6 +1,6 @@
 /* C++ headers to be included. */
 %{
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 %}
 

@@ -9,7 +9,7 @@
 // test unsigned long to_ulong() const;
 
 #include <bitset>
-#include <std::algorithm>
+#include <algorithm>
 #include <type_traits>
 #include <limits>
 #include <climits>

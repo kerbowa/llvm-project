@@ -27,7 +27,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetOptions.h"
-#include <std::algorithm> // std::sort
+#include <algorithm> // std::sort
 
 using namespace llvm;
 

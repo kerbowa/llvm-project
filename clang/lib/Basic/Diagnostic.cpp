@@ -28,7 +28,7 @@
 #include "llvm/Support/CrashRecoveryContext.h"
 #include "llvm/Support/Locale.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

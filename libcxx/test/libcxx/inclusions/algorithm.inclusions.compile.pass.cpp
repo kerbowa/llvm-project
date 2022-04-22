@@ -11,16 +11,16 @@
 //
 // clang-format off
 
-// <std::algorithm>
+// <algorithm>
 
-// Test that <std::algorithm> includes all the other headers it's supposed to.
+// Test that <algorithm> includes all the other headers it's supposed to.
 
-#include <std::algorithm>
+#include <algorithm>
 #include "test_macros.h"
 
 #if !defined(_LIBCPP_ALGORITHM)
- #   error "<std::algorithm> was expected to define _LIBCPP_ALGORITHM"
+ #   error "<algorithm> was expected to define _LIBCPP_ALGORITHM"
 #endif
 #if TEST_STD_VER > 03 && !defined(_LIBCPP_INITIALIZER_LIST)
- #   error "<std::algorithm> should include <initializer_list> in C++11 and later"
+ #   error "<algorithm> should include <initializer_list> in C++11 and later"
 #endif

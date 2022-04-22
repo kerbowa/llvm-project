@@ -19,7 +19,7 @@
 #include "FuzzerPlatform.h"
 #include "FuzzerRandom.h"
 #include "FuzzerTracePC.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>

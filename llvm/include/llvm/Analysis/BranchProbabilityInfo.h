@@ -24,7 +24,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/BranchProbability.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <memory>

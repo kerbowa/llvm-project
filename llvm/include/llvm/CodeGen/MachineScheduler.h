@@ -89,7 +89,7 @@
 #include "llvm/CodeGen/TargetSchedule.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <string>

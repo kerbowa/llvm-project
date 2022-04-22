@@ -26,7 +26,7 @@
 #include "llvm/DebugInfo/PDB/Native/SymbolStream.h"
 #include "llvm/Support/BinaryStreamReader.h"
 #include "llvm/Support/Error.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 using namespace llvm::msf;

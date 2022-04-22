@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<RandomAccessIterator Iter>
 //   requires LessThanComparable<Iter::value_type>
 //   constexpr bool   // constexpr after C++17
 //   is_heap_until(Iter first, Iter last);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

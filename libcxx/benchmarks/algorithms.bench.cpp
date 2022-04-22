@@ -1,5 +1,5 @@
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <map>
 #include <random>

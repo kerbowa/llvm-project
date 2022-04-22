@@ -48,7 +48,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SwapByteOrder.h"
 #include "llvm/Support/type_traits.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <string>

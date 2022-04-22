@@ -1,4 +1,4 @@
-/*===---- algorithm - CUDA wrapper for <std::algorithm> -------------------------===
+/*===---- algorithm - CUDA wrapper for <algorithm> -------------------------===
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,12 +37,12 @@
 // A host+device function cannot be overloaded, and a constexpr function
 // implicitly become host device if there's no explicitly host or device
 // overload preceding it.  So the simple thing to do would be to declare our
-// device min/max overloads, and then #include_next <std::algorithm>.  This way our
+// device min/max overloads, and then #include_next <algorithm>.  This way our
 // device overloads would come first, and so if we have a C++14 stdlib, its
 // min/max won't become host+device and conflict with our device overloads.
 //
 // But that also doesn't work.  libstdc++ is evil and declares std::min/max in
-// an internal header that is included *before* <std::algorithm>.  Thus by the time
+// an internal header that is included *before* <algorithm>.  Thus by the time
 // we're inside of this file, std::min/max may already have been declared, and
 // thus we can't prevent them from becoming host+device if they're constexpr.
 //
@@ -52,7 +52,7 @@
 // overload resolution will prefer it over the __host__ __device__ version
 // rather than considering them equally good).
 
-#include_next <std::algorithm>
+#include_next <algorithm>
 
 // We need to define these overloads in exactly the namespace our standard
 // library uses (including the right inline namespace), otherwise they won't be

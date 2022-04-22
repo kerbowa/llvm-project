@@ -50,7 +50,7 @@
 #include "llvm/Support/AtomicOrdering.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iterator>

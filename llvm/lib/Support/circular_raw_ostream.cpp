@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Support/circular_raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 using namespace llvm;
 
 void circular_raw_ostream::write_impl(const char *Ptr, size_t Size) {

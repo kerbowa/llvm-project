@@ -56,7 +56,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
 #include "llvm/Target/TargetMachine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <string>

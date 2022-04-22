@@ -33,7 +33,7 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <utility>
 

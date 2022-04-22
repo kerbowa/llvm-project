@@ -15,7 +15,7 @@
 
 #include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/ExecutionEngine/Orc/Layer.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <memory>
 #include <string>
 

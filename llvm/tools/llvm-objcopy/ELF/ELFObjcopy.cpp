@@ -34,7 +34,7 @@
 #include "llvm/Support/Memory.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <functional>

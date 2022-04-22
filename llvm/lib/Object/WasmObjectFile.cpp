@@ -26,7 +26,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/LEB128.h"
 #include "llvm/Support/ScopedPrinter.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>

@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter, class T>
 //   requires OutputIterator<Iter, const T&>
 //   constexpr void      // constexpr after C++17
 //   fill(Iter first, Iter last, const T& value);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

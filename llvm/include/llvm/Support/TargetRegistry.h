@@ -26,7 +26,7 @@
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <iterator>

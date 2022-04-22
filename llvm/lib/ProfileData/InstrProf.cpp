@@ -43,7 +43,7 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/SwapByteOrder.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

@@ -13,7 +13,7 @@
 /*
    experimental/algorithm synopsis
 
-#include <std::algorithm>
+#include <algorithm>
 
 namespace std {
 namespace experimental {
@@ -32,7 +32,7 @@ ForwardIterator search(ForwardIterator first, ForwardIterator last,
 */
 
 #include <experimental/__config>
-#include <std::algorithm>
+#include <algorithm>
 #include <type_traits>
 
 #include <__debug>

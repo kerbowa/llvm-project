@@ -25,7 +25,7 @@
 #include "llvm/Support/Memory.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

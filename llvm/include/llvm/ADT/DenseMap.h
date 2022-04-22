@@ -21,7 +21,7 @@
 #include "llvm/Support/MemAlloc.h"
 #include "llvm/Support/ReverseIteration.h"
 #include "llvm/Support/type_traits.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstring>

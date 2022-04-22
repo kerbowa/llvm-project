@@ -207,7 +207,7 @@ __DEVICE__ float _Complex __mulsc3(float __a, float __b, float __c, float __d) {
 __DEVICE__ double _Complex __divdc3(double __a, double __b, double __c,
                                     double __d) {
   int __ilogbw = 0;
-  // Can't use std::max, because that's defined in <std::algorithm>, and we don't
+  // Can't use std::max, because that's defined in <algorithm>, and we don't
   // want to pull that in for every compile.  The CUDA headers define
   // ::max(float, float) and ::max(double, double), which is sufficient for us.
   double __logbw = _LOGBd(_fmaxd(_ABSd(__c), _ABSd(__d)));

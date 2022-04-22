@@ -59,7 +59,7 @@
 #include "llvm/Transforms/Utils/LoopVersioning.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 #include "llvm/Transforms/Utils/SizeOpts.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <forward_list>
 #include <set>

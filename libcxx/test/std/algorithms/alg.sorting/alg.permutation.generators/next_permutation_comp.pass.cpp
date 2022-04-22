@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<BidirectionalIterator Iter, StrictWeakOrder<auto, Iter::value_type> Compare>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   constexpr bool  // constexpr in C++20
 //   next_permutation(Iter first, Iter last, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

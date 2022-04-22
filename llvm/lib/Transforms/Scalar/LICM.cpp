@@ -84,7 +84,7 @@
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/LoopUtils.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <utility>
 using namespace llvm;
 

@@ -14,7 +14,7 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
-#include <std::algorithm>
+#include <algorithm>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header

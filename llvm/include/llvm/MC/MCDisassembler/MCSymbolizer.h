@@ -16,7 +16,7 @@
 #define LLVM_MC_MCDISASSEMBLER_MCSYMBOLIZER_H
 
 #include "llvm/MC/MCDisassembler/MCRelocationInfo.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 

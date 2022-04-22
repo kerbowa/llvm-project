@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <vector>

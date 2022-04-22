@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<BidirectionalIterator Iter, Predicate<auto, Iter::value_type> Pred>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   constexpr Iter  // constexpr in C++20
 //   partition(Iter first, Iter last, Pred pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 

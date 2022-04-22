@@ -39,8 +39,7 @@ project(LLVM
   VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}
   LANGUAGES C CXX ASM)
 
-#set(HIP_CXX_COMPILER "/home/josh/project/host-llvm/llvm-project/build/bin/clang++")
-set(HIP_CXX_COMPILER "/opt/rocm-4.5.2/llvm/bin/clang++")
+set(HIP_CXX_COMPILER "/home/josh/project/host-llvm/llvm-project/build/bin/clang++")
 set(CMAKE_CXX_COMPILER ${HIP_CXX_COMPILER} CACHE FILEPATH "" FORCE)
 set(CMAKE_CXX_STANDARD "17" CACHE STRING "" FORCE)
 set(AMDGPU_TARGETS "gfx906" CACHE STRING "AMD GPU targets to compile for" FORCE)

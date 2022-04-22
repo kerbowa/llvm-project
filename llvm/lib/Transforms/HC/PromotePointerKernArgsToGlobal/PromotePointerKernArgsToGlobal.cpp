@@ -23,7 +23,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Pass.h"
 
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 using namespace std;

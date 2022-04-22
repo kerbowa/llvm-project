@@ -43,7 +43,7 @@
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <memory>

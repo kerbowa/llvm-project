@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator Iter, Predicate<auto, Iter::value_type> Pred>
 //   requires CopyConstructible<Pred>
 //   constexpr Iter::difference_type   // constexpr after C++17
 //   count_if(Iter first, Iter last, Pred pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator Iter, class T>
 //   requires HasEqualTo<Iter::value_type, T>
 //   constexpr Iter::difference_type   // constexpr after C++17
 //   count(Iter first, Iter last, const T& value);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

@@ -15,7 +15,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Transforms/IPO.h"
-#include <std::algorithm>
+#include <algorithm>
 using namespace llvm;
 
 /// Make sure GV is visible from both modules. Delete is true if it is

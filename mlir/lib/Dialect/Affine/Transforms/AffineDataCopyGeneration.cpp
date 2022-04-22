@@ -30,7 +30,7 @@
 #include "llvm/ADT/MapVector.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
-#include <std::algorithm>
+#include <algorithm>
 
 #define DEBUG_TYPE "affine-data-copy-generate"
 

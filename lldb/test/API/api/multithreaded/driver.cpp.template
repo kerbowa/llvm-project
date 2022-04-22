@@ -1,7 +1,7 @@
 
 /// LLDB C API Test Driver
 
-#include <std::algorithm>
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <string>

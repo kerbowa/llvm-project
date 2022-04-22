@@ -47,7 +47,7 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <utility>
 

@@ -9,7 +9,7 @@
 #include "lldb/Breakpoint/BreakpointSiteList.h"
 
 #include "lldb/Utility/Stream.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace lldb;
 using namespace lldb_private;

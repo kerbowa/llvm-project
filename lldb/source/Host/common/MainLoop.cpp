@@ -12,7 +12,7 @@
 #include "lldb/Host/MainLoop.h"
 #include "lldb/Host/PosixApi.h"
 #include "lldb/Utility/Status.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <csignal>

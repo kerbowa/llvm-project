@@ -13,7 +13,7 @@
 #ifndef LLVM_EXECUTIONENGINE_JITSYMBOL_H
 #define LLVM_EXECUTIONENGINE_JITSYMBOL_H
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

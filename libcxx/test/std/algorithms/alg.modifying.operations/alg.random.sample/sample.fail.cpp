@@ -11,7 +11,7 @@
 // Test failure not investigated on GCC 5.
 // UNSUPPORTED: gcc-5
 
-// <std::algorithm>
+// <algorithm>
 
 // template <class PopulationIterator, class SampleIterator, class Distance,
 //           class UniformRandomNumberGenerator>
@@ -19,7 +19,7 @@
 //                       SampleIterator out, Distance n,
 //                       UniformRandomNumberGenerator &&g);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <random>
 #include <cassert>
 

@@ -12,7 +12,7 @@
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/Debug.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 
 using namespace llvm;

@@ -20,7 +20,7 @@
 #include "llvm/Support/Program.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <system_error>
 #include <vector>
 

@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 // UNSUPPORTED: c++03, c++11, c++14
 
 // template<class InputIterator, class Size, class Function>
@@ -14,7 +14,7 @@
 //    for_each_n(InputIterator first, Size n, Function f);
 
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

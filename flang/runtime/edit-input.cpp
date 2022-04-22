@@ -9,7 +9,7 @@
 #include "edit-input.h"
 #include "flang/Common/real.h"
 #include "flang/Common/uint128.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace Fortran::runtime::io {
 

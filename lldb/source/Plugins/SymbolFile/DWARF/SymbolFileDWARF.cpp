@@ -77,7 +77,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/FormatVariadic.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <map>
 #include <memory>
 

@@ -30,7 +30,7 @@
 #include "llvm/IR/Type.h"
 #include "llvm/Support/MachineValueType.h"
 #include "llvm/Target/TargetMachine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <deque>
 #include <string>

@@ -23,7 +23,7 @@
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 #include <system_error>
 using namespace llvm;

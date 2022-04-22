@@ -29,7 +29,7 @@
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MachineValueType.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <utility>

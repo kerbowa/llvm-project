@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 // Splits [data,data+size) into a vector of strings using a "magic" Separator.

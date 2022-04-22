@@ -52,7 +52,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <tuple>
 #include <utility>

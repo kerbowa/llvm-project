@@ -8,13 +8,13 @@
 
 // UNSUPPORTED: c++03
 
-// <std::algorithm>
+// <algorithm>
 
 // template<class T>
 //   pair<T, T>
 //   minmax(initializer_list<T> t);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

@@ -30,7 +30,7 @@
 #include "llvm/CodeGen/MachineInstrBundle.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Allocator.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <utility>

@@ -30,7 +30,7 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/StringSaver.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <string>

@@ -26,7 +26,7 @@
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/StringToOffsetTable.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cctype>
 #include <functional>
 #include <map>

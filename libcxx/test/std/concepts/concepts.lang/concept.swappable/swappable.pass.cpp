@@ -14,7 +14,7 @@
 
 #include <concepts>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <deque>
 #include <map>

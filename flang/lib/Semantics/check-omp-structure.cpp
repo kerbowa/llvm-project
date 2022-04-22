@@ -9,7 +9,7 @@
 #include "check-omp-structure.h"
 #include "flang/Parser/parse-tree.h"
 #include "flang/Semantics/tools.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace Fortran::semantics {
 

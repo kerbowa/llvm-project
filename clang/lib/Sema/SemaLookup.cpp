@@ -40,7 +40,7 @@
 #include "llvm/ADT/TinyPtrVector.h"
 #include "llvm/ADT/edit_distance.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <list>
 #include <set>

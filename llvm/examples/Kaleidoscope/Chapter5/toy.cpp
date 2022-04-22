@@ -17,7 +17,7 @@
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdint>

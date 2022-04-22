@@ -21,7 +21,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>

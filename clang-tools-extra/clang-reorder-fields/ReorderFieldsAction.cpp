@@ -22,7 +22,7 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/Tooling/Refactoring.h"
 #include "llvm/ADT/SetVector.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 
 namespace clang {

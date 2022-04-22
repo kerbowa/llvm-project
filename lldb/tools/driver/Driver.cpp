@@ -28,7 +28,7 @@
 #include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 #include <bitset>
 #include <csignal>

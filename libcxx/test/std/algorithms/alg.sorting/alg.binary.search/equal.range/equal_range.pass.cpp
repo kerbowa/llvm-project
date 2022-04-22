@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter, class T>
 //   requires HasLess<T, Iter::value_type>
@@ -14,7 +14,7 @@
 //   constexpr pair<Iter, Iter>   // constexpr after c++17
 //   equal_range(Iter first, Iter last, const T& value);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 #include <cassert>
 #include <cstddef>

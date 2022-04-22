@@ -26,7 +26,7 @@
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #define GET_TARGET_REGBANK_IMPL

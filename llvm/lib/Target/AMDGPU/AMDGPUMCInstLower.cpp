@@ -30,7 +30,7 @@
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Format.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

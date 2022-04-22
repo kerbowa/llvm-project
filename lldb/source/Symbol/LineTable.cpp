@@ -12,7 +12,7 @@
 #include "lldb/Core/Section.h"
 #include "lldb/Symbol/CompileUnit.h"
 #include "lldb/Utility/Stream.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace lldb;
 using namespace lldb_private;

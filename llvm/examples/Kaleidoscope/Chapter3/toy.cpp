@@ -9,7 +9,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>

@@ -15,7 +15,7 @@
 #include "benchmark/benchmark.h"
 #include "complexity.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <string>

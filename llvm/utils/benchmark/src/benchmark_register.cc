@@ -22,7 +22,7 @@
 #include <unistd.h>
 #endif
 
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 #include <condition_variable>
 #include <cstdio>

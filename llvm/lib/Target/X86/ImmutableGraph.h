@@ -28,7 +28,7 @@
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/GraphTraits.h"
 #include "llvm/ADT/STLExtras.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <utility>
 #include <vector>

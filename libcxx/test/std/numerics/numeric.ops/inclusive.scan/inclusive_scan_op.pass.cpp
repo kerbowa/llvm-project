@@ -19,7 +19,7 @@
 //                    BinaryOperation binary_op); // C++17
 
 #include <numeric>
-#include <std::algorithm>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <functional>

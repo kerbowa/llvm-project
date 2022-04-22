@@ -31,7 +31,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Base64.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace clang {
 namespace clangd {

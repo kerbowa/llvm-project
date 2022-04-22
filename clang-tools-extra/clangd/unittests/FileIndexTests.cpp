@@ -245,7 +245,7 @@ TEST(FileIndexTest, HasSystemHeaderMappingsInPreamble) {
   auto Symbols = runFuzzyFind(*TU.index(), "");
   EXPECT_THAT(Symbols, ElementsAre(_));
   EXPECT_THAT(Symbols.begin()->IncludeHeaders.front().IncludeHeader,
-              "<std::algorithm>");
+              "<algorithm>");
 }
 
 TEST(FileIndexTest, TemplateParamsInLabel) {

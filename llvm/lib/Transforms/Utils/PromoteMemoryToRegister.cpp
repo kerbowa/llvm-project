@@ -46,7 +46,7 @@
 #include "llvm/IR/User.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <utility>

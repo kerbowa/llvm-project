@@ -16,7 +16,7 @@
 #include "clang/Lex/Preprocessor.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/SaveAndRestore.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace clang;
 

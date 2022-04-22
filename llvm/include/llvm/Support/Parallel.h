@@ -15,7 +15,7 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/Threading.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <condition_variable>
 #include <functional>
 #include <mutex>

@@ -10,7 +10,7 @@
 #include "llvm/DebugInfo/GSYM/Range.h"
 #include "llvm/DebugInfo/GSYM/FileWriter.h"
 #include "llvm/Support/DataExtractor.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <inttypes.h>
 
 using namespace llvm;

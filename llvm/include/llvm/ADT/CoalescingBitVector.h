@@ -20,7 +20,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <initializer_list>
 
 namespace llvm {

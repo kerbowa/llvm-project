@@ -39,7 +39,7 @@
 #include "llvm/IR/PatternMatch.h"
 #include "llvm/IR/ValueHandle.h"
 #include "llvm/Support/KnownBits.h"
-#include <std::algorithm>
+#include <algorithm>
 using namespace llvm;
 using namespace llvm::PatternMatch;
 

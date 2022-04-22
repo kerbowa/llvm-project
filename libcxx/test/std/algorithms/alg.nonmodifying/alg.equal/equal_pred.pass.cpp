@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator Iter1, InputIterator Iter2,
 //          Predicate<auto, Iter1::value_type, Iter2::value_type> Pred>
@@ -22,7 +22,7 @@
 //   equal(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2, Pred pred);
 
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

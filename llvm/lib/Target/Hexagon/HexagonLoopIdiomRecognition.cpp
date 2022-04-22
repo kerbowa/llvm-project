@@ -60,7 +60,7 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>

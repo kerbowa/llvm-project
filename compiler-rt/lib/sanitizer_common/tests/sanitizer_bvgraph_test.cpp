@@ -16,7 +16,7 @@
 
 #include "gtest/gtest.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 #include <set>
 

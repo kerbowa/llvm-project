@@ -26,7 +26,7 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/ScopedPrinter.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 
 using namespace clang;

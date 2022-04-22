@@ -2,7 +2,7 @@
 
 #include <omp.h>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <vector>
 

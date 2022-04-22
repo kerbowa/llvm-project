@@ -42,7 +42,7 @@
 #include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/thread.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <string>

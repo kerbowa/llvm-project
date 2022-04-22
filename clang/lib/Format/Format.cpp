@@ -39,7 +39,7 @@
 #include "llvm/Support/Regex.h"
 #include "llvm/Support/VirtualFileSystem.h"
 #include "llvm/Support/YAMLTraits.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <string>

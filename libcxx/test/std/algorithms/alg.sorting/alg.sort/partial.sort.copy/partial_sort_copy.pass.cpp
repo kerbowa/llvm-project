@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator InIter, RandomAccessIterator RAIter>
 //   requires ShuffleIterator<RAIter>
@@ -16,7 +16,7 @@
 //   constexpr RAIter  // constexpr in C++20
 //   partial_sort_copy(InIter first, InIter last, RAIter result_first, RAIter result_last);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

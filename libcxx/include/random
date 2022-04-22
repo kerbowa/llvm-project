@@ -1685,7 +1685,7 @@ class piecewise_linear_distribution
 #include <type_traits>
 #include <initializer_list>
 #include <limits>
-#include <std::algorithm>
+#include <algorithm>
 #include <numeric>
 #include <vector>
 #include <string>
@@ -3775,7 +3775,7 @@ generate_canonical(_URNG& __g)
 
 // uniform_int_distribution
 
-// in <std::algorithm>
+// in <algorithm>
 
 template <class _CharT, class _Traits, class _IT>
 basic_ostream<_CharT, _Traits>&

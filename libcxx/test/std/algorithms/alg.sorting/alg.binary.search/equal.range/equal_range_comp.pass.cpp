@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter, class T, CopyConstructible Compare>
 //   constexpr pair<Iter, Iter>   // constexpr after c++17
 //   equal_range(Iter first, Iter last, const T& value, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <vector>
 #include <cassert>

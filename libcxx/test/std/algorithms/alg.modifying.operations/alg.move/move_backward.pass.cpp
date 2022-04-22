@@ -10,14 +10,14 @@
 // UNSUPPORTED: clang-4, clang-5, clang-6, clang-7, clang-8
 // UNSUPPORTED: apple-clang-9, apple-clang-10
 
-// <std::algorithm>
+// <algorithm>
 
 // template<BidirectionalIterator InIter, BidirectionalIterator OutIter>
 //   requires OutputIterator<OutIter, RvalueOf<InIter::reference>::type>
 //   OutIter
 //   move_backward(InIter first, InIter last, OutIter result);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <memory>
 

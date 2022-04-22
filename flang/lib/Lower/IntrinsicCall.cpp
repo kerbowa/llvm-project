@@ -24,7 +24,7 @@
 #include "flang/Lower/Runtime.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <string_view>
 #include <utility>
 

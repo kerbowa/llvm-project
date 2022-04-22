@@ -37,7 +37,7 @@
 #include "llvm/Testing/Support/Error.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <random>

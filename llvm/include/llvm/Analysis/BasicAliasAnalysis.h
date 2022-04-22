@@ -20,7 +20,7 @@
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <utility>

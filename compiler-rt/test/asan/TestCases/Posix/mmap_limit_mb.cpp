@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 int main(int argc, char **argv) {

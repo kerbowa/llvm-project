@@ -22,7 +22,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/PointerUnion.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 namespace clang {

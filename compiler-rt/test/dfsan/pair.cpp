@@ -1,7 +1,7 @@
 // RUN: %clangxx_dfsan %s -mllvm -dfsan-fast-16-labels -mllvm -dfsan-track-select-control-flow=false -mllvm -dfsan-combine-pointer-labels-on-load=false -O0 -DO0 -o %t && %run %t
 // RUN: %clangxx_dfsan %s -mllvm -dfsan-fast-16-labels -mllvm -dfsan-track-select-control-flow=false -mllvm -dfsan-combine-pointer-labels-on-load=false -O1 -o %t && %run %t
 
-#include <std::algorithm>
+#include <algorithm>
 #include <assert.h>
 #include <sanitizer/dfsan_interface.h>
 #include <utility>

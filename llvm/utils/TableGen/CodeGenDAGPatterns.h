@@ -23,7 +23,7 @@
 #include "llvm/ADT/StringSet.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <array>
 #include <functional>
 #include <map>

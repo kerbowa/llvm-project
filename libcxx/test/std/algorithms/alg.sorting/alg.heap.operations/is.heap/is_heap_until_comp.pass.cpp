@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<RandomAccessIterator Iter, StrictWeakOrder<auto, Iter::value_type> Compare>
 //   requires CopyConstructible<Compare>
 //   constexpr bool   // constexpr after C++17
 //   is_heap_until(Iter first, Iter last, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

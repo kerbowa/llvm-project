@@ -32,7 +32,7 @@
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/Support/xxhash.h"
 
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 using namespace llvm::MachO;

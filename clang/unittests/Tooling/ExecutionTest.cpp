@@ -20,7 +20,7 @@
 #include "clang/Tooling/Tooling.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 
 namespace clang {

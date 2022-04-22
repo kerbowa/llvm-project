@@ -18,7 +18,7 @@
 #include "llvm/Object/Error.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <memory>
 #include <utility>
 

@@ -15,7 +15,7 @@
 #include "lldb/Utility/StreamString.h"
 #include "lldb/lldb-enumerations.h"
 
-#include <std::algorithm>
+#include <algorithm>
 
 #include <ctype.h>
 

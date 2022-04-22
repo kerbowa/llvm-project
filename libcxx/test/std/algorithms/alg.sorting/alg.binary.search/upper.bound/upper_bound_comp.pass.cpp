@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter, class T, Predicate<auto, T, Iter::value_type> Compare>
 //   constexpr Iter    // constexpr after c++17
 //   upper_bound(Iter first, Iter last, const T& value, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <vector>
 #include <cassert>

@@ -11,7 +11,7 @@
 // void assign(size_type n, const_reference v);
 
 #include <vector>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

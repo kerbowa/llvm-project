@@ -34,7 +34,7 @@
 #include "llvm/IR/IntrinsicsS390.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm> // std::sort
+#include <algorithm> // std::sort
 
 using namespace clang;
 using namespace CodeGen;

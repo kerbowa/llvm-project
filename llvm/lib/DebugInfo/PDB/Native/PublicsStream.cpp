@@ -29,7 +29,7 @@
 #include "llvm/Support/BinaryStreamReader.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/Error.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 
 using namespace llvm;

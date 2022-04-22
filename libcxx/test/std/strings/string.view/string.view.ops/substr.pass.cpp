@@ -15,7 +15,7 @@
 // Returns: basic_string_view(data()+pos, rlen).
 
 #include <string_view>
-#include <std::algorithm>
+#include <algorithm>
 #include <stdexcept>
 #include <cassert>
 

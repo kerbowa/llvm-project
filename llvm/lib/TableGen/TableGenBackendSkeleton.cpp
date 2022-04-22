@@ -19,7 +19,7 @@
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>

@@ -19,7 +19,7 @@
 
 #include "GCNSubtarget.h"
 #include "llvm/CodeGen/LiveIntervals.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace llvm {
 

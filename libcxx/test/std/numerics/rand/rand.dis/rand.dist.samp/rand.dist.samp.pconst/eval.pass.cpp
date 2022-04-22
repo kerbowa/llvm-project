@@ -19,7 +19,7 @@
 #include <vector>
 #include <iterator>
 #include <numeric>
-#include <std::algorithm>   // for sort
+#include <algorithm>   // for sort
 #include <cassert>
 
 #include "test_macros.h"

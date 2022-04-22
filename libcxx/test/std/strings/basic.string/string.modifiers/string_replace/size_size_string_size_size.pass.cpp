@@ -15,7 +15,7 @@
 
 #include <string>
 #include <stdexcept>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

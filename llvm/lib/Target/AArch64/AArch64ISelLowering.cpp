@@ -78,7 +78,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <bitset>
 #include <cassert>
 #include <cctype>

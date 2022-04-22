@@ -8,7 +8,7 @@
 
 #include "flang/Parser/char-buffer.h"
 #include "flang/Common/idioms.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 

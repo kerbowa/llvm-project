@@ -8,9 +8,9 @@
 
 // UNSUPPORTED: c++03
 
-// <std::algorithm>
+// <algorithm>
 
-#include <std::algorithm>
+#include <algorithm>
 
 #include "test_macros.h"
 

@@ -25,7 +25,7 @@
 #include "llvm/TextAPI/PackedVersion.h"
 #include "llvm/TextAPI/TextAPIReader.h"
 #include "llvm/TextAPI/TextAPIWriter.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <set>
 
 // clang-format off

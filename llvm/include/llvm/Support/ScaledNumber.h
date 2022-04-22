@@ -22,7 +22,7 @@
 #define LLVM_SUPPORT_SCALEDNUMBER_H
 
 #include "llvm/Support/MathExtras.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <string>

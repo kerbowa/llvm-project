@@ -11,14 +11,14 @@
 // UNSUPPORTED: apple-clang-9, apple-clang-10
 // UNSUPPORTED: c++03
 
-// <std::algorithm>
+// <algorithm>
 
 // We optimize std::copy(_backward) and std::move(_backward) into memmove
 // when the iterator is trivial and contiguous and the type in question
 // is also trivially (copyable, movable). This test verifies that the
 // optimization never eliminates an actually non-trivial copy or move.
 
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <cassert>
 

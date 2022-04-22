@@ -12,7 +12,7 @@
 #include "memory.h"
 #include "tools.h"
 #include "unit.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <limits>

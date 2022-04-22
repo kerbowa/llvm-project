@@ -26,7 +26,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <cstddef>

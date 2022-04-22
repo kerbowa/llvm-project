@@ -34,7 +34,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallString.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdlib>
 
 using namespace clang;

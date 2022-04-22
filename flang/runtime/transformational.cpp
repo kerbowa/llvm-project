@@ -9,7 +9,7 @@
 #include "transformational.h"
 #include "terminator.h"
 #include "tools.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cinttypes>
 
 namespace Fortran::runtime {

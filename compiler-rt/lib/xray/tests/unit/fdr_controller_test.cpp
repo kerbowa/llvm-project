@@ -9,7 +9,7 @@
 // This file is a part of XRay, a function call tracing system.
 //
 //===----------------------------------------------------------------------===//
-#include <std::algorithm>
+#include <algorithm>
 #include <memory>
 #include <time.h>
 

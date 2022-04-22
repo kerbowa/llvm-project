@@ -22,7 +22,7 @@
 #include "llvm/DebugInfo/PDB/PDBSymbolTypeVTable.h"
 #include "llvm/DebugInfo/PDB/PDBTypes.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <memory>

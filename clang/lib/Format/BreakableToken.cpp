@@ -18,7 +18,7 @@
 #include "clang/Format/Format.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Debug.h"
-#include <std::algorithm>
+#include <algorithm>
 
 #define DEBUG_TYPE "format-token-breaker"
 

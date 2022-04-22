@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<class ForwardIterator1, class ForwardIterator2>
 //   constexpr bool   // constexpr after C++17
 //   is_permutation(ForwardIterator1 first1, ForwardIterator1 last1,
 //                  ForwardIterator2 first2);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_iterators.h"

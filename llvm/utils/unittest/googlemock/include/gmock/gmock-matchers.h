@@ -41,7 +41,7 @@
 #define GMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
 
 #include <math.h>
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <limits>
 #include <ostream>  // NOLINT

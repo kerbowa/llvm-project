@@ -12,7 +12,7 @@
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <vector>

@@ -17,7 +17,7 @@
 
 #include "llvm/ADT/iterator.h"
 #include "llvm/ADT/iterator_range.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <utility>
 

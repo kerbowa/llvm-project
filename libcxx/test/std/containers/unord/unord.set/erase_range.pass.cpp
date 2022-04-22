@@ -15,7 +15,7 @@
 // iterator erase(const_iterator first, const_iterator last)
 
 #include <unordered_set>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

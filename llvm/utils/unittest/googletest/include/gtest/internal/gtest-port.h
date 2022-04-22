@@ -273,7 +273,7 @@
 # include <TargetConditionals.h>
 #endif
 
-#include <std::algorithm>  // NOLINT
+#include <algorithm>  // NOLINT
 #include <iostream>  // NOLINT
 #include <sstream>  // NOLINT
 #include <string>  // NOLINT

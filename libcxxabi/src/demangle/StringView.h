@@ -14,7 +14,7 @@
 #define DEMANGLE_STRINGVIEW_H
 
 #include "DemangleConfig.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 

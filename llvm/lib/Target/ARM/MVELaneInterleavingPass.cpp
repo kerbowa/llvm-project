@@ -68,7 +68,7 @@
 #include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 using namespace llvm;

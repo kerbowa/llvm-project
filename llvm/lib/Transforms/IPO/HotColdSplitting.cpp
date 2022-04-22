@@ -66,7 +66,7 @@
 #include "llvm/Transforms/Utils/CodeExtractor.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <limits>
 #include <cassert>
 #include <string>

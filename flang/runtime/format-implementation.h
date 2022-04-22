@@ -16,7 +16,7 @@
 #include "main.h"
 #include "flang/Common/format.h"
 #include "flang/Decimal/decimal.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <limits>
 
 namespace Fortran::runtime::io {

@@ -9,7 +9,7 @@
 #include "misc-intrinsic.h"
 #include "descriptor.h"
 #include "terminator.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstring>
 
 namespace Fortran::runtime {

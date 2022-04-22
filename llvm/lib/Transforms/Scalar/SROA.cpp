@@ -82,7 +82,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstddef>

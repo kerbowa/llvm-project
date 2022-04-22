@@ -84,7 +84,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/MC/MCTargetOptionsCommandFlags.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <climits>

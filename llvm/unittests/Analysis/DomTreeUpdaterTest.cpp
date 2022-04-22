@@ -16,7 +16,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/SourceMgr.h"
 #include "gtest/gtest.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

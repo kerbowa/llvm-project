@@ -22,7 +22,7 @@
 #include "llvm/Support/Memory.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <functional>

@@ -29,7 +29,7 @@
 // multiset(initializer_list<Key>, Allocator)
 //   -> multiset<Key, less<Key>, Allocator>;
 
-#include <std::algorithm> // std::equal
+#include <algorithm> // std::equal
 #include <cassert>
 #include <climits> // INT_MAX
 #include <functional>

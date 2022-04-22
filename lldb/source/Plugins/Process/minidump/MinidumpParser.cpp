@@ -16,7 +16,7 @@
 
 // C includes
 // C++ includes
-#include <std::algorithm>
+#include <algorithm>
 #include <map>
 #include <vector>
 #include <utility>

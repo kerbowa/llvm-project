@@ -8,7 +8,7 @@
 
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/TextAPI/InterfaceFile.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 
 #ifndef TEXT_STUB_HELPERS_H

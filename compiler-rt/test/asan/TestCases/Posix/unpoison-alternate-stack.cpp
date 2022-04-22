@@ -8,7 +8,7 @@
 
 // XFAIL: ios && !iossim
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <csetjmp>

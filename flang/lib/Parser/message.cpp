@@ -10,7 +10,7 @@
 #include "flang/Common/idioms.h"
 #include "flang/Parser/char-set.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>

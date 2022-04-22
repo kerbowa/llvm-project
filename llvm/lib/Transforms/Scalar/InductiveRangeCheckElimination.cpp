@@ -91,7 +91,7 @@
 #include "llvm/Transforms/Utils/LoopUtils.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <limits>

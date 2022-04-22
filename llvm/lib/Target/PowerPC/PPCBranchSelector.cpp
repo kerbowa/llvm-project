@@ -25,7 +25,7 @@
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Target/TargetMachine.h"
-#include <std::algorithm>
+#include <algorithm>
 using namespace llvm;
 
 #define DEBUG_TYPE "ppc-branch-select"

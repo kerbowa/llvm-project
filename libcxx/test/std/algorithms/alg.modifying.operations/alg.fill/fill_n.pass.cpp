@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<class Iter, IntegralLike Size, class T>
 //   requires OutputIterator<Iter, const T&>
 //   constexpr OutputIterator      // constexpr after C++17
 //   fill_n(Iter first, Size n, const T& value);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

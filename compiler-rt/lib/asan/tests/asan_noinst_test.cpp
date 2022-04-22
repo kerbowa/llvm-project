@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  // for memset()
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 #include <limits>
 

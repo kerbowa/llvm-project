@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter, class T, CopyConstructible Compare>
 //   constexpr bool      // constexpr after C++17
 //   binary_search(Iter first, Iter last, const T& value, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 #include <functional>
 #include <cassert>

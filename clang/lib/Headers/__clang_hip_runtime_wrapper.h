@@ -108,7 +108,7 @@ __attribute__((weak)) inline __device__ void *free(void *__ptr) {
 #include <__clang_cuda_math_forward_declares.h>
 #include <__clang_hip_cmath.h>
 #include <__clang_cuda_complex_builtins.h>
-#include <std::algorithm>
+#include <algorithm>
 #include <complex>
 #include <new>
 #endif // __HIPCC_RTC__

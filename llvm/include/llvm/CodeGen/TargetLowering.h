@@ -50,7 +50,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MachineValueType.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <climits>
 #include <cstdint>

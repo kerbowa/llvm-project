@@ -29,7 +29,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/LowLevelTypeImpl.h"
 #include "llvm/Support/MathExtras.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <map>
 
 using namespace llvm;

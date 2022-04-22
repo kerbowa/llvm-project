@@ -45,7 +45,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <bitset>
 using namespace llvm;
 

@@ -1,7 +1,7 @@
 #ifndef BENCHMARK_GENERATE_INPUT_H
 #define BENCHMARK_GENERATE_INPUT_H
 
-#include <std::algorithm>
+#include <algorithm>
 #include <random>
 #include <vector>
 #include <string>

@@ -18,7 +18,7 @@
 #include "FuzzerOptions.h"
 #include "FuzzerSHA1.h"
 #include "FuzzerValueBitMap.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <climits>

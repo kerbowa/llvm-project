@@ -19,7 +19,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstddef>

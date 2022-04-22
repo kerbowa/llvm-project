@@ -15,7 +15,7 @@
 #include "FuzzerDefs.h"
 #include "FuzzerIO.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>

@@ -6,7 +6,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ADT/DeltaAlgorithm.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <set>
 using namespace llvm;

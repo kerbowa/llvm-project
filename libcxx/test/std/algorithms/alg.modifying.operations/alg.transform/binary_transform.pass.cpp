@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator InIter1, InputIterator InIter2, class OutIter,
 //          Callable<auto, const InIter1::value_type&, const InIter2::value_type&> BinaryOp>
@@ -14,7 +14,7 @@
 // constexpr OutIter      // constexpr after C++17
 // transform(InIter1 first1, InIter1 last1, InIter2 first2, OutIter result, BinaryOp binary_op);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

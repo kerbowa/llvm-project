@@ -24,7 +24,7 @@
 #include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <iterator>
 

@@ -10,7 +10,7 @@
 
 #include <bitset>
 #include <cassert>
-#include <std::algorithm> // for 'min' and 'max'
+#include <algorithm> // for 'min' and 'max'
 #include <cstddef>
 
 #include "test_macros.h"

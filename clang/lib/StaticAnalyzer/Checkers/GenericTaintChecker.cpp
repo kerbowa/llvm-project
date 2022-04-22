@@ -27,7 +27,7 @@
 #include "clang/StaticAnalyzer/Core/PathSensitive/ProgramStateTrait.h"
 #include "llvm/Support/YAMLTraits.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <limits>
 #include <memory>
 #include <unordered_map>

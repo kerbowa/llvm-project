@@ -16,7 +16,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Regex.h"
 
-#include <std::algorithm>
+#include <algorithm>
 
 #define DEBUG_TYPE "using-declarations-sorter"
 

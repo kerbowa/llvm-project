@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<class ForwardIterator, class Size, class T, class BinaryPredicate>
 //   constexpr ForwardIterator     // constexpr after C++17
 //   search_n(ForwardIterator first, ForwardIterator last, Size count,
 //            const T& value, BinaryPredicate pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

@@ -48,7 +48,7 @@
 // unordered_set(initializer_list<T>, typename see below::size_type, Hash, Allocator)
 //   -> unordered_set<T, Hash, equal_to<T>, Allocator>;
 
-#include <std::algorithm> // is_permutation
+#include <algorithm> // is_permutation
 #include <cassert>
 #include <climits> // INT_MAX
 #include <type_traits>

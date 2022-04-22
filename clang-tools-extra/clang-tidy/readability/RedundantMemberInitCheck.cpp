@@ -11,7 +11,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Lex/Lexer.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace clang::ast_matchers;
 using namespace clang::tidy::matchers;

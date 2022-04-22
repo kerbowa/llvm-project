@@ -72,7 +72,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetIntrinsicInfo.h"
 #include "llvm/Target/TargetMachine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstddef>

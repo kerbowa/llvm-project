@@ -36,7 +36,7 @@
 #include <objbase.h>
 #endif
 
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace lldb_private;
 

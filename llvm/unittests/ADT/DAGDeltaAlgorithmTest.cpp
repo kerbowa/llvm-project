@@ -8,7 +8,7 @@
 
 #include "llvm/ADT/DAGDeltaAlgorithm.h"
 #include "gtest/gtest.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdarg>
 using namespace llvm;
 

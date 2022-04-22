@@ -68,7 +68,7 @@ public:
       if (Node == BB)
         return true;
     return false;
-    // I don't want the dependency on <std::algorithm>
+    // I don't want the dependency on <algorithm>
     //return find(Nodes.begin(), Nodes.end(), BB) != Nodes.end();
   }
 
@@ -78,7 +78,7 @@ public:
       if (Successor == BB)
         return true;
     return false;
-    // I don't want the dependency on <std::algorithm>
+    // I don't want the dependency on <algorithm>
     //return find(Successors.begin(), Successors.end(), BB) != Successors.end();
   }
 

@@ -15,7 +15,7 @@
 
 #if !defined(__HIPCC_RTC__)
 #if defined(__cplusplus)
-#include <std::algorithm>
+#include <algorithm>
 #endif
 #include <limits.h>
 #include <stdint.h>

@@ -18,7 +18,7 @@
 #include "llvm/Object/ObjectFile.h"
 #include "llvm/Object/ELFObjectFile.h"
 #include "llvm/Support/Error.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <map>
 #include <memory>

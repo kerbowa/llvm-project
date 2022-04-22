@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <utility>
 #include <functional>
-#include <std::algorithm>
+#include <algorithm>
 
 #include "execution_impl.h"
 #include "memory_impl.h"

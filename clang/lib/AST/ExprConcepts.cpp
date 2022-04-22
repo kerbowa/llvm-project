@@ -24,7 +24,7 @@
 #include "clang/AST/Type.h"
 #include "clang/Basic/SourceLocation.h"
 #include "llvm/Support/TrailingObjects.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 #include <utility>
 

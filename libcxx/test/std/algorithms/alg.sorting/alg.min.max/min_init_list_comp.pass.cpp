@@ -8,13 +8,13 @@
 
 // UNSUPPORTED: c++03
 
-// <std::algorithm>
+// <algorithm>
 
 // template<class T, class Compare>
 //   T
 //   min(initializer_list<T> t, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

@@ -1,6 +1,6 @@
 #include "testing.h"
 #include "../../runtime/terminator.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>

@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<BidirectionalIterator Iter>
 //   requires HasSwap<Iter::reference, Iter::reference>
 //   constexpr void  // constexpr in C++20
 //   reverse(Iter first, Iter last);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

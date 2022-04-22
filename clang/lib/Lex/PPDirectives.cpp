@@ -42,7 +42,7 @@
 #include "llvm/Support/AlignOf.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Path.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <new>

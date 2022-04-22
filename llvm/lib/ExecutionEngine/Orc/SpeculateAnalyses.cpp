@@ -19,7 +19,7 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <std::algorithm>
+#include <algorithm>
 
 namespace {
 using namespace llvm;

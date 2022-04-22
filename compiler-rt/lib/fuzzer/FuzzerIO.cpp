@@ -12,7 +12,7 @@
 #include "FuzzerExtFunctions.h"
 #include "FuzzerIO.h"
 #include "FuzzerUtil.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdarg>
 #include <fstream>
 #include <iterator>

@@ -1,4 +1,4 @@
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 #include <string>
 

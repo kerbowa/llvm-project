@@ -62,7 +62,7 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <sstream>

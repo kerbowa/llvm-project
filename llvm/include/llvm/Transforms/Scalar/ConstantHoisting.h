@@ -43,7 +43,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/PassManager.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 namespace llvm {

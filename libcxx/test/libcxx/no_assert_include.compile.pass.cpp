@@ -28,7 +28,7 @@
 // and should not be edited manually.
 
 // Top level headers
-#include <std::algorithm>
+#include <algorithm>
 #include <any>
 #include <array>
 #ifndef _LIBCPP_HAS_NO_THREADS

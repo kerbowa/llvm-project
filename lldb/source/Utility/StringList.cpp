@@ -13,7 +13,7 @@
 #include "lldb/Utility/StreamString.h"
 #include "llvm/ADT/ArrayRef.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <stdint.h>
 #include <string.h>
 

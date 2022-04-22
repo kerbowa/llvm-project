@@ -20,7 +20,7 @@
 #include "llvm/DebugInfo/CodeView/TypeIndex.h"
 #include "llvm/Support/BinaryStreamArray.h"
 #include "llvm/Support/Endian.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 

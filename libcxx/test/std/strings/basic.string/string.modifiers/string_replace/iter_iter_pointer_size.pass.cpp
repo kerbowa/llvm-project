@@ -12,7 +12,7 @@
 //   replace(const_iterator i1, const_iterator i2, const charT* s, size_type n);
 
 #include <string>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

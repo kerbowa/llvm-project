@@ -19,7 +19,7 @@
 
 #include "clang/AST/ASTContextAllocate.h"
 #include "llvm/ADT/PointerIntPair.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstring>

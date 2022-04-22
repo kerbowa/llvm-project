@@ -56,7 +56,7 @@ template <> struct char_traits<char32_t>;
 */
 
 #include <__config>
-#include <std::algorithm>  // for search and min
+#include <algorithm>  // for search and min
 #include <cstdio>     // for EOF
 #include <cstring>    // for memcpy
 #include <cwchar>     // for wmemcpy

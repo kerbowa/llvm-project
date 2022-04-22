@@ -33,7 +33,7 @@
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/PromoteMemToReg.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

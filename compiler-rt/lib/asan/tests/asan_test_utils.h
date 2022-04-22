@@ -28,7 +28,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
-#include <std::algorithm>
+#include <algorithm>
 #include <setjmp.h>
 
 #if !defined(_WIN32)

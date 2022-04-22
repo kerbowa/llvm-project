@@ -11,9 +11,9 @@
 //
 // clang-format off
 
-// <std::algorithm>
+// <algorithm>
 
-// Test the feature test macros defined by <std::algorithm>
+// Test the feature test macros defined by <algorithm>
 
 /*  Constant                                 Value
     __cpp_lib_clamp                          201603L [C++17]
@@ -25,7 +25,7 @@
     __cpp_lib_shift                          201806L [C++20]
 */
 
-#include <std::algorithm>
+#include <algorithm>
 #include "test_macros.h"
 
 #if TEST_STD_VER < 14

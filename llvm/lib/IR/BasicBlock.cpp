@@ -19,7 +19,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

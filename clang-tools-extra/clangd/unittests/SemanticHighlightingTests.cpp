@@ -20,7 +20,7 @@
 #include "llvm/Support/ScopedPrinter.h"
 #include "llvm/Support/raw_ostream.h"
 #include "gmock/gmock.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace clang {
 namespace clangd {

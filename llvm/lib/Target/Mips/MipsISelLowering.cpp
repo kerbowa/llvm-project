@@ -67,7 +67,7 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdint>

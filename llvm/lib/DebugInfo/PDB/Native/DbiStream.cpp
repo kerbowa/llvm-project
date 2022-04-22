@@ -20,7 +20,7 @@
 #include "llvm/Support/BinaryStreamArray.h"
 #include "llvm/Support/BinaryStreamReader.h"
 #include "llvm/Support/Error.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 

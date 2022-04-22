@@ -40,7 +40,7 @@
 #include "llvm/ADT/StringSet.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/FormatVariadic.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>

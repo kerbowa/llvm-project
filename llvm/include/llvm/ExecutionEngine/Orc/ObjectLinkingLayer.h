@@ -22,7 +22,7 @@
 #include "llvm/ExecutionEngine/Orc/Core.h"
 #include "llvm/ExecutionEngine/Orc/Layer.h"
 #include "llvm/Support/Error.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <list>

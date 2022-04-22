@@ -25,7 +25,7 @@
 #include "llvm/CodeGen/Register.h"
 #include "llvm/MC/MCRegister.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <limits>

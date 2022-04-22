@@ -23,7 +23,7 @@
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <limits>

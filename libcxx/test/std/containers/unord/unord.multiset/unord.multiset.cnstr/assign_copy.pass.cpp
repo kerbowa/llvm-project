@@ -15,7 +15,7 @@
 // unordered_multiset& operator=(const unordered_multiset& u);
 
 #include <unordered_set>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cfloat>
 #include <cmath>

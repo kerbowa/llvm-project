@@ -6,12 +6,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // __half_positive divides an integer number by 2 as unsigned number for known types.
 // It can be an important optimization for lower bound, for example.
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <limits>
 #include <type_traits>

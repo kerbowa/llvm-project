@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator InIter1, InputIterator InIter2, typename OutIter,
 //          CopyConstructible Compare>
@@ -20,7 +20,7 @@
 
 // UNSUPPORTED: c++03
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <vector>

@@ -28,7 +28,7 @@
 #include "clang/Basic/Specifiers.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <utility>

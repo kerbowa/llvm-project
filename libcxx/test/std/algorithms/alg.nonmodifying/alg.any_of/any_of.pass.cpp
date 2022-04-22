@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template <class InputIterator, class Predicate>
 //     constexpr bool       // constexpr after C++17
 //   any_of(InputIterator first, InputIterator last, Predicate pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

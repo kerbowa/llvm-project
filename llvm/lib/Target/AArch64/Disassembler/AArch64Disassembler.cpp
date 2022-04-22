@@ -25,7 +25,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/TargetRegistry.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <memory>
 
 using namespace llvm;

@@ -84,7 +84,7 @@ if(LLVM_ENABLE_EXPENSIVE_CHECKS)
   # _GLIBCXX_DEBUG is enabled.
   CHECK_CXX_SOURCE_COMPILES("
     #define _GLIBCXX_DEBUG
-    #include <std::algorithm>
+    #include <algorithm>
     int main(int argc, char** argv) {
       static constexpr int data[] = {0, 1};
       constexpr const int* min_elt = std::min_element(&data[0], &data[2]);

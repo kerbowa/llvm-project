@@ -42,7 +42,7 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cctype>
 using namespace llvm;
 

@@ -183,7 +183,6 @@ target_include_directories(LLVMAMDGPUCodeGen
         ${HIP_PATH}/include
         ${HIP_PATH}/../include)
 message(STATUS "HIP_LIB: ${HIP_LIBRARIES}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fgpu-rdc")
 
 target_link_libraries(LLVMAMDGPUCodeGen PRIVATE ${HIP_LIBRARIES})
 add_llvm_external_project(OptSched)

@@ -11,7 +11,7 @@
 
 #include "support/pstl_test_config.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cmath>
 #include <execution>
 #include <functional>

@@ -13,7 +13,7 @@
 // iterator erase(const_iterator f, const_iterator l)
 
 #include <deque>
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <cassert>
 #include <cstddef>

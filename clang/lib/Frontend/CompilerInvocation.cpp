@@ -88,7 +88,7 @@
 #include "llvm/Support/VirtualFileSystem.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetOptions.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <cstddef>

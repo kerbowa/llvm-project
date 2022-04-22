@@ -30,7 +30,7 @@
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Utils/CallGraphUpdater.h"
 #include "llvm/Transforms/Utils/Local.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

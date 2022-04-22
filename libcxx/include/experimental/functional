@@ -13,7 +13,7 @@
 /*
    experimental/functional synopsis
 
-#include <std::algorithm>
+#include <algorithm>
 
 namespace std {
 namespace experimental {
@@ -88,7 +88,7 @@ inline namespace fundamentals_v1 {
 
 #include <experimental/__config>
 #include <functional>
-#include <std::algorithm>
+#include <algorithm>
 #include <type_traits>
 #include <vector>
 #include <array>

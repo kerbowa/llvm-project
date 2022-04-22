@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter1, ForwardIterator Iter2,
 //          Predicate<auto, Iter1::value_type, Iter2::value_type> Pred>
@@ -14,7 +14,7 @@
 //   constexpr Iter1  // constexpr after C++17
 //   find_end(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2, Pred pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

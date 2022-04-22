@@ -4,7 +4,7 @@
 
 // Test that libFuzzer does not crash when LLVMFuzzerMutate called from
 // LLVMFuzzerCustomCrossOver.
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>

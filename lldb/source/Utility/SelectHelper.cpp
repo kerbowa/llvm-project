@@ -22,7 +22,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Optional.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <chrono>
 
 #include <errno.h>

@@ -22,7 +22,7 @@
 
 
 #include <numeric>
-#include <std::algorithm>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <functional>

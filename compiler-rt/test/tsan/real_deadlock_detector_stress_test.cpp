@@ -7,7 +7,7 @@
 #include <time.h>
 #include <errno.h>
 #include <vector>
-#include <std::algorithm>
+#include <algorithm>
 #include <sys/time.h>
 
 const int kThreads = 4;

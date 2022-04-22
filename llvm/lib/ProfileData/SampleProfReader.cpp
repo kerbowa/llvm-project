@@ -33,7 +33,7 @@
 #include "llvm/Support/MD5.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <limits>

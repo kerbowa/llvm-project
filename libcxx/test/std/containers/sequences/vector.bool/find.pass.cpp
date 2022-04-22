@@ -14,7 +14,7 @@
 // https://llvm.org/PR16816
 
 #include <vector>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 

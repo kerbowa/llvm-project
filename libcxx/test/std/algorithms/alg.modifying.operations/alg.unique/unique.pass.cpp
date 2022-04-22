@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter>
 //   requires OutputIterator<Iter, Iter::reference>
@@ -14,7 +14,7 @@
 //   constexpr Iter        // constexpr after C++17
 //   unique(Iter first, Iter last);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <memory>
 

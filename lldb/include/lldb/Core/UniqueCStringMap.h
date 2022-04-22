@@ -9,7 +9,7 @@
 #ifndef LLDB_CORE_UNIQUECSTRINGMAP_H
 #define LLDB_CORE_UNIQUECSTRINGMAP_H
 
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 #include "lldb/Utility/ConstString.h"

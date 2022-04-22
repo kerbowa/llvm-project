@@ -21,7 +21,7 @@
 #include "llvm/ADT/bit.h"
 #include "llvm/Support/PrettyStackTrace.h"
 #include "llvm/Support/SourceMgr.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace mlir;
 using namespace mlir::detail;

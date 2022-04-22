@@ -49,7 +49,7 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Allocator.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <utility>
 
 namespace llvm {

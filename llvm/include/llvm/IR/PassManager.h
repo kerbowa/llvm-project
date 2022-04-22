@@ -50,7 +50,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/Support/TypeName.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <iterator>

@@ -19,7 +19,7 @@
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <tuple>
 #include <utility>

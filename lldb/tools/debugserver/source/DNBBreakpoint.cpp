@@ -13,7 +13,7 @@
 #include "DNBBreakpoint.h"
 #include "DNBLog.h"
 #include "MachProcess.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <assert.h>
 #include <inttypes.h>
 

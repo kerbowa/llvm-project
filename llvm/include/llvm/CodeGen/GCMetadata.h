@@ -39,7 +39,7 @@
 #include "llvm/CodeGen/GCStrategy.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/Pass.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <memory>

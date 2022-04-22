@@ -13,7 +13,7 @@
 #include "support/pstl_test_config.h"
 
 #include <execution>
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <type_traits>
 

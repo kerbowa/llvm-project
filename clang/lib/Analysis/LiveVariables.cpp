@@ -18,7 +18,7 @@
 #include "clang/Analysis/FlowSensitive/DataflowWorklist.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 using namespace clang;

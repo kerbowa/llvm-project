@@ -8,7 +8,7 @@
 
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/TableGen/Record.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <string>
 #include <vector>
 using namespace llvm;

@@ -406,7 +406,7 @@ LBB1_1: ;bb
 //===---------------------------------------------------------------------===//
 
 This:
-        #include <std::algorithm>
+        #include <algorithm>
         inline std::pair<unsigned, bool> full_add(unsigned a, unsigned b)
         { return std::make_pair(a + b, a + b < a); }
         bool no_overflow(unsigned a, unsigned b)

@@ -15,7 +15,7 @@
 #include "kmp_stats.h"
 #include "kmp_str.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <ctime>
 #include <iomanip>
 #include <sstream>

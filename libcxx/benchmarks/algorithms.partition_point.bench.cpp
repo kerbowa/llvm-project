@@ -1,5 +1,5 @@
 #include <array>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <tuple>

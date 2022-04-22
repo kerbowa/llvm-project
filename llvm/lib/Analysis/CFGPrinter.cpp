@@ -23,7 +23,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

@@ -16,7 +16,7 @@
 #include "llvm/DebugInfo/DWARF/DWARFSection.h"
 #include "llvm/ObjectYAML/DWARFYAML.h"
 
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator InIter, typename OutIter,
 //          Predicate<auto, InIter::value_type> Pred, class T>
@@ -16,7 +16,7 @@
 //   constexpr OutIter      // constexpr after C++17
 //   replace_copy_if(InIter first, InIter last, OutIter result, Pred pred, const T& new_value);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 

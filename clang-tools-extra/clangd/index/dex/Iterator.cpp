@@ -8,7 +8,7 @@
 
 #include "Iterator.h"
 #include "llvm/Support/Casting.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <numeric>
 

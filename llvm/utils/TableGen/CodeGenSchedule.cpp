@@ -24,7 +24,7 @@
 #include "llvm/Support/Regex.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TableGen/Error.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <utility>
 

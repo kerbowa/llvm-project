@@ -9,7 +9,7 @@
 // test bitset(string, pos, n, zero, one);
 
 #include <bitset>
-#include <std::algorithm> // for 'min' and 'max'
+#include <algorithm> // for 'min' and 'max'
 #include <cassert>
 #include <stdexcept> // for 'invalid_argument'
 #include <string>

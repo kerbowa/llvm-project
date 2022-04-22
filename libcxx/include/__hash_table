@@ -14,7 +14,7 @@
 #include <initializer_list>
 #include <memory>
 #include <iterator>
-#include <std::algorithm>
+#include <algorithm>
 #include <cmath>
 #include <utility>
 #include <type_traits>

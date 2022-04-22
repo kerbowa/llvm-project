@@ -520,7 +520,7 @@ basic_string<char32_t> operator "" s( const char32_t *str, size_t len ); // C++1
 #include <cstring>
 #include <cstdio>  // For EOF.
 #include <cwchar>
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <utility>
 #include <memory>

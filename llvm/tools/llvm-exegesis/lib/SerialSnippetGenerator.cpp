@@ -11,7 +11,7 @@
 #include "CodeTemplate.h"
 #include "MCInstrDescView.h"
 #include "Target.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <numeric>
 #include <vector>
 

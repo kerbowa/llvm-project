@@ -11,7 +11,7 @@
 #include "clang/Driver/Types.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Path.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace clang {
 namespace clangd {
@@ -172,13 +172,13 @@ void CanonicalIncludes::addSystemHeadersMapping(const LangOptions &Language) {
       {"include/xtestintrin.h", "<immintrin.h>"},
       {"include/_G_config.h", "<cstdio>"},
       {"include/assert.h", "<cassert>"},
-      {"algorithm", "<std::algorithm>"},
+      {"algorithm", "<algorithm>"},
       {"valarray", "<valarray>"},
       {"array", "<array>"},
       {"atomic", "<atomic>"},
       {"backward/auto_ptr.h", "<memory>"},
       {"backward/binders.h", "<string>"},
-      {"bits/algorithmfwd.h", "<std::algorithm>"},
+      {"bits/algorithmfwd.h", "<algorithm>"},
       {"bits/alloc_traits.h", "<memory>"},
       {"bits/allocated_ptr.h", "<memory>"},
       {"bits/allocator.h", "<allocator>"},
@@ -229,7 +229,7 @@ void CanonicalIncludes::addSystemHeadersMapping(const LangOptions &Language) {
       {"bits/ostream_insert.h", "<ostream>"},
       {"bits/parse_numbers.h", "<chrono>"},
       {"bits/postypes.h", "<ios>"},
-      {"bits/predefined_ops.h", "<std::algorithm>"},
+      {"bits/predefined_ops.h", "<algorithm>"},
       {"bits/ptr_traits.h", "<memory>"},
       {"bits/quoted_string.h", "<iomanip>"},
       {"bits/random.h", "<random>"},
@@ -255,8 +255,8 @@ void CanonicalIncludes::addSystemHeadersMapping(const LangOptions &Language) {
       {"bits/std_abs.h", "<cmath>"},
       {"bits/std_function.h", "<functional>"},
       {"bits/std_mutex.h", "<mutex>"},
-      {"bits/stl_algo.h", "<std::algorithm>"},
-      {"bits/stl_algobase.h", "<std::algorithm>"},
+      {"bits/stl_algo.h", "<algorithm>"},
+      {"bits/stl_algobase.h", "<algorithm>"},
       {"bits/stl_bvector.h", "<vector>"},
       {"bits/stl_construct.h", "<deque>"},
       {"bits/stl_deque.h", "<deque>"},

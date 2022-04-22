@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <memory>
 #include <mutex>
 

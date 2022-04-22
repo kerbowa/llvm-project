@@ -13,7 +13,7 @@
 #ifndef LLVM_IR_PROFILESUMMARY_H
 #define LLVM_IR_PROFILESUMMARY_H
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <vector>

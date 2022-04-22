@@ -7,7 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IncludeFixerContext.h"
-#include <std::algorithm>
+#include <algorithm>
 
 namespace clang {
 namespace include_fixer {

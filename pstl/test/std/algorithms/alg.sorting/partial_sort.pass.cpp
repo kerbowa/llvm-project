@@ -13,7 +13,7 @@
 
 #include <cmath>
 #include <execution>
-#include <std::algorithm>
+#include <algorithm>
 
 #include "support/utils.h"
 

@@ -10,7 +10,7 @@
 
 #include <assert.h>
 
-#include <std::algorithm>
+#include <algorithm>
 
 #include "llvm/Support/LEB128.h"
 

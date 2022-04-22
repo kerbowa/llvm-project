@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<RandomAccessIterator Iter>
 //   requires ShuffleIterator<Iter>
@@ -14,7 +14,7 @@
 //   void
 //   stable_sort(Iter first, Iter last);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <random>
 #include <cassert>

@@ -18,7 +18,7 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/Threading.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <mutex>

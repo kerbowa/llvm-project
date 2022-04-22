@@ -19,7 +19,7 @@
 
 #include <forward_list>
 #include <iterator>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

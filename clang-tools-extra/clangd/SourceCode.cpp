@@ -42,7 +42,7 @@
 #include "llvm/Support/SHA1.h"
 #include "llvm/Support/VirtualFileSystem.h"
 #include "llvm/Support/xxhash.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <string>
 #include <vector>

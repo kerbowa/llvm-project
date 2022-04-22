@@ -26,7 +26,7 @@
 #include "llvm/Support/BinaryStreamWriter.h"
 #include "llvm/Support/Parallel.h"
 #include "llvm/Support/xxhash.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 using namespace llvm;

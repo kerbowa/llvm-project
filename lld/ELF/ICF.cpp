@@ -87,7 +87,7 @@
 #include "llvm/Support/Parallel.h"
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/Support/xxhash.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 
 using namespace llvm;

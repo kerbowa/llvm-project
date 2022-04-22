@@ -20,7 +20,7 @@
 #include <cassert>
 #include <cfloat>
 #include <cmath>
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 
 #include "test_macros.h"

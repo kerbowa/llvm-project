@@ -172,7 +172,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include <stdint.h>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <iosfwd>

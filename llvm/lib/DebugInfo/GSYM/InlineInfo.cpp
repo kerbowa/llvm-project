@@ -11,7 +11,7 @@
 #include "llvm/DebugInfo/GSYM/GsymReader.h"
 #include "llvm/DebugInfo/GSYM/InlineInfo.h"
 #include "llvm/Support/DataExtractor.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <inttypes.h>
 
 using namespace llvm;

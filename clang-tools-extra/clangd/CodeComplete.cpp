@@ -68,7 +68,7 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/ScopedPrinter.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <iterator>
 #include <limits>
 

@@ -14,7 +14,7 @@
 
 // unordered_map& operator=(const unordered_map& u);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <unordered_map>
 #include <string>
 #include <cassert>

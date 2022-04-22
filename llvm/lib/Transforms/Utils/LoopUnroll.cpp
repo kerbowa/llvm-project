@@ -65,7 +65,7 @@
 #include "llvm/Transforms/Utils/SimplifyIndVar.h"
 #include "llvm/Transforms/Utils/UnrollLoop.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <assert.h>
 #include <type_traits>
 #include <vector>

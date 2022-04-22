@@ -31,7 +31,7 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/RandomNumberGenerator.h"
 #include "llvm/Support/xxhash.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 #include <map>
 #include <memory>

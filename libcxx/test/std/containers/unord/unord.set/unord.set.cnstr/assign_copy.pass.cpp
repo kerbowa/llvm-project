@@ -15,7 +15,7 @@
 // unordered_set& operator=(const unordered_set& u);
 
 #include <unordered_set>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cfloat>
 #include <cmath>

@@ -26,7 +26,7 @@
 #include "flang/Common/indirection.h"
 #include "flang/Common/template.h"
 #include "flang/Parser/char-block.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <list>
 #include <tuple>
 #include <type_traits>

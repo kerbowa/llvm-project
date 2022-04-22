@@ -12,7 +12,7 @@
 // Describes a contiguous block of characters; does not own their storage.
 
 #include "flang/Common/interval.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <iosfwd>

@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<class ForwardIterator, class Predicate>
 //     constexpr ForwardIterator       // constexpr after C++17
 //     partition_point(ForwardIterator first, ForwardIterator last, Predicate pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

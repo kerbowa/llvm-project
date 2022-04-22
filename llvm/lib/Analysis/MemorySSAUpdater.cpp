@@ -26,7 +26,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FormattedStream.h"
-#include <std::algorithm>
+#include <algorithm>
 
 #define DEBUG_TYPE "memoryssa"
 using namespace llvm;

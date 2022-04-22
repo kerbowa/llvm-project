@@ -181,7 +181,7 @@ namespace std {
 #include <__config>
 #include <__string>
 #include <iosfwd>
-#include <std::algorithm>
+#include <algorithm>
 #include <compare>
 #include <iterator>
 #include <limits>

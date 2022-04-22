@@ -8,7 +8,7 @@
 
 // UNSUPPORTED: c++03, c++11
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <vector>

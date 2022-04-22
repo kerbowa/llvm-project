@@ -7,7 +7,7 @@
 //===----------------------------------------------------------------------===//
 #include <stdlib.h>
 
-#include <std::algorithm>
+#include <algorithm>
 #include <mutex>
 
 #include "lldb/Target/Thread.h"

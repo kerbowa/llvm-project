@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 // Test that fuzzer we can reload artifacts with any bytes inside.
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <numeric>

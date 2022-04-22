@@ -76,7 +76,7 @@
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Threading.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>

@@ -9,12 +9,12 @@
 // GCC 5 does not evaluate static assertions dependent on a template parameter.
 // UNSUPPORTED: gcc-5
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter>
 //   max_element(Iter first, Iter last);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_iterators.h"

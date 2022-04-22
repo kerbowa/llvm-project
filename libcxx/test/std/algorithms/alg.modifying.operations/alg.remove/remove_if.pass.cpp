@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<ForwardIterator Iter, Predicate<auto, Iter::value_type> Pred>
 //   requires OutputIterator<Iter, RvalueOf<Iter::reference>::type>
@@ -14,7 +14,7 @@
 //   constexpr Iter         // constexpr after C++17
 //   remove_if(Iter first, Iter last, Pred pred);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <cassert>
 #include <memory>

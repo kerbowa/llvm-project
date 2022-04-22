@@ -22,7 +22,7 @@
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/SetTheory.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <utility>

@@ -13,7 +13,7 @@
 
 #include "llvm/CodeGen/MultiHazardRecognizer.h"
 #include "llvm/ADT/STLExtras.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <functional>
 #include <numeric>
 

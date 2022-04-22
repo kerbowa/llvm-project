@@ -13,7 +13,7 @@
 
 #include "io-error.h"
 #include "memory.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <cinttypes>
 #include <cstring>
 

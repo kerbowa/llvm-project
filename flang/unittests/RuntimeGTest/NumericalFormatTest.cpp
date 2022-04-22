@@ -9,7 +9,7 @@
 #include "CrashHandlerFixture.h"
 #include "../../runtime/descriptor.h"
 #include "../../runtime/io-api.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <gtest/gtest.h>

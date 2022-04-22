@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <__threading_support>

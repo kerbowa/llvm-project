@@ -14,7 +14,7 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/WindowsError.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <io.h>
 #include <signal.h>
 #include <stdio.h>

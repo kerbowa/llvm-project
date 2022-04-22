@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<InputIterator InIter, RandomAccessIterator RAIter, class Compare>
 //   requires ShuffleIterator<RAIter>
@@ -18,7 +18,7 @@
 //   partial_sort_copy(InIter first, InIter last,
 //                     RAIter result_first, RAIter result_last, Compare comp);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 #include <functional>
 

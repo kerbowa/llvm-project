@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template <class RandomAccessIterator>
 //     void
@@ -22,7 +22,7 @@
 
 // ADDITIONAL_COMPILE_FLAGS: -D_LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cstddef>
 
 #include "test_macros.h"

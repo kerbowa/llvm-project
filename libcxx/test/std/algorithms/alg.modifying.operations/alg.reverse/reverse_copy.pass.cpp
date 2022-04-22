@@ -6,13 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <std::algorithm>
+// <algorithm>
 
 // template<BidirectionalIterator InIter, OutputIterator<auto, InIter::reference> OutIter>
 //   constexpr OutIter          // constexpr after C++17
 //   reverse_copy(InIter first, InIter last, OutIter result);
 
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

@@ -26,7 +26,7 @@
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/Support/Debug.h"
-#include <std::algorithm>
+#include <algorithm>
 
 #define DEBUG_TYPE "arc-lower"
 

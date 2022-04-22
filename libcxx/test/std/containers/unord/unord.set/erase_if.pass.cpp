@@ -14,7 +14,7 @@
 //   erase_if(unordered_set<T, Hash, Compare, Allocator>& c, Predicate pred);
 
 #include <unordered_set>
-#include <std::algorithm>
+#include <algorithm>
 
 #include "test_macros.h"
 #include "test_allocator.h"

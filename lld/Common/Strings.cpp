@@ -12,7 +12,7 @@
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/GlobPattern.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <mutex>
 #include <vector>
 

@@ -16,7 +16,7 @@
 // template<class _URNG> result_type operator()(_URNG& g);
 
 #include <random>
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 #include <iterator>
 #include <numeric>

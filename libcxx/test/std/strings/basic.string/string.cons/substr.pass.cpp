@@ -18,7 +18,7 @@
 
 #include <string>
 #include <stdexcept>
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 #include <scoped_allocator>
 #include <cassert>

@@ -12,7 +12,7 @@
 //   replace(const_iterator i1, const_iterator i2, basic_string_view<charT,traits> sv);
 
 #include <string>
-#include <std::algorithm>
+#include <algorithm>
 #include <cassert>
 
 #include "test_macros.h"

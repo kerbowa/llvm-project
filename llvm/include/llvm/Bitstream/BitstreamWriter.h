@@ -21,7 +21,7 @@
 #include "llvm/Bitstream/BitCodes.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <vector>
 
 namespace llvm {

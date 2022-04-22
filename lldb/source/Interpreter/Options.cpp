@@ -8,7 +8,7 @@
 
 #include "lldb/Interpreter/Options.h"
 
-#include <std::algorithm>
+#include <algorithm>
 #include <bitset>
 #include <map>
 #include <set>

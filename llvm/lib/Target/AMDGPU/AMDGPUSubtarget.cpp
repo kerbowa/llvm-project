@@ -28,7 +28,7 @@
 #include "llvm/IR/IntrinsicsR600.h"
 #include "llvm/IR/MDBuilder.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include <std::algorithm>
+#include <algorithm>
 
 using namespace llvm;
 

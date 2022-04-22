@@ -9,7 +9,7 @@
 #include "flang/Parser/provenance.h"
 #include "flang/Common/idioms.h"
 #include "llvm/Support/raw_ostream.h"
-#include <std::algorithm>
+#include <algorithm>
 #include <utility>
 
 namespace Fortran::parser {
