@@ -39,21 +39,26 @@ project(LLVM
   VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}
   LANGUAGES C CXX ASM)
 
-set(HIP_CXX_COMPILER "/home/josh/project/host-llvm/llvm-project/build/bin/clang++")
-set(CMAKE_CXX_COMPILER ${HIP_CXX_COMPILER} CACHE FILEPATH "" FORCE)
+####################################################################
+# OptSched
+####################################################################
+
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/rocm/lib/cmake")
+set(HIP_CXX_COMPILER "/home/aukerbow/repos/llvm-trunk/llvm-project-1/llvm-project/build-rel/bin/clang++")
 set(CMAKE_CXX_STANDARD "17" CACHE STRING "" FORCE)
-set(AMDGPU_TARGETS "gfx906" CACHE STRING "AMD GPU targets to compile for" FORCE)
-find_package(hip REQUIRED CONFIG PATHS /opt/rocm-4.5.2/)
-#include_directories(${HIP_INCLUDE_DIR})
-include_directories("/opt/rocm-4.5.2/include")
+set(AMDGPU_TARGETS "gfx1010" CACHE STRING "AMD GPU targets to compile for" FORCE)
+find_package(hip REQUIRED CONFIG PATHS /opt/rocm)
+include_directories(${HIP_INCLUDE_DIR})
 message(STATUS "HIP_INCLUDE_DIR: ${HIP_INCLUDE_DIR}")
 message(STATUS "HIP_COMPILER: ${HIP_COMPILER}")
 message(STATUS "HIP_CXX_COMPILER: ${HIP_CXX_COMPILER}")
 message(STATUS "HIP_LIB: ${HIP_LIBRARIES}")
-find_package(hiprand REQUIRED CONFIG PATHS /opt/rocm-4.5.2/)
-#include_directories(${HIPRAND_INCLUDE_DIR})
-include_directories("/opt/rocm-4.5.2/hiprand/include" "/opt/rocm-4.5.2/rocrand/include")
+
+find_package(hiprand REQUIRED CONFIG PATHS /opt/rocm)
+include_directories(${HIPRAND_INCLUDE_DIR})
 message(STATUS "HIPRAND_INCLUDE_DIR: ${HIPRAND_INCLUDE_DIR}")
+
+####################################################################
 
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard to conform to")
 set(CMAKE_CXX_STANDARD_REQUIRED YES)

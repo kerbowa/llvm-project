@@ -45,6 +45,16 @@ clang_target_link_libraries(clang
   clangSerialization
   )
 
+####################################################################
+# OptSched
+####################################################################
+
+target_link_options(clang PRIVATE -fgpu-rdc --hip-link)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fgpu-rdc")
+clang_target_link_libraries(clang PRIVATE ${HIP_LIBRARIES})
+
+####################################################################
+
 if(WIN32 AND NOT CYGWIN)
   # Prevent versioning if the buildhost is targeting for Win32.
 else()

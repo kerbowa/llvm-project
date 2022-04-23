@@ -49,9 +49,7 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Vectorize.h"
-//#include "OptSched/lib/Wrapper/OptimizingScheduler.h"
-#include "OptSched/lib/Wrapper/AMDGPU/GCNOptSched.cpp"
-#include "OptSched/lib/Wrapper/AMDGPU/OptSchedGCNTarget.cpp"
+#include "OptSched/lib/Wrapper/AMDGPU/GCNOptSched.h"
 
 using namespace llvm;
 
@@ -204,6 +202,11 @@ static cl::opt<bool>
 static cl::opt<bool> EnablePreRAOptimizations(
     "amdgpu-enable-pre-ra-optimizations",
     cl::desc("Enable Pre-RA optimizations pass"), cl::init(true),
+    cl::Hidden);
+
+static cl::opt<bool> UseOptSched(
+    "use-opt-sched",
+    cl::desc("Use OptSched machine scheduler"), cl::init(true),
     cl::Hidden);
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAMDGPUTarget() {
@@ -1029,13 +1032,20 @@ TargetPassConfig *R600TargetMachine::createPassConfig(PassManagerBase &PM) {
 // GCN Pass Setup
 //===----------------------------------------------------------------------===//
 
+static ScheduleDAGInstrs *createOptSchedGCN(MachineSchedContext *C) {
+  ScheduleDAGMILive *DAG = new llvm::opt_sched::ScheduleDAGOptSchedGCN(
+      C, std::make_unique<GCNMaxOccupancySchedStrategy>(C));
+  DAG->addMutation(createLoadClusterDAGMutation(DAG->TII, DAG->TRI));
+  DAG->addMutation(createAMDGPUMacroFusionDAGMutation());
+  DAG->addMutation(createAMDGPUExportClusteringDAGMutation());
+  return DAG;
+}
+
 ScheduleDAGInstrs *GCNPassConfig::createMachineScheduler(
   MachineSchedContext *C) const {
-  //const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
-  //if (ST.enableSIScheduler())
-  //  return createSIMachineScheduler(C);
-  //return createGCNMaxOccupancyMachineScheduler(C);
-  return createOptSchedGCN(C);
+  if (UseOptSched)
+    return createOptSchedGCN(C);
+  return createGCNMaxOccupancyMachineScheduler(C);
 }
 
 bool GCNPassConfig::addPreISel() {

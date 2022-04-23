@@ -28,4 +28,13 @@ add_llvm_tool(llc
   SUPPORT_PLUGINS
   )
 
+####################################################################
+# OptSched
+####################################################################
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -fgpu-rdc")
+target_link_options(llc PUBLIC -fgpu-rdc --hip-link)
+target_link_libraries(llc PRIVATE ${HIP_LIBRARIES})
 export_executable_symbols_for_plugins(llc)
+
+####################################################################

@@ -219,9 +219,3 @@ add_subdirectory(SelectionDAG)
 add_subdirectory(AsmPrinter)
 add_subdirectory(MIRParser)
 add_subdirectory(GlobalISel)
-
-set(OPTSCHED_TARGET_DEPS  "../Target/AMDGPU/OptSched/include" "../Target/AMDGPU/OptSched/lib" "/opt/rocm-4.5.2/hiprand/include" "/opt/rocm-4.5.2/rocrand/include")
-target_include_directories(LLVMCodeGen PRIVATE ${OPTSCHED_TARGET_DEPS})
-
-
-target_link_libraries(LLVMCodeGen PRIVATE LLVMOptSched)
