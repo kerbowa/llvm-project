@@ -149,8 +149,9 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
     if (!F.hasFnAttribute("amdgpu-no-queue-ptr"))
       QueuePtr = true;
 
-    if (!F.hasFnAttribute("amdgpu-no-dispatch-id"))
-      DispatchID = true;
+    // HACK HACK HACK
+    //if (!F.hasFnAttribute("amdgpu-no-dispatch-id"))
+    //  DispatchID = true;
 
     if (!IsKernel && !F.hasFnAttribute("amdgpu-no-lds-kernel-id"))
       LDSKernelId = true;
@@ -160,6 +161,8 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
   // to look for allocas.
   bool HasStackObjects = F.hasFnAttribute("amdgpu-stack-objects");
 
+  // HACK HACK HACK
+#if 0
   // TODO: This could be refined a lot. The attribute is a poor way of
   // detecting calls or stack objects that may require it before argument
   // lowering.
@@ -169,6 +172,7 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
       !ST.flatScratchIsArchitected()) {
     FlatScratchInit = true;
   }
+#endif
 
   if (isEntryFunction()) {
     // X, XY, and XYZ are the only supported combinations, so make sure Y is
@@ -220,12 +224,24 @@ void SIMachineFunctionInfo::limitOccupancy(const MachineFunction &MF) {
                  MF.getFunction()));
 }
 
+Register SIMachineFunctionInfo::addPreloadedKernArg(
+  const SIRegisterInfo &TRI, const TargetRegisterClass *RC, unsigned AllocSizeDWord) {
+  ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount++] = 
+    ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
+    getNextUserSGPR(), AMDGPU::sub0, RC));
+  NumUserSGPRs += AllocSizeDWord;
+  NumKernargPreloadedSGPRs += AllocSizeDWord;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
+  return ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount - 1].getRegister();
+}
+
 Register SIMachineFunctionInfo::addPrivateSegmentBuffer(
   const SIRegisterInfo &TRI) {
   ArgInfo.PrivateSegmentBuffer =
     ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SGPR_128RegClass));
   NumUserSGPRs += 4;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.PrivateSegmentBuffer.getRegister();
 }
 
@@ -233,6 +249,7 @@ Register SIMachineFunctionInfo::addDispatchPtr(const SIRegisterInfo &TRI) {
   ArgInfo.DispatchPtr = ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SReg_64RegClass));
   NumUserSGPRs += 2;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.DispatchPtr.getRegister();
 }
 
@@ -240,6 +257,7 @@ Register SIMachineFunctionInfo::addQueuePtr(const SIRegisterInfo &TRI) {
   ArgInfo.QueuePtr = ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SReg_64RegClass));
   NumUserSGPRs += 2;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.QueuePtr.getRegister();
 }
 
@@ -248,6 +266,7 @@ Register SIMachineFunctionInfo::addKernargSegmentPtr(const SIRegisterInfo &TRI) 
     = ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SReg_64RegClass));
   NumUserSGPRs += 2;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.KernargSegmentPtr.getRegister();
 }
 
@@ -255,6 +274,7 @@ Register SIMachineFunctionInfo::addDispatchID(const SIRegisterInfo &TRI) {
   ArgInfo.DispatchID = ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SReg_64RegClass));
   NumUserSGPRs += 2;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.DispatchID.getRegister();
 }
 
@@ -262,6 +282,7 @@ Register SIMachineFunctionInfo::addFlatScratchInit(const SIRegisterInfo &TRI) {
   ArgInfo.FlatScratchInit = ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SReg_64RegClass));
   NumUserSGPRs += 2;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.FlatScratchInit.getRegister();
 }
 
@@ -269,12 +290,14 @@ Register SIMachineFunctionInfo::addImplicitBufferPtr(const SIRegisterInfo &TRI) 
   ArgInfo.ImplicitBufferPtr = ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
     getNextUserSGPR(), AMDGPU::sub0, &AMDGPU::SReg_64RegClass));
   NumUserSGPRs += 2;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.ImplicitBufferPtr.getRegister();
 }
 
 Register SIMachineFunctionInfo::addLDSKernelId() {
   ArgInfo.LDSKernelId = ArgDescriptor::createRegister(getNextUserSGPR());
   NumUserSGPRs += 1;
+  llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
   return ArgInfo.LDSKernelId.getRegister();
 }
 

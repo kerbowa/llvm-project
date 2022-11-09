@@ -44,6 +44,11 @@ using namespace llvm;
 
 STATISTIC(NumTailCalls, "Number of tail calls");
 
+static cl::opt<unsigned> KernargPreloadCount(
+  "amdgpu-kernarg-preload-count",
+  cl::desc("How many kernel arguments be preloaded onto SGPRs"),
+  cl::init(16));
+
 static cl::opt<bool> DisableLoopAlignment(
   "amdgpu-disable-loop-alignment",
   cl::desc("Do not align and prefetch loops"),
@@ -2204,6 +2209,62 @@ void SITargetLowering::allocateHSAUserSGPRs(CCState &CCInfo,
 
   // TODO: Add GridWorkGroupCount user SGPRs when used. For now with HSA we read
   // these from the dispatch pointer.
+
+  llvm::errs() << "USER SGPRs used: " << Info.getNumUserSGPRs() << "\n";
+  llvm::errs() << "# of DWs available: " << (16 - Info.getNumUserSGPRs()) << "\n";
+
+  // TODO:
+  // (DONE) move the logic to the last
+  // (DONE) inspect the number of kernargs can be preloaded
+  // (DONE) be able to specify the width of kernarg by inspecting MF
+  // - support 1 / 2 / 4 / 8 bytes of kernargs
+
+  const Function &F = MF.getFunction();
+  const DataLayout &DL = F.getParent()->getDataLayout();
+  auto &ArgInfo = Info.getArgInfo();
+  for (const Argument &Arg : F.args()) {
+    if (Info.getNumUserSGPRs() >= 16)
+      break;
+
+    Type *ArgTy = Arg.getType();
+    uint64_t AllocSize = DL.getTypeAllocSize(ArgTy);
+    unsigned AllocSizeDWord = static_cast<unsigned>(AllocSize >> 2);
+
+    if (Info.getNumUserSGPRs() + AllocSizeDWord > 16)
+      break;
+
+    const TargetRegisterClass *RC = nullptr;
+    switch (AllocSizeDWord) {
+    case 1:
+      RC = &AMDGPU::SGPR_32RegClass;
+      break;
+    case 2:
+      RC = &AMDGPU::SGPR_64RegClass;
+      break;
+    case 4:
+      RC = &AMDGPU::SGPR_128RegClass;
+      break;
+    default:
+      llvm_unreachable("Unexpected kernel argument alloc size!");
+    }
+
+    if (ArgInfo.PreloadedKernArgCount < KernargPreloadCount) {
+      if (AllocSizeDWord == 1) {
+        allocateSGPR32Input(CCInfo, ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount]);
+        Info.NumUserSGPRs += AllocSizeDWord;
+        Info.NumKernargPreloadedSGPRs += AllocSizeDWord;
+        ArgInfo.PreloadedKernArgCount++;
+        llvm::errs() << __FUNCTION__ << ": " << Info.NumUserSGPRs << "\n";
+      } else {
+        Register PreloadedKernArgReg = Info.addPreloadedKernArg(TRI, RC, AllocSizeDWord);
+        MF.addLiveIn(PreloadedKernArgReg, RC);
+        CCInfo.AllocateReg(PreloadedKernArgReg);
+      }
+    }
+
+    if (ArgInfo.PreloadedKernArgCount >= KernargPreloadCount)
+      break;
+  }
 }
 
 // Allocate special input registers that are initialized per-wave.
@@ -2425,6 +2486,7 @@ void SITargetLowering::insertCopiesSplitCSR(
   }
 }
 
+
 SDValue SITargetLowering::LowerFormalArguments(
     SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins, const SDLoc &DL,
@@ -2454,6 +2516,8 @@ SDValue SITargetLowering::LowerFormalArguments(
   bool IsGraphics = AMDGPU::isGraphics(CallConv);
   bool IsKernel = AMDGPU::isKernel(CallConv);
   bool IsEntryFunc = AMDGPU::isEntryFunctionCC(CallConv);
+
+  unsigned KernargPreloaded = 0;
 
   if (IsGraphics) {
     assert(!Info->hasDispatchPtr() && !Info->hasKernargSegmentPtr() &&
@@ -2566,20 +2630,31 @@ SDValue SITargetLowering::LowerFormalArguments(
         continue;
       }
 
-      SDValue Arg = lowerKernargMemParameter(
-        DAG, VT, MemVT, DL, Chain, Offset, Alignment, Ins[i].Flags.isSExt(), &Ins[i]);
-      Chains.push_back(Arg.getValue(1));
+      SDValue Arg;
+      if (KernargPreloaded < KernargPreloadCount) {
+        MachineFunction &MF = DAG.getMachineFunction();
+        const SIMachineFunctionInfo *Info = MF.getInfo<SIMachineFunctionInfo>();
 
-      auto *ParamTy =
-        dyn_cast<PointerType>(FType->getParamType(Ins[i].getOrigArgIndex()));
-      if (Subtarget->getGeneration() == AMDGPUSubtarget::SOUTHERN_ISLANDS &&
-          ParamTy && (ParamTy->getAddressSpace() == AMDGPUAS::LOCAL_ADDRESS ||
-                      ParamTy->getAddressSpace() == AMDGPUAS::REGION_ADDRESS)) {
-        // On SI local pointers are just offsets into LDS, so they are always
-        // less than 16-bits.  On CI and newer they could potentially be
-        // real pointers, so we can't guarantee their size.
-        Arg = DAG.getNode(ISD::AssertZext, DL, Arg.getValueType(), Arg,
-                          DAG.getValueType(MVT::i16));
+        const ArgDescriptor *InputPtrReg = &(Info->getArgInfo().PreloadedKernArg[KernargPreloaded++]);
+        MachineRegisterInfo &MRI = DAG.getMachineFunction().getRegInfo();
+        Register Reg = MRI.getLiveInVirtReg(InputPtrReg->getRegister());
+        Arg = DAG.getCopyFromReg(Chain, DL, Reg, VT);
+      } else {
+        Arg = lowerKernargMemParameter(
+          DAG, VT, MemVT, DL, Chain, Offset, Alignment, Ins[i].Flags.isSExt(), &Ins[i]);
+        Chains.push_back(Arg.getValue(1));
+
+        auto *ParamTy =
+          dyn_cast<PointerType>(FType->getParamType(Ins[i].getOrigArgIndex()));
+        if (Subtarget->getGeneration() == AMDGPUSubtarget::SOUTHERN_ISLANDS &&
+            ParamTy && (ParamTy->getAddressSpace() == AMDGPUAS::LOCAL_ADDRESS ||
+                        ParamTy->getAddressSpace() == AMDGPUAS::REGION_ADDRESS)) {
+          // On SI local pointers are just offsets into LDS, so they are always
+          // less than 16-bits.  On CI and newer they could potentially be
+          // real pointers, so we can't guarantee their size.
+          Arg = DAG.getNode(ISD::AssertZext, DL, Arg.getValueType(), Arg,
+                            DAG.getValueType(MVT::i16));
+        }
       }
 
       InVals.push_back(Arg);

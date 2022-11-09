@@ -88,6 +88,9 @@ bool AMDGPULowerKernelArguments::runOnFunction(Function &F) {
 
   uint64_t ExplicitArgOffset = 0;
 
+  // XXX: HACK
+  unsigned SGPRUsed = (AMDGPU::getAmdhsaCodeObjectVersion() <= 4) ? 6 : 2;
+
   for (Argument &Arg : F.args()) {
     const bool IsByRef = Arg.hasByRefAttr();
     Type *ArgTy = IsByRef ? Arg.getParamByRefType() : Arg.getType();
@@ -113,6 +116,13 @@ bool AMDGPULowerKernelArguments::runOnFunction(Function &F) {
       Value *CastOffsetPtr =
           Builder.CreateAddrSpaceCast(ArgOffsetPtr, Arg.getType());
       Arg.replaceAllUsesWith(CastOffsetPtr);
+      continue;
+    }
+
+    // XXX: HACK
+    unsigned AllocSizeDWord = alignTo(AllocSize, 4) / 4;
+    if (SGPRUsed + AllocSizeDWord <= 16) {
+      SGPRUsed += AllocSizeDWord;
       continue;
     }
 

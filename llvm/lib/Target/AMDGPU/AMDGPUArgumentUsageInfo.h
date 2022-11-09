@@ -151,8 +151,14 @@ struct AMDGPUFunctionArgInfo {
   ArgDescriptor WorkItemIDY;
   ArgDescriptor WorkItemIDZ;
 
+  ArgDescriptor PreloadedKernArg[16];
+  unsigned PreloadedKernArgCount = 0;
+
   std::tuple<const ArgDescriptor *, const TargetRegisterClass *, LLT>
   getPreloadedValue(PreloadedValue Value) const;
+
+  // TODO
+  // - fore preloaeded kernargs, create another utility function
 
   static constexpr AMDGPUFunctionArgInfo fixedABILayout();
 };

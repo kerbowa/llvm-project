@@ -155,6 +155,9 @@ template <> struct MappingTraits<SIArgument> {
 };
 
 struct SIArgumentInfo {
+  std::optional<SIArgument> KernelArg0;
+  std::optional<SIArgument> KernelArg1;
+  std::optional<SIArgument> KernelArg2;
   std::optional<SIArgument> PrivateSegmentBuffer;
   std::optional<SIArgument> DispatchPtr;
   std::optional<SIArgument> QueuePtr;
@@ -410,10 +413,12 @@ class SIMachineFunctionInfo final : public AMDGPUMachineFunction {
 
   const AMDGPUGWSResourcePseudoSourceValue GWSResourcePSV;
 
-private:
+public:
   unsigned NumUserSGPRs = 0;
   unsigned NumSystemSGPRs = 0;
+  unsigned NumKernargPreloadedSGPRs = 0;
 
+private:
   bool HasSpilledSGPRs = false;
   bool HasSpilledVGPRs = false;
   bool HasNonSpillStackObjects = false;
@@ -690,6 +695,8 @@ public:
   Register addImplicitBufferPtr(const SIRegisterInfo &TRI);
   Register addLDSKernelId();
 
+  Register addPreloadedKernArg(const SIRegisterInfo &TRI, const TargetRegisterClass *RC, unsigned AllocSizeDWord);
+
   /// Increment user SGPRs used for padding the argument list only.
   Register addReservedUserSGPR() {
     Register Next = getNextUserSGPR();
@@ -860,6 +867,10 @@ public:
 
   unsigned getNumPreloadedSGPRs() const {
     return NumUserSGPRs + NumSystemSGPRs;
+  }
+
+  unsigned getNumKernargPreloadedSGPRs() const {
+    return NumKernargPreloadedSGPRs;
   }
 
   Register getPrivateSegmentWaveByteOffsetSystemSGPR() const {

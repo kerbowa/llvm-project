@@ -348,6 +348,9 @@ void AMDGPUTargetAsmStreamer::EmitAmdhsaKernelDescriptor(
         OS, ".amdhsa_user_sgpr_private_segment_buffer", KD,
         kernel_code_properties,
         amdhsa::KERNEL_CODE_PROPERTY_ENABLE_SGPR_PRIVATE_SEGMENT_BUFFER);
+  // FIXME. Be able to specify kernarg_preload_offset.
+  OS << "\t\t.amdhsa_user_sgpr_kernarg_preload_length " << static_cast<uint32_t>(KD.kernarg_preload) << '\n';
+  OS << "\t\t.amdhsa_user_sgpr_kernarg_preload_offset " << 0 << '\n';
   PRINT_FIELD(OS, ".amdhsa_user_sgpr_dispatch_ptr", KD,
               kernel_code_properties,
               amdhsa::KERNEL_CODE_PROPERTY_ENABLE_SGPR_DISPATCH_PTR);
@@ -889,19 +892,35 @@ void AMDGPUTargetELFStreamer::EmitAmdhsaKernelDescriptor(
   // expression being created is:
   //   (start of kernel code) - (start of kernel descriptor)
   // It implies R_AMDGPU_REL64, but ends up being R_AMDGPU_ABS64.
-  Streamer.emitValue(MCBinaryExpr::createSub(
-      MCSymbolRefExpr::create(
-          KernelCodeSymbol, MCSymbolRefExpr::VK_AMDGPU_REL64, Context),
-      MCSymbolRefExpr::create(
-          KernelDescriptorSymbol, MCSymbolRefExpr::VK_None, Context),
-      Context),
-      sizeof(KernelDescriptor.kernel_code_entry_byte_offset));
+  if (KernelDescriptor.kernarg_preload != 0) {
+    Streamer.emitValue(
+        MCBinaryExpr::createSub(
+            MCBinaryExpr::createSub(
+                MCSymbolRefExpr::create(KernelCodeSymbol,
+                                        MCSymbolRefExpr::VK_AMDGPU_REL64,
+                                        Context),
+                MCSymbolRefExpr::create(KernelDescriptorSymbol,
+                                        MCSymbolRefExpr::VK_None, Context),
+                Context),
+            MCConstantExpr::create(0x100, Context), Context),
+        sizeof(KernelDescriptor.kernel_code_entry_byte_offset));
+  } else {
+    Streamer.emitValue(
+        MCBinaryExpr::createSub(
+            MCSymbolRefExpr::create(KernelCodeSymbol,
+                                    MCSymbolRefExpr::VK_AMDGPU_REL64, Context),
+            MCSymbolRefExpr::create(KernelDescriptorSymbol,
+                                    MCSymbolRefExpr::VK_None, Context),
+            Context),
+        sizeof(KernelDescriptor.kernel_code_entry_byte_offset));
+  }
   for (uint8_t Res : KernelDescriptor.reserved1)
     Streamer.emitInt8(Res);
   Streamer.emitInt32(KernelDescriptor.compute_pgm_rsrc3);
   Streamer.emitInt32(KernelDescriptor.compute_pgm_rsrc1);
   Streamer.emitInt32(KernelDescriptor.compute_pgm_rsrc2);
   Streamer.emitInt16(KernelDescriptor.kernel_code_properties);
-  for (uint8_t Res : KernelDescriptor.reserved2)
+  Streamer.emitInt16(KernelDescriptor.kernarg_preload);
+  for (uint8_t Res : KernelDescriptor.reserved3)
     Streamer.emitInt8(Res);
 }
