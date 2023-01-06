@@ -633,6 +633,14 @@ bool AMDGPUAsmPrinter::runOnMachineFunction(MachineFunction &MF) {
     }
   }
 
+  const GCNSubtarget &STI = MF.getSubtarget<GCNSubtarget>();
+  auto OccVGPRs = STI.getOccupancyWithNumVGPRs(CurrentProgramInfo.NumVGPR);
+  auto OccSGPRs = STI.getOccupancyWithNumSGPRs(CurrentProgramInfo.NumSGPR);
+  auto OccLDS = STI.getOccupancyWithLocalMemSize(MF);
+
+  auto Occ = std::min(OccVGPRs, std::min(OccSGPRs, OccLDS));
+  dbgs() << "Final occupancy for function " << MF.getName() << ":" << Occ << "\n";
+
   return false;
 }
 

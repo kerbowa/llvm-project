@@ -60,6 +60,7 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Vectorize.h"
+#include "OptSched/lib/Wrapper/AMDGPU/GCNOptSched.h"
 
 using namespace llvm;
 using namespace llvm::PatternMatch;
@@ -328,6 +329,11 @@ static cl::opt<bool> EnablePromoteKernelArguments(
     "amdgpu-enable-promote-kernel-arguments",
     cl::desc("Enable promotion of flat kernel pointer arguments to global"),
     cl::Hidden, cl::init(true));
+
+static cl::opt<bool> UseOptSched(
+    "use-opt-sched",
+    cl::desc("Use OptSched machine scheduler"), cl::init(true),
+    cl::Hidden);
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAMDGPUTarget() {
   // Register the target
@@ -936,6 +942,12 @@ public:
   createMachineScheduler(MachineSchedContext *C) const override;
 
   ScheduleDAGInstrs *
+  createAMDScheduler(MachineSchedContext *C) const override;
+
+  ScheduleDAGInstrs *
+  createOptSchedScheduler(MachineSchedContext *C) const override;
+
+  ScheduleDAGInstrs *
   createPostMachineScheduler(MachineSchedContext *C) const override {
     ScheduleDAGMI *DAG = new GCNPostScheduleDAGMILive(
         C, std::make_unique<PostGenericScheduler>(C),
@@ -1164,12 +1176,30 @@ AMDGPUPassConfig::createMachineScheduler(MachineSchedContext *C) const {
 // GCN Pass Setup
 //===----------------------------------------------------------------------===//
 
+static ScheduleDAGInstrs *createOptSchedGCN(MachineSchedContext *C) {
+  ScheduleDAGMILive *DAG = new llvm::opt_sched::ScheduleDAGOptSchedGCN(
+      C, std::make_unique<GCNMaxOccupancySchedStrategy>(C));
+  DAG->addMutation(createLoadClusterDAGMutation(DAG->TII, DAG->TRI));
+  DAG->addMutation(createAMDGPUMacroFusionDAGMutation());
+  DAG->addMutation(createAMDGPUExportClusteringDAGMutation());
+  return DAG;
+}
+
 ScheduleDAGInstrs *GCNPassConfig::createMachineScheduler(
   MachineSchedContext *C) const {
-  const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
-  if (ST.enableSIScheduler())
-    return createSIMachineScheduler(C);
+  if (UseOptSched)
+    return createOptSchedGCN(C);
   return createGCNMaxOccupancyMachineScheduler(C);
+}
+
+ScheduleDAGInstrs *GCNPassConfig::createAMDScheduler(
+  MachineSchedContext *C) const {
+  return createGCNMaxOccupancyMachineScheduler(C);
+}
+
+ScheduleDAGInstrs *GCNPassConfig::createOptSchedScheduler(
+  MachineSchedContext *C) const {
+  return createOptSchedGCN(C);
 }
 
 bool GCNPassConfig::addPreISel() {
@@ -1308,9 +1338,11 @@ void GCNPassConfig::addOptimizedRegAlloc() {
   // instructions that cause scheduling barriers.
   insertPass(&MachineSchedulerID, &SIWholeQuadModeID);
   insertPass(&MachineSchedulerID, &SIPreAllocateWWMRegsID);
+  insertPass(&MachineSchedulerOptSchedID, &SIWholeQuadModeID);
+  insertPass(&MachineSchedulerOptSchedID, &SIPreAllocateWWMRegsID);
 
   if (OptExecMaskPreRA)
-    insertPass(&MachineSchedulerID, &SIOptimizeExecMaskingPreRAID);
+    insertPass(&MachineSchedulerOptSchedID, &SIOptimizeExecMaskingPreRAID);
 
   if (isPassEnabled(EnablePreRAOptimizations))
     insertPass(&RenameIndependentSubregsID, &GCNPreRAOptimizationsID);
@@ -1318,7 +1350,7 @@ void GCNPassConfig::addOptimizedRegAlloc() {
   // This is not an essential optimization and it has a noticeable impact on
   // compilation time, so we only enable it from O2.
   if (TM->getOptLevel() > CodeGenOpt::Less)
-    insertPass(&MachineSchedulerID, &SIFormMemoryClausesID);
+    insertPass(&MachineSchedulerOptSchedID, &SIFormMemoryClausesID);
 
   // FIXME: when an instruction has a Killed operand, and the instruction is
   // inside a bundle, seems only the BUNDLE instruction appears as the Kills of

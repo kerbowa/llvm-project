@@ -289,6 +289,16 @@ public:
     return nullptr;
   }
 
+  virtual ScheduleDAGInstrs *
+  createAMDScheduler(MachineSchedContext *C) const {
+    return nullptr;
+  }
+
+  virtual ScheduleDAGInstrs *
+  createOptSchedScheduler(MachineSchedContext *C) const {
+    return nullptr;
+  }
+
   /// Similar to createMachineScheduler but used when postRA machine scheduling
   /// is enabled.
   virtual ScheduleDAGInstrs *

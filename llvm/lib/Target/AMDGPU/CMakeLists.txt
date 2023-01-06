@@ -165,6 +165,36 @@ add_llvm_target(AMDGPUCodeGen
   SIShrinkInstructions.cpp
   SIWholeQuadMode.cpp
   GCNPreRAOptimizations.cpp
+  OptSched/lib/Scheduler/aco.hip.cpp
+  OptSched/lib/Scheduler/simplified_aco_ds.hip.cpp
+  OptSched/lib/Scheduler/bb_spill.hip.cpp
+  OptSched/lib/Scheduler/buffers.cpp
+  OptSched/lib/Scheduler/config.cpp
+  OptSched/lib/Scheduler/data_dep.hip.cpp
+  OptSched/lib/Scheduler/enumerator.cpp
+  OptSched/lib/Scheduler/gen_sched.hip.cpp
+  OptSched/lib/Scheduler/graph.hip.cpp
+  OptSched/lib/Scheduler/graph_trans.cpp
+  OptSched/lib/Scheduler/hist_table.cpp
+  OptSched/lib/Scheduler/list_sched.hip.cpp
+  OptSched/lib/Scheduler/logger.cpp
+  OptSched/lib/Scheduler/reg_alloc.cpp
+  OptSched/lib/Scheduler/utilities.cpp
+  OptSched/lib/Scheduler/machine_model.hip.cpp
+  OptSched/lib/Scheduler/random.hip.cpp
+  OptSched/lib/Scheduler/ready_list.hip.cpp
+  OptSched/lib/Scheduler/register.hip.cpp
+  OptSched/lib/Scheduler/relaxed_sched.cpp
+  OptSched/lib/Scheduler/sched_basic_data.hip.cpp
+  OptSched/lib/Scheduler/sched_region.hip.cpp
+  OptSched/lib/Scheduler/stats.cpp
+  OptSched/lib/Wrapper/OptimizingScheduler.hip.cpp
+  OptSched/lib/Wrapper/OptSchedMachineWrapper.cpp
+  OptSched/lib/Wrapper/OptSchedDDGWrapperBasic.cpp
+  OptSched/lib/Wrapper/OptSchedGenericTarget.cpp
+  OptSched/lib/Wrapper/AMDGPU/GCNOptSched.cpp
+  OptSched/lib/Wrapper/AMDGPU/OptSchedGCNTarget.cpp
+  OptSched/lib/Wrapper/AMDGPU/OptSchedDDGWrapperGCN.cpp
 
   LINK_COMPONENTS
   Analysis
@@ -197,3 +227,26 @@ add_subdirectory(MCA)
 add_subdirectory(MCTargetDesc)
 add_subdirectory(TargetInfo)
 add_subdirectory(Utils)
+include_directories("OptSched/include" "OptSched/lib")
+target_include_directories(LLVMAMDGPUCodeGen
+	PRIVATE
+        ${HIP_PATH}/include
+        ${HIP_PATH}/../include)
+message(STATUS "HIP_LIB: ${HIP_LIBRARIES}")
+target_include_directories(LLVMAMDGPUCodeGen
+    PRIVATE
+        ${HIP_PATH}/include
+        ${HIP_PATH}/../include
+        ${OPTSCHED_TARGET_DEPS})
+
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -fgpu-rdc")
+target_link_options(LLVMAMDGPUCodeGen PRIVATE -fgpu-rdc --hip-link)
+target_link_libraries(LLVMAMDGPUCodeGen PRIVATE ${HIP_LIBRARIES})
+
+set(OPTSCHED_TARGET_DEPS ${OPTSCHED_SOURCE_DIR}/include ${OPTSCHED_SOURCE_DIR}/lib)
+MESSAGE(INFO ${OPTSCHED_TARGET_DEPS})
+
+target_compile_definitions(LLVMAMDGPUCodeGen PRIVATE INSERT_ON_STEPFRWRD)
+target_include_directories(LLVMAMDGPUCodeGen PRIVATE ${OPTSCHED_TARGET_DEPS})
+target_link_libraries(LLVMAMDGPUCodeGen PRIVATE ${HIP_LIBRARIES})

@@ -58,6 +58,7 @@
 #include "llvm/Support/GraphWriter.h"
 #include "llvm/Support/MachineValueType.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetMachine.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -113,6 +114,10 @@ static cl::opt<unsigned> MISchedCutoff("misched-cutoff", cl::Hidden,
 
 static cl::opt<std::string> SchedOnlyFunc("misched-only-func", cl::Hidden,
   cl::desc("Only schedule this function"));
+static cl::list<std::string> SchedOnlyFuncList("misched-only-func-list",
+  cl::desc("Comma separated list of functions to not schedule"),
+  cl::CommaSeparated, cl::ValueRequired,
+  cl::Hidden);
 static cl::opt<unsigned> SchedOnlyBlock("misched-only-block", cl::Hidden,
                                         cl::desc("Only schedule this MBB#"));
 #endif // NDEBUG
@@ -190,6 +195,20 @@ protected:
   ScheduleDAGInstrs *createMachineScheduler();
 };
 
+class MachineSchedulerOptSched : public MachineSchedulerBase {
+public:
+  MachineSchedulerOptSched();
+
+  void getAnalysisUsage(AnalysisUsage &AU) const override;
+
+  bool runOnMachineFunction(MachineFunction&) override;
+
+  static char ID; // Class identification, replacement for typeinfo
+
+protected:
+  ScheduleDAGInstrs *createMachineSchedulerOptSched();
+};
+
 /// PostMachineScheduler runs after shortly before code emission.
 class PostMachineScheduler : public MachineSchedulerBase {
 public:
@@ -226,6 +245,37 @@ MachineScheduler::MachineScheduler() : MachineSchedulerBase(ID) {
 }
 
 void MachineScheduler::getAnalysisUsage(AnalysisUsage &AU) const {
+  AU.setPreservesCFG();
+  AU.addRequired<MachineDominatorTree>();
+  AU.addRequired<MachineLoopInfo>();
+  AU.addRequired<AAResultsWrapperPass>();
+  AU.addRequired<TargetPassConfig>();
+  AU.addRequired<SlotIndexes>();
+  AU.addPreserved<SlotIndexes>();
+  AU.addRequired<LiveIntervals>();
+  AU.addPreserved<LiveIntervals>();
+  MachineFunctionPass::getAnalysisUsage(AU);
+}
+
+char MachineSchedulerOptSched::ID = 0;
+
+char &llvm::MachineSchedulerOptSchedID = MachineSchedulerOptSched::ID;
+
+INITIALIZE_PASS_BEGIN(MachineSchedulerOptSched, DEBUG_TYPE,
+                      "Machine Instruction Scheduler OptSched", false, false)
+INITIALIZE_PASS_DEPENDENCY(AAResultsWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(MachineDominatorTree)
+INITIALIZE_PASS_DEPENDENCY(MachineLoopInfo)
+INITIALIZE_PASS_DEPENDENCY(SlotIndexes)
+INITIALIZE_PASS_DEPENDENCY(LiveIntervals)
+INITIALIZE_PASS_END(MachineSchedulerOptSched, DEBUG_TYPE,
+                    "Machine Instruction Scheduler OptSched", false, false)
+
+MachineSchedulerOptSched::MachineSchedulerOptSched() : MachineSchedulerBase(ID) {
+  initializeMachineSchedulerOptSchedPass(*PassRegistry::getPassRegistry());
+}
+
+void MachineSchedulerOptSched::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesCFG();
   AU.addRequired<MachineDominatorTree>();
   AU.addRequired<MachineLoopInfo>();
@@ -335,13 +385,23 @@ nextIfDebug(MachineBasicBlock::iterator I,
 
 /// Instantiate a ScheduleDAGInstrs that will be owned by the caller.
 ScheduleDAGInstrs *MachineScheduler::createMachineScheduler() {
+  MachineSchedRegistry::ScheduleDAGCtor Ctor;
   // Select the scheduler, or set the default.
-  MachineSchedRegistry::ScheduleDAGCtor Ctor = MachineSchedOpt;
+  Ctor = MachineSchedOpt;
   if (Ctor != useDefaultMachineSched)
     return Ctor(this);
 
   // Get the default scheduler set by the target for this function.
-  ScheduleDAGInstrs *Scheduler = PassConfig->createMachineScheduler(this);
+  ScheduleDAGInstrs *Scheduler = PassConfig->createAMDScheduler(this);
+  if (Scheduler)
+    return Scheduler;
+
+  // Default to GenericScheduler.
+  return createGenericSchedLive(this);
+}
+
+ScheduleDAGInstrs *MachineSchedulerOptSched::createMachineSchedulerOptSched() {
+  ScheduleDAGInstrs *Scheduler = PassConfig->createOptSchedScheduler(this);
   if (Scheduler)
     return Scheduler;
 
@@ -413,6 +473,49 @@ bool MachineScheduler::runOnMachineFunction(MachineFunction &mf) {
   LLVM_DEBUG(LIS->dump());
   if (VerifyScheduling)
     MF->verify(this, "After machine scheduling.");
+  return true;
+}
+
+bool MachineSchedulerOptSched::runOnMachineFunction(MachineFunction &mf) {
+  if (skipFunction(mf.getFunction()))
+    return false;
+
+  StringRef ArchName = mf.getTarget().getTargetTriple().getArchName();
+  // if compiling for not AMD Target, just return
+  if (!((strncmp("amdgcn", ArchName.data(), 6) == 0) ||
+      (strncmp("amdgcn-amd-amdhsa", ArchName.data(), 17) == 0)))
+    return false;
+
+  if (EnableMachineSched.getNumOccurrences()) {
+    if (!EnableMachineSched)
+      return false;
+  } else if (!mf.getSubtarget().enableMachineScheduler())
+    return false;
+
+  LLVM_DEBUG(dbgs() << "Before MISched:\n"; mf.print(dbgs()));
+
+  // Initialize the context of the pass.
+  MF = &mf;
+  MLI = &getAnalysis<MachineLoopInfo>();
+  MDT = &getAnalysis<MachineDominatorTree>();
+  PassConfig = &getAnalysis<TargetPassConfig>();
+  AA = &getAnalysis<AAResultsWrapperPass>().getAAResults();
+
+  LIS = &getAnalysis<LiveIntervals>();
+
+  if (VerifyScheduling) {
+    LLVM_DEBUG(LIS->dump());
+    MF->verify(this, "Before machine scheduling2.");
+  }
+  RegClassInfo->runOnMachineFunction(*MF);
+
+  // Instantiate the selected scheduler for this target, function, and
+  // optimization level.
+  std::unique_ptr<ScheduleDAGInstrs> Scheduler(createMachineSchedulerOptSched());
+  scheduleRegions(*Scheduler, false);
+  LLVM_DEBUG(LIS->dump());
+  if (VerifyScheduling)
+    MF->verify(this, "After machine scheduling2.");
   return true;
 }
 
@@ -539,6 +642,10 @@ void MachineSchedulerBase::scheduleRegions(ScheduleDAGInstrs &Scheduler,
 
     Scheduler.startBlock(&*MBB);
 
+    // skip functions not in the SchedOnlyFuncList
+    // TODO: Fix this once the linking issues are fixed
+    //if (!llvm::empty(SchedOnlyFuncList) && !llvm::is_contained(SchedOnlyFuncList, MF->getName()))
+    //  continue;
 #ifndef NDEBUG
     if (SchedOnlyFunc.getNumOccurrences() && SchedOnlyFunc != MF->getName())
       continue;

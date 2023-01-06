@@ -228,7 +228,7 @@ else()
         # The Solaris 11.4 linker supports a subset of GNU ld version scripts,
         # but requires a special option to enable it.
         if (COMPILER_RT_HAS_GNU_VERSION_SCRIPT_COMPAT)
-            list(APPEND VERSION_SCRIPT_FLAG -Wl,-z,gnu-version-script-compat)
+            list(APPEND VERSION_SCRIPT_FLAG -Wl)
         endif()
         set_property(SOURCE
           ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp

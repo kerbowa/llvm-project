@@ -58,6 +58,25 @@ project(LLVM
   VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}
   LANGUAGES C CXX ASM)
 
+####################################################################
+# OptSched
+####################################################################
+
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/rocm-5.4.1/lib/cmake")
+set(HIP_CXX_COMPILER "/home/josh/project/host-llvm/llvm-project/build/bin/clang++")
+set(CMAKE_CXX_STANDARD "17" CACHE STRING "" FORCE)
+set(AMDGPU_TARGETS "gfx906" CACHE STRING "AMD GPU targets to compile for" FORCE)
+find_package(hip REQUIRED CONFIG PATHS /opt/rocm-5.4.1)
+include_directories("/opt/rocm-5.4.1/include")
+message(STATUS "HIP_COMPILER: ${HIP_COMPILER}")
+message(STATUS "HIP_CXX_COMPILER: ${HIP_CXX_COMPILER}")
+message(STATUS "HIP_LIB: ${HIP_LIBRARIES}")
+
+find_package(hiprand REQUIRED CONFIG PATHS /opt/rocm-5.4.1/)
+include_directories("/opt/rocm-5.4.1/hiprand/include" "/opt/rocm-5.4.1/rocrand/include")
+
+####################################################################
+
 # Must go after project(..)
 include(GNUInstallDirs)
 
