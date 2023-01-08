@@ -1524,8 +1524,7 @@ bool FastISel::selectFreeze(const User *I) {
   MVT Ty = ETy.getSimpleVT();
   const TargetRegisterClass *TyRegClass = TLI.getRegClassFor(Ty);
   Register ResultReg = createResultReg(TyRegClass);
-  BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD,
-          TII.get(TargetOpcode::COPY), ResultReg).addReg(Reg);
+  TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg, Reg);
 
   updateValueMap(I, ResultReg);
   return true;
@@ -1982,8 +1981,7 @@ Register FastISel::constrainOperandRegClass(const MCInstrDesc &II, Register Op,
       // If it's not legal to COPY between the register classes, something
       // has gone very wrong before we got here.
       Register NewOp = createResultReg(RegClass);
-      BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD,
-              TII.get(TargetOpcode::COPY), NewOp).addReg(Op);
+      TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, NewOp, Op);
       return NewOp;
     }
   }
@@ -2012,9 +2010,8 @@ Register FastISel::fastEmitInst_r(unsigned MachineInstOpcode,
   else {
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II)
         .addReg(Op0);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
 
   return ResultReg;
@@ -2037,9 +2034,8 @@ Register FastISel::fastEmitInst_rr(unsigned MachineInstOpcode,
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II)
         .addReg(Op0)
         .addReg(Op1);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2064,9 +2060,8 @@ Register FastISel::fastEmitInst_rrr(unsigned MachineInstOpcode,
         .addReg(Op0)
         .addReg(Op1)
         .addReg(Op2);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2087,9 +2082,8 @@ Register FastISel::fastEmitInst_ri(unsigned MachineInstOpcode,
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II)
         .addReg(Op0)
         .addImm(Imm);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2112,9 +2106,8 @@ Register FastISel::fastEmitInst_rii(unsigned MachineInstOpcode,
         .addReg(Op0)
         .addImm(Imm1)
         .addImm(Imm2);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2132,9 +2125,8 @@ Register FastISel::fastEmitInst_f(unsigned MachineInstOpcode,
   else {
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II)
         .addFPImm(FPImm);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2158,9 +2150,8 @@ Register FastISel::fastEmitInst_rri(unsigned MachineInstOpcode,
         .addReg(Op0)
         .addReg(Op1)
         .addImm(Imm);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2175,9 +2166,8 @@ Register FastISel::fastEmitInst_i(unsigned MachineInstOpcode,
         .addImm(Imm);
   else {
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II).addImm(Imm);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-            ResultReg)
-        .addReg(II.implicit_defs()[0]);
+    TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg,
+                  II.implicit_defs()[0]);
   }
   return ResultReg;
 }
@@ -2189,8 +2179,7 @@ Register FastISel::fastEmitInst_extractsubreg(MVT RetVT, unsigned Op0,
          "Cannot yet extract from physregs");
   const TargetRegisterClass *RC = MRI.getRegClass(Op0);
   MRI.constrainRegClass(Op0, TRI.getSubClassWithSubReg(RC, Idx));
-  BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, TII.get(TargetOpcode::COPY),
-          ResultReg).addReg(Op0, 0, Idx);
+  TII.buildCopy(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, ResultReg, Op0, 0, Idx);
   return ResultReg;
 }
 
