@@ -31,4 +31,6 @@ add_llvm_component_library(LLVMOffloadArch
     InterfaceStub
 )
 
+target_link_libraries(LLVMOffloadArch PRIVATE -ldl)
+
 add_subdirectory(offload-arch)
