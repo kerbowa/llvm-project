@@ -114,13 +114,14 @@ static cl::opt<unsigned> MISchedCutoff("misched-cutoff", cl::Hidden,
 
 static cl::opt<std::string> SchedOnlyFunc("misched-only-func", cl::Hidden,
   cl::desc("Only schedule this function"));
+static cl::opt<unsigned> SchedOnlyBlock("misched-only-block", cl::Hidden,
+                                        cl::desc("Only schedule this MBB#"));
+#endif // NDEBUG
+
 static cl::list<std::string> SchedOnlyFuncList("misched-only-func-list",
   cl::desc("Comma separated list of functions to not schedule"),
   cl::CommaSeparated, cl::ValueRequired,
   cl::Hidden);
-static cl::opt<unsigned> SchedOnlyBlock("misched-only-block", cl::Hidden,
-                                        cl::desc("Only schedule this MBB#"));
-#endif // NDEBUG
 
 /// Avoid quadratic complexity in unusually large basic blocks by limiting the
 /// size of the ready lists.
@@ -643,9 +644,8 @@ void MachineSchedulerBase::scheduleRegions(ScheduleDAGInstrs &Scheduler,
     Scheduler.startBlock(&*MBB);
 
     // skip functions not in the SchedOnlyFuncList
-    // TODO: Fix this once the linking issues are fixed
-    //if (!llvm::empty(SchedOnlyFuncList) && !llvm::is_contained(SchedOnlyFuncList, MF->getName()))
-    //  continue;
+    if (!llvm::empty(SchedOnlyFuncList) && !llvm::is_contained(SchedOnlyFuncList, MF->getName()))
+      continue;
 #ifndef NDEBUG
     if (SchedOnlyFunc.getNumOccurrences() && SchedOnlyFunc != MF->getName())
       continue;
