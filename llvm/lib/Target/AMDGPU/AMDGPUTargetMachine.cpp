@@ -1336,8 +1336,6 @@ void GCNPassConfig::addFastRegAlloc() {
 void GCNPassConfig::addOptimizedRegAlloc() {
   // Allow the scheduler to run before SIWholeQuadMode inserts exec manipulation
   // instructions that cause scheduling barriers.
-  insertPass(&MachineSchedulerID, &SIWholeQuadModeID);
-  insertPass(&MachineSchedulerID, &SIPreAllocateWWMRegsID);
   insertPass(&MachineSchedulerOptSchedID, &SIWholeQuadModeID);
   insertPass(&MachineSchedulerOptSchedID, &SIPreAllocateWWMRegsID);
 
