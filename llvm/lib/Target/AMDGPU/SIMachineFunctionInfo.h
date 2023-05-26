@@ -282,6 +282,10 @@ struct SIMachineFunctionInfo final : public yaml::MachineFunctionInfo {
   bool NoSignedZerosFPMath = false;
   bool MemoryBound = false;
   bool WaveLimiter = false;
+  uint32_t InstCost = 0;
+  uint32_t MemInstCost = 0;
+  uint32_t IndirectAccessInstCost = 0;
+  uint32_t LargeStrideInstCost = 0;
   bool HasSpilledSGPRs = false;
   bool HasSpilledVGPRs = false;
   uint32_t HighBitsOf32BitAddress = 0;
@@ -324,8 +328,12 @@ template <> struct MappingTraits<SIMachineFunctionInfo> {
     YamlIO.mapOptional("noSignedZerosFPMath", MFI.NoSignedZerosFPMath, false);
     YamlIO.mapOptional("memoryBound", MFI.MemoryBound, false);
     YamlIO.mapOptional("waveLimiter", MFI.WaveLimiter, false);
-    YamlIO.mapOptional("hasSpilledSGPRs", MFI.HasSpilledSGPRs, false);
-    YamlIO.mapOptional("hasSpilledVGPRs", MFI.HasSpilledVGPRs, false);
+    YamlIO.mapOptional("instCost", MFI.InstCost, 0u);
+    YamlIO.mapOptional("memInstCost", MFI.MemInstCost, 0u);
+    YamlIO.mapOptional("indirectAccessInstCost", MFI.IndirectAccessInstCost, 0u);
+    YamlIO.mapOptional("largeStrideInstCost", MFI.LargeStrideInstCost, 0u);
+    YamlIO.mapOptional("hasSpilledSGPRs", MFI.HasSpilledSGPRs, 0u);
+    YamlIO.mapOptional("hasSpilledVGPRs", MFI.HasSpilledVGPRs, 0u);
     YamlIO.mapOptional("scratchRSrcReg", MFI.ScratchRSrcReg,
                        StringValue("$private_rsrc_reg"));
     YamlIO.mapOptional("frameOffsetReg", MFI.FrameOffsetReg,

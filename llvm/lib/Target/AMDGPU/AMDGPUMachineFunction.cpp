@@ -34,6 +34,18 @@ AMDGPUMachineFunction::AMDGPUMachineFunction(const MachineFunction &MF)
   Attribute WaveLimitAttr = F.getFnAttribute("amdgpu-wave-limiter");
   WaveLimiter = WaveLimitAttr.getValueAsBool();
 
+  Attribute InstCostAttr = F.getFnAttribute("amdgpu-inst-cost");
+  InstCostAttr.getValueAsString().consumeInteger(0, InstCost);
+
+  Attribute MemInstCostAttr = F.getFnAttribute("amdgpu-mem-inst-cost");
+  MemInstCostAttr.getValueAsString().consumeInteger(0, MemInstCost);
+
+  Attribute IndirectAccessInstCostAttr = F.getFnAttribute("amdgpu-indirect-access-inst-cost");
+  IndirectAccessInstCostAttr.getValueAsString().consumeInteger(0, IndirectAccessInstCost);
+
+  Attribute LargeStrideInstCostAttr = F.getFnAttribute("amdgpu-large-stride-inst-cost");
+  LargeStrideInstCostAttr.getValueAsString().consumeInteger(0, LargeStrideInstCost);
+
   // FIXME: How is this attribute supposed to interact with statically known
   // global sizes?
   StringRef S = F.getFnAttribute("amdgpu-gds-size").getValueAsString();

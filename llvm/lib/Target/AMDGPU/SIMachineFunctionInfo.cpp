@@ -611,6 +611,10 @@ yaml::SIMachineFunctionInfo::SIMachineFunctionInfo(
       DynLDSAlign(MFI.getDynLDSAlign()), IsEntryFunction(MFI.isEntryFunction()),
       NoSignedZerosFPMath(MFI.hasNoSignedZerosFPMath()),
       MemoryBound(MFI.isMemoryBound()), WaveLimiter(MFI.needsWaveLimiter()),
+      InstCost(MFI.getInstCost()),
+      MemInstCost(MFI.getMemInstCost()),
+      IndirectAccessInstCost(MFI.getIndirectAccessInstCost()),
+      LargeStrideInstCost(MFI.getLargeStrideInstCost()),
       HasSpilledSGPRs(MFI.hasSpilledSGPRs()),
       HasSpilledVGPRs(MFI.hasSpilledVGPRs()),
       HighBitsOf32BitAddress(MFI.get32BitAddressHighBits()),
@@ -649,6 +653,10 @@ bool SIMachineFunctionInfo::initializeBaseYamlFields(
   NoSignedZerosFPMath = YamlMFI.NoSignedZerosFPMath;
   MemoryBound = YamlMFI.MemoryBound;
   WaveLimiter = YamlMFI.WaveLimiter;
+  InstCost = YamlMFI.InstCost;
+  MemInstCost = YamlMFI.MemInstCost;
+  IndirectAccessInstCost = YamlMFI.IndirectAccessInstCost;
+  LargeStrideInstCost = YamlMFI.LargeStrideInstCost;
   HasSpilledSGPRs = YamlMFI.HasSpilledSGPRs;
   HasSpilledVGPRs = YamlMFI.HasSpilledVGPRs;
   BytesInStackArgArea = YamlMFI.BytesInStackArgArea;

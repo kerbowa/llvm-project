@@ -317,6 +317,12 @@ bool AMDGPUPerfHint::runOnFunction(Function &F) {
     Changed = true;
   }
 
+  // Annotate function with stats about properties of its memory instructions.
+  F.addFnAttr("amdgpu-inst-cost", Twine(Info->InstCost).str());
+  F.addFnAttr("amdgpu-mem-inst-cost", Twine(Info->MemInstCost).str());
+  F.addFnAttr("amdgpu-indirect-access-inst-cost", Twine(Info->IAMInstCost).str());
+  F.addFnAttr("amdgpu-large-stride-inst-cost", Twine(Info->LSMInstCost).str());
+
   return Changed;
 }
 

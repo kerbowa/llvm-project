@@ -17,6 +17,8 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/GlobalVariable.h"
+#include <cstdint>
+#include <sys/types.h>
 
 namespace llvm {
 
@@ -63,6 +65,14 @@ protected:
   // Kernel may need limited waves per EU for better performance.
   bool WaveLimiter = false;
 
+  uint32_t InstCost = 0;
+
+  uint32_t MemInstCost = 0;
+
+  uint32_t IndirectAccessInstCost = 0;
+
+  uint32_t LargeStrideInstCost = 0;
+
 public:
   AMDGPUMachineFunction(const MachineFunction &MF);
 
@@ -100,6 +110,22 @@ public:
 
   bool needsWaveLimiter() const {
     return WaveLimiter;
+  }
+
+  uint32_t getInstCost() const {
+    return InstCost;
+  }
+
+  uint32_t getMemInstCost() const {
+    return MemInstCost;
+  }
+
+  uint32_t getIndirectAccessInstCost() const {
+    return IndirectAccessInstCost;
+  }
+
+  uint32_t getLargeStrideInstCost() const {
+    return LargeStrideInstCost;
   }
 
   unsigned allocateLDSGlobal(const DataLayout &DL, const GlobalVariable &GV);
