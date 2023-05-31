@@ -17,6 +17,7 @@
 #include "llvm/IR/IntrinsicsAMDGPU.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/MDBuilder.h"
+#include "llvm/Support/MathExtras.h"
 #include "llvm/Target/TargetMachine.h"
 #define DEBUG_TYPE "amdgpu-lower-kernel-arguments"
 
@@ -55,6 +56,12 @@ static BasicBlock::iterator getInsertPt(BasicBlock &BB) {
   return InsPt;
 }
 
+// Returns the maximum number of user SGPRs that we have available to preload
+// arguments.
+static unsigned getNumberOfMaxPreloadSize() {
+  
+}
+
 bool AMDGPULowerKernelArguments::runOnFunction(Function &F) {
   CallingConv::ID CC = F.getCallingConv();
   if (CC != CallingConv::AMDGPU_KERNEL || F.arg_empty())
@@ -87,9 +94,7 @@ bool AMDGPULowerKernelArguments::runOnFunction(Function &F) {
       Attribute::getWithDereferenceableBytes(Ctx, TotalKernArgSize));
 
   uint64_t ExplicitArgOffset = 0;
-
-  // XXX: HACK
-  unsigned SGPRUsed = (AMDGPU::getAmdhsaCodeObjectVersion() <= 4) ? 6 : 2;
+  unsigned FreeUserSGPR = 16;
 
   for (Argument &Arg : F.args()) {
     const bool IsByRef = Arg.hasByRefAttr();
@@ -119,11 +124,18 @@ bool AMDGPULowerKernelArguments::runOnFunction(Function &F) {
       continue;
     }
 
-    // XXX: HACK
-    unsigned AllocSizeDWord = alignTo(AllocSize, 4) / 4;
-    if (SGPRUsed + AllocSizeDWord <= 16) {
-      SGPRUsed += AllocSizeDWord;
-      continue;
+    // FIXME: The preloaded arguments need to be sequential.
+    if (Arg.hasInRegAttr()) {
+      unsigned SGPRsNeeded = alignTo(AllocSize, 4) / 4;
+      if (FreeUserSGPR >= SGPRsNeeded) {
+        FreeUserSGPR -= SGPRsNeeded;
+        // Preload this arg.
+        for (auto &Use : Arg.uses()) {
+          Instruction *User = cast<Instruction>(Use.getUser());
+          User->addAnnotationMetadata("amdgpu-preload-arg");
+        }
+        continue;
+      }
     }
 
     if (PointerType *PT = dyn_cast<PointerType>(ArgTy)) {

@@ -17,6 +17,7 @@
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/IntrinsicsAMDGPU.h"
 #include "llvm/IR/IntrinsicsR600.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Transforms/IPO/Attributor.h"
 
@@ -27,6 +28,11 @@ void initializeCycleInfoWrapperPassPass(PassRegistry &);
 }
 
 using namespace llvm;
+
+static cl::opt<unsigned> KernargPreloadCount(
+  "amdgpu-kernarg-preload-count",
+  cl::desc("How many kernel arguments to preload onto SGPRs"),
+  cl::init(0));
 
 #define AMDGPU_ATTRIBUTE(Name, Str) Name##_POS,
 
@@ -805,6 +811,15 @@ public:
 
     for (Function &F : M) {
       if (!F.isIntrinsic()) {
+
+        CallingConv::ID CC = F.getCallingConv();
+        if (CC == CallingConv::AMDGPU_KERNEL && !F.arg_empty()) {
+          for (unsigned I = 0; I < F.arg_size() && I < KernargPreloadCount; I++) {
+            Argument &Arg = *F.getArg(I);
+            Arg.addAttr(Attribute::InReg);
+          }
+        }
+
         A.getOrCreateAAFor<AAAMDAttributes>(IRPosition::function(F));
         A.getOrCreateAAFor<AAUniformWorkGroupSize>(IRPosition::function(F));
         if (!AMDGPU::isEntryFunctionCC(F.getCallingConv())) {

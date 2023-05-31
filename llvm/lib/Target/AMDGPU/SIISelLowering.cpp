@@ -44,11 +44,6 @@ using namespace llvm;
 
 STATISTIC(NumTailCalls, "Number of tail calls");
 
-static cl::opt<unsigned> KernargPreloadCount(
-  "amdgpu-kernarg-preload-count",
-  cl::desc("How many kernel arguments be preloaded onto SGPRs"),
-  cl::init(16));
-
 static cl::opt<bool> DisableLoopAlignment(
   "amdgpu-disable-loop-alignment",
   cl::desc("Do not align and prefetch loops"),
@@ -2223,7 +2218,22 @@ void SITargetLowering::allocateHSAUserSGPRs(CCState &CCInfo,
   const DataLayout &DL = F.getParent()->getDataLayout();
   auto &ArgInfo = Info.getArgInfo();
   for (const Argument &Arg : F.args()) {
-    if (Info.getNumUserSGPRs() >= 16)
+    if (Arg.user_empty())
+      continue;
+
+    const Instruction *User = cast<Instruction>(Arg.user_back());
+    MDNode *MD = User->getMetadata(LLVMContext::MD_annotation);
+    bool Preload = false;
+    if (MD) {
+      auto *Tuple = cast<MDTuple>(MD);
+      for (auto &N : Tuple->operands()) {
+        if (isa<MDString>(N.get()) &&
+            cast<MDString>(N.get())->getString() == "amdgpu-preload-arg")
+          Preload = true;
+      }
+    }
+    dbgs() << "Arg: " << Arg << " Preload: " << Preload << "\n";
+    if (!Preload)
       break;
 
     Type *ArgTy = Arg.getType();
@@ -2248,21 +2258,12 @@ void SITargetLowering::allocateHSAUserSGPRs(CCState &CCInfo,
       llvm_unreachable("Unexpected kernel argument alloc size!");
     }
 
-    if (ArgInfo.PreloadedKernArgCount < KernargPreloadCount) {
-      if (AllocSizeDWord == 1) {
-        allocateSGPR32Input(CCInfo, ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount]);
-        Info.NumUserSGPRs += AllocSizeDWord;
-        Info.NumKernargPreloadedSGPRs += AllocSizeDWord;
-        ArgInfo.PreloadedKernArgCount++;
-        llvm::errs() << __FUNCTION__ << ": " << Info.NumUserSGPRs << "\n";
-      } else {
-        Register PreloadedKernArgReg = Info.addPreloadedKernArg(TRI, RC, AllocSizeDWord);
-        MF.addLiveIn(PreloadedKernArgReg, RC);
-        CCInfo.AllocateReg(PreloadedKernArgReg);
-      }
-    }
+    llvm::errs() << __FUNCTION__ << ": " << Info.NumUserSGPRs << "\n";
+    Register PreloadedKernArgReg = Info.addPreloadedKernArg(TRI, RC, AllocSizeDWord);
+    MF.addLiveIn(PreloadedKernArgReg, RC);
+    CCInfo.AllocateReg(PreloadedKernArgReg);
 
-    if (ArgInfo.PreloadedKernArgCount >= KernargPreloadCount)
+    if (ArgInfo.PreloadedKernArgCount >= Info.getNumUserSGPRs())
       break;
   }
 }
@@ -2631,6 +2632,7 @@ SDValue SITargetLowering::LowerFormalArguments(
       }
 
       SDValue Arg;
+      unsigned KernargPreloadCount = 1;
       if (KernargPreloaded < KernargPreloadCount) {
         MachineFunction &MF = DAG.getMachineFunction();
         const SIMachineFunctionInfo *Info = MF.getInfo<SIMachineFunctionInfo>();

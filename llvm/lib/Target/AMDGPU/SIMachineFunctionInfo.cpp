@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "SIMachineFunctionInfo.h"
+#include "AMDGPUArgumentUsageInfo.h"
 #include "AMDGPUTargetMachine.h"
 #include "AMDGPUSubtarget.h"
 #include "SIRegisterInfo.h"
@@ -149,9 +150,8 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
     if (!F.hasFnAttribute("amdgpu-no-queue-ptr"))
       QueuePtr = true;
 
-    // HACK HACK HACK
-    //if (!F.hasFnAttribute("amdgpu-no-dispatch-id"))
-    //  DispatchID = true;
+    if (!F.hasFnAttribute("amdgpu-no-dispatch-id"))
+      DispatchID = true;
 
     if (!IsKernel && !F.hasFnAttribute("amdgpu-no-lds-kernel-id"))
       LDSKernelId = true;
@@ -162,7 +162,6 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
   bool HasStackObjects = F.hasFnAttribute("amdgpu-stack-objects");
 
   // HACK HACK HACK
-#if 0
   // TODO: This could be refined a lot. The attribute is a poor way of
   // detecting calls or stack objects that may require it before argument
   // lowering.
@@ -172,7 +171,6 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
       !ST.flatScratchIsArchitected()) {
     FlatScratchInit = true;
   }
-#endif
 
   if (isEntryFunction()) {
     // X, XY, and XYZ are the only supported combinations, so make sure Y is
@@ -226,12 +224,18 @@ void SIMachineFunctionInfo::limitOccupancy(const MachineFunction &MF) {
 
 Register SIMachineFunctionInfo::addPreloadedKernArg(
   const SIRegisterInfo &TRI, const TargetRegisterClass *RC, unsigned AllocSizeDWord) {
-  ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount++] = 
-    ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
-    getNextUserSGPR(), AMDGPU::sub0, RC));
+    dbgs() << getNextUserSGPR() << '\n';
+    dbgs() << ArgDescriptor::createRegister(TRI.getMatchingSuperReg(
+    getNextUserSGPR()+1, AMDGPU::sub0, &AMDGPU::SGPR_64RegClass)) << '\n';
+  ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount++] =
+      AllocSizeDWord == 1
+          ? ArgDescriptor::createRegister(getNextUserSGPR())
+          : ArgDescriptor::createRegister(
+                TRI.getMatchingSuperReg(getNextUserSGPR(), AMDGPU::sub0, RC));
   NumUserSGPRs += AllocSizeDWord;
   NumKernargPreloadedSGPRs += AllocSizeDWord;
   llvm::errs() << __FUNCTION__ << ": " << NumUserSGPRs << "\n";
+  dbgs() << "Reg: " << ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount - 1].getRegister() << '\n';
   return ArgInfo.PreloadedKernArg[ArgInfo.PreloadedKernArgCount - 1].getRegister();
 }
 
