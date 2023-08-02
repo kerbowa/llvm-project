@@ -562,7 +562,6 @@ void AMDGPUDAGToDAGISel::Select(SDNode *N) {
 
       break;
     }
-
     assert(VT.getVectorElementType().bitsEq(MVT::i32));
     unsigned RegClassID =
         SIRegisterInfo::getSGPRClassForBitWidth(NumVectorElts * 32)->getID();

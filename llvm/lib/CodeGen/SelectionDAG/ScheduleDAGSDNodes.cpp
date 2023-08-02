@@ -957,6 +957,7 @@ EmitSchedule(MachineBasicBlock::iterator &InsertPos) {
       if (NewInsn && NewInsn->isCall())
         NewInsn->setHeapAllocMarker(MF, MD);
     }
+
   }
 
   // Insert all the dbg_values which have not already been inserted in source

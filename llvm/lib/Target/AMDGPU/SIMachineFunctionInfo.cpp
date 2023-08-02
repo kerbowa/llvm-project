@@ -21,6 +21,8 @@
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Function.h"
+#include "llvm/MC/MCRegister.h"
+#include "llvm/Support/MathExtras.h"
 #include <cassert>
 #include <optional>
 #include <vector>
@@ -278,6 +280,33 @@ Register SIMachineFunctionInfo::addLDSKernelId() {
   ArgInfo.LDSKernelId = ArgDescriptor::createRegister(getNextUserSGPR());
   NumUserSGPRs += 1;
   return ArgInfo.LDSKernelId.getRegister();
+}
+
+SmallVectorImpl<MCRegister> *SIMachineFunctionInfo::addPreloadedKernArg(
+    const SIRegisterInfo &TRI, const TargetRegisterClass *RC,
+    unsigned AllocSizeDWord, int KernArgIdx, int Padding) {
+  assert(!ArgInfo.PreloadKernArgs.count(KernArgIdx) &&
+         "Preload kernel argument allocated twice.");
+
+  unsigned PaddingSGPRs = alignTo(Padding, 4) / 4;
+  NumUserSGPRs += PaddingSGPRs;
+  // If the available register tuples are aligned with the kernarg to be
+  // preloaded use that register, otherwise we need to use a set of SGPRs and
+  // merge them.
+  if (Register PreloadReg =
+          TRI.getMatchingSuperReg(getNextUserSGPR(), AMDGPU::sub0, RC)) {
+    ArgInfo.PreloadKernArgs[KernArgIdx].Regs.push_back(PreloadReg);
+    NumUserSGPRs += AllocSizeDWord;
+  } else {
+    for (unsigned I = 0; I < AllocSizeDWord; ++I) {
+      ArgInfo.PreloadKernArgs[KernArgIdx].Regs.push_back(getNextUserSGPR());
+      NumUserSGPRs++;
+    }
+  }
+
+  // Track the actual number of SGPRs that HW will preload to.
+  NumKernargPreloadedSGPRs += AllocSizeDWord + PaddingSGPRs;
+  return &ArgInfo.PreloadKernArgs[KernArgIdx].Regs;
 }
 
 void SIMachineFunctionInfo::allocateWWMSpill(MachineFunction &MF, Register VGPR,

@@ -16,6 +16,8 @@
 
 #include "AMDGPUISelLowering.h"
 #include "AMDGPUArgumentUsageInfo.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineFunction.h"
 
 namespace llvm {
@@ -543,6 +545,17 @@ public:
                             MachineFunction &MF,
                             const SIRegisterInfo &TRI,
                             SIMachineFunctionInfo &Info) const;
+
+  void allocatePreloadKernArgSGPRs(CCState &CCInfo,
+                                   SmallVectorImpl<CCValAssign> &ArgLocs,
+                                   const SmallVectorImpl<ISD::InputArg> &Ins,
+                                   MachineFunction &MF,
+                                   const SIRegisterInfo &TRI,
+                                   SIMachineFunctionInfo &Info) const;
+
+  void allocateLDSKernelId(CCState &CCInfo, MachineFunction &MF,
+                           const SIRegisterInfo &TRI,
+                           SIMachineFunctionInfo &Info) const;
 
   void allocateSystemSGPRs(CCState &CCInfo,
                            MachineFunction &MF,
