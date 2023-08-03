@@ -211,6 +211,8 @@ let usesCustomInserter = 1 in {
 def S_INVERSE_BALLOT_U32 : SPseudoInstSI <(outs SReg_32:$sdst), (ins SSrc_b32:$mask)>;
 
 def S_INVERSE_BALLOT_U64 : SPseudoInstSI <(outs SReg_64:$sdst), (ins SSrc_b64:$mask)>;
+
+def PRELOAD_BC_KERNARG : SPseudoInstSI <(outs unknown:$dst0), (ins unknown:$src0, unknown:$src1)>;
 } // End usesCustomInserter = 1
 
 // PSEUDO_WM is treated like STRICT_WWM/STRICT_WQM without exec changes.

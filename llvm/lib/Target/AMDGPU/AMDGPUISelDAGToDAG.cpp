@@ -13,6 +13,7 @@
 
 #include "AMDGPUISelDAGToDAG.h"
 #include "AMDGPU.h"
+#include "AMDGPUISelLowering.h"
 #include "AMDGPUInstrInfo.h"
 #include "AMDGPUSubtarget.h"
 #include "AMDGPUTargetMachine.h"
@@ -697,6 +698,10 @@ void AMDGPUDAGToDAGISel::Select(SDNode *N) {
   }
   case ISD::STACKRESTORE: {
     SelectSTACKRESTORE(N);
+    return;
+  }
+  case AMDGPUISD::SELECT_KERNARG: {
+    SelectSELECT_KERNARG(N);
     return;
   }
   }
@@ -2613,6 +2618,11 @@ void AMDGPUDAGToDAGISel::SelectSTACKRESTORE(SDNode *N) {
 
   SDValue CopyToSP = CurDAG->getCopyToReg(N->getOperand(0), SL, SP, CopyVal);
   CurDAG->ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyToSP);
+}
+
+void AMDGPUDAGToDAGISel::SelectSELECT_KERNARG(SDNode *N) {
+  SDLoc SL(N);
+  CurDAG->SelectNodeTo(N, AMDGPU::PRELOAD_BC_KERNARG, N->getValueType(0), {N->getOperand(0), N->getOperand(1)});
 }
 
 bool AMDGPUDAGToDAGISel::SelectVOP3ModsImpl(SDValue In, SDValue &Src,

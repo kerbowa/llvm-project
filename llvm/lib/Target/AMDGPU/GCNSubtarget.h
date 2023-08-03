@@ -1181,6 +1181,12 @@ public:
   // \returns true if preloading kernel arguments is supported.
   bool hasKernargPreload() const { return hasGFX90AInsts(); }
 
+  // \returns true if we need to generate backwards compatible code when
+  // preloading kernel arguments.
+  bool needsKernargPreloadBackwardsCompatibility() const {
+    return hasKernargPreload() && !hasGFX940Insts();
+  }
+
   // \returns true if FP8/BF8 VOP1 form of conversion to F32 is unreliable.
   bool hasCvtFP8VOP1Bug() const { return true; }
 

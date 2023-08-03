@@ -21,6 +21,7 @@
 #include "SIRegisterInfo.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/FloatingPointMode.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/OptimizationRemarkEmitter.h"
 #include "llvm/Analysis/UniformityAnalysis.h"
@@ -31,17 +32,26 @@
 #include "llvm/CodeGen/GlobalISel/GISelKnownBits.h"
 #include "llvm/CodeGen/GlobalISel/GenericMachineInstrs.h"
 #include "llvm/CodeGen/GlobalISel/MIPatternMatch.h"
+#include "llvm/CodeGen/MachineBasicBlock.h"
+#include "llvm/CodeGen/MachineDominators.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineLoopInfo.h"
+#include "llvm/CodeGen/SelectionDAGNodes.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/IntrinsicsAMDGPU.h"
 #include "llvm/IR/IntrinsicsR600.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/MC/MCRegister.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/KnownBits.h"
 #include "llvm/Support/ModRef.h"
+#include <cstdint>
 #include <optional>
 
 using namespace llvm;
@@ -2682,6 +2692,10 @@ SDValue SITargetLowering::LowerFormalArguments(
       SDValue NewArg;
       if (Arg.isOrigArg() &&
           Info->getArgInfo().PreloadKernArgs.count(Arg.getOrigArgIndex())) {
+        // Value for preloading.
+        SDValue Preload;
+        // Value for backwards compatibility.
+        SDValue BC;
         if (MemVT.getStoreSize() < 4 && Alignment < 4) {
           // In this case the argument is packed into the previous preload SGPR.
           int64_t AlignDownOffset = alignDown(Offset, 4);
@@ -2705,10 +2719,10 @@ SDValue SITargetLowering::LowerFormalArguments(
 
           SDValue ArgVal = DAG.getNode(ISD::TRUNCATE, DL, IntVT, Extract);
           ArgVal = DAG.getNode(ISD::BITCAST, DL, MemVT, ArgVal);
-          NewArg = convertArgType(DAG, VT, MemVT, DL, ArgVal,
+          Preload = convertArgType(DAG, VT, MemVT, DL, ArgVal,
                                   Ins[i].Flags.isSExt(), &Ins[i]);
 
-          NewArg = DAG.getMergeValues({NewArg, Copy.getValue(1)}, DL);
+          Preload = DAG.getMergeValues({Preload, Copy.getValue(1)}, DL);
         } else {
           const SIMachineFunctionInfo *Info =
               MF.getInfo<SIMachineFunctionInfo>();
@@ -2723,7 +2737,7 @@ SDValue SITargetLowering::LowerFormalArguments(
           if (PreloadRegs.size() == 1) {
             Register VReg = MRI.getLiveInVirtReg(PreloadRegs[0]);
             const TargetRegisterClass *RC = MRI.getRegClass(VReg);
-            NewArg = DAG.getCopyFromReg(
+            Preload = DAG.getCopyFromReg(
                 Chain, DL, VReg,
                 EVT::getIntegerVT(*DAG.getContext(),
                                   TRI->getRegSizeInBits(*RC)));
@@ -2739,27 +2753,35 @@ SDValue SITargetLowering::LowerFormalArguments(
               Copy = DAG.getCopyFromReg(Chain, DL, VReg, MVT::i32);
               Elts.push_back(Copy);
             }
-            NewArg =
+            Preload =
                 DAG.getBuildVector(EVT::getVectorVT(*DAG.getContext(), MVT::i32,
                                                     PreloadRegs.size()),
                                    DL, Elts);
           }
 
           SDValue CMemVT;
-          if (VT.isScalarInteger() && VT.bitsLT(NewArg.getSimpleValueType()))
-            CMemVT = DAG.getNode(ISD::TRUNCATE, DL, MemVT, NewArg);
+          if (VT.isScalarInteger() && VT.bitsLT(Preload.getSimpleValueType()))
+            CMemVT = DAG.getNode(ISD::TRUNCATE, DL, MemVT, Preload);
           else
-            CMemVT = DAG.getBitcast(MemVT, NewArg);
-          NewArg = convertArgType(DAG, VT, MemVT, DL, CMemVT,
-                                  Ins[i].Flags.isSExt(), &Ins[i]);
-          NewArg = DAG.getMergeValues({NewArg, Chain}, DL);
+            CMemVT = DAG.getBitcast(MemVT, Preload);
+          Preload = convertArgType(DAG, VT, MemVT, DL, CMemVT,
+                                       Ins[i].Flags.isSExt(), &Ins[i]);
+          Preload = DAG.getMergeValues({Preload, Chain}, DL);
+          Chains.push_back(Preload.getValue(1));
         }
+
+        BC =
+            lowerKernargMemParameter(DAG, VT, MemVT, DL, Chain, Offset,
+                                     Alignment, Ins[i].Flags.isSExt(), &Ins[i]);
+
+        Chains.push_back(BC.getValue(1));
+        SDValue Ops[] = { BC, Preload };
+        NewArg = DAG.getNode(AMDGPUISD::SELECT_KERNARG, DL, VT, Ops);
       } else {
         NewArg =
             lowerKernargMemParameter(DAG, VT, MemVT, DL, Chain, Offset,
                                      Alignment, Ins[i].Flags.isSExt(), &Ins[i]);
       }
-      Chains.push_back(NewArg.getValue(1));
 
       auto *ParamTy =
         dyn_cast<PointerType>(FType->getParamType(Ins[i].getOrigArgIndex()));
@@ -4946,6 +4968,9 @@ MachineBasicBlock *SITargetLowering::EmitInstrWithCustomInserter(
     BB->addSuccessor(TrapBB);
     MI.eraseFromParent();
     return SplitBB;
+  }
+  case AMDGPU::PRELOAD_BC_KERNARG: {
+    return emitKernargPreloadBCPrologue(&MI, BB);
   }
   default:
     return AMDGPUTargetLowering::EmitInstrWithCustomInserter(MI, BB);
@@ -14841,4 +14866,137 @@ SITargetLowering::lowerIdempotentRMWIntoFencedLoad(AtomicRMWInst *AI) const {
   AI->replaceAllUsesWith(LI);
   AI->eraseFromParent();
   return LI;
+}
+
+static void insertTopoOrderPreds(MachineInstr *MI, MachineBasicBlock &NewMBB,
+                                 MachineBasicBlock &OldMBB,
+                                 const MachineRegisterInfo &MRI) {
+  SmallVector<MachineInstr *, 4> Worklist;
+  SmallPtrSet<MachineInstr *, 4> Preds;
+  Worklist.push_back(MI);
+  while (!Worklist.empty()) {
+    MachineInstr *MI = Worklist.pop_back_val();
+    Preds.insert(MI);
+    for (unsigned I = 1; I < MI->getNumOperands(); ++I) {
+      if (!MI->getOperand(I).isReg())
+        continue;
+      Register Reg = MI->getOperand(I).getReg();
+      if (Reg.isPhysical())
+        continue;
+      Worklist.push_back(MRI.getVRegDef(Reg));
+    }
+  }
+
+  // Ensure in topo order. Since the original relative ordering of the
+  // instructions will be legal we can walk backward from MI to ensure
+  // instructions are inserted correctly.
+  SmallVector<MachineInstr *, 4> OrderedPreds;
+  auto I = MI->getReverseIterator();
+  auto E = MI->getParent()->rend();
+  for (; I != E; ++I)
+    if (Preds.contains(&*I))
+      OrderedPreds.push_back(&*I);
+
+  auto OPR = OrderedPreds.rbegin();
+  auto OPE = OrderedPreds.rend();
+  auto Ins = std::prev(std::prev(NewMBB.end()));
+  for (; OPR != OPE; ++OPR)
+    NewMBB.splice(Ins, &OldMBB, *OPR);
+}
+
+MachineBasicBlock *
+SITargetLowering::emitKernargPreloadBCPrologue(MachineInstr *MI,
+                                               MachineBasicBlock *BB) const {
+  MachineFunction *MF = BB->getParent();
+  SIMachineFunctionInfo *MFI = MF->getInfo<SIMachineFunctionInfo>();
+  MachineRegisterInfo &MRI = MF->getRegInfo();
+  const SIInstrInfo *TII = getSubtarget()->getInstrInfo();
+  if (!MFI->HasKernargPreloadBCH) {
+    BB = &*MF->begin();
+    // Backwards compatibility function entry.
+    MFI->BCH = BB;
+    // Preload kernarg compatible function entry.
+    MFI->PH = MF->CreateMachineBasicBlock();
+    // Kernel start after loading arguments.
+    MFI->KernStart = MF->CreateMachineBasicBlock();
+    MachineBasicBlock *BCH = MFI->BCH;
+    MachineBasicBlock *PH = MFI->PH;
+    MachineBasicBlock *KernStart = MFI->KernStart;
+    MachineFunction::iterator MBBI(BB);
+    MBBI++;
+
+    MF->insert(MBBI, PH);
+    MF->insert(MBBI, KernStart);
+    KernStart->transferSuccessorsAndUpdatePHIs(BB);
+
+    BCH->addSuccessor(PH);
+    BCH->addSuccessor(KernStart);
+    PH->addSuccessor(KernStart);
+
+    KernStart->splice(KernStart->begin(), BB, BB->begin(), BB->end());
+
+    BuildMI(*BCH, BCH->end(), DebugLoc(), TII->get(AMDGPU::S_WAITCNT))
+        .addImm(0);
+
+    BuildMI(*BCH, BCH->end(), DebugLoc(),
+            TII->get(TargetOpcode::INLINEASM_BR))
+        .addExternalSymbol("")
+        .addImm(InlineAsm::Extra_HasSideEffects | InlineAsm::Extra_IsConvergent)
+        .addImm(13)
+        .addMBB(PH);
+
+    BuildMI(*BCH, BCH->end(), DebugLoc(),
+            TII->get(TargetOpcode::INLINEASM_BR))
+        .addExternalSymbol("")
+        .addImm(InlineAsm::Extra_HasSideEffects | InlineAsm::Extra_IsConvergent)
+        .addImm(13)
+        .addMBB(KernStart);
+
+    BCH->setIsInlineAsmBrIndirectTarget();
+    BCH->setMachineBlockAddressTaken();
+
+    BuildMI(*PH, PH->end(), DebugLoc(), TII->get(TargetOpcode::INLINEASM_BR))
+        .addExternalSymbol("")
+        .addImm(InlineAsm::Extra_HasSideEffects | InlineAsm::Extra_IsConvergent)
+        .addImm(13)
+        .addMBB(KernStart);
+
+    PH->setIsInlineAsmBrIndirectTarget();
+    PH->setMachineBlockAddressTaken();
+
+    KernStart->setIsInlineAsmBrIndirectTarget();
+    KernStart->setMachineBlockAddressTaken();
+
+
+    MFI->HasKernargPreloadBCH = true;
+  }
+
+  MachineBasicBlock *BCH = MFI->BCH;
+  MachineBasicBlock *PH = MFI->PH;
+  MachineBasicBlock *KernStart = MFI->KernStart;
+
+  Register BCHReg = MI->getOperand(1).getReg();
+  MachineInstr *BCHDef = MRI.getVRegDef(BCHReg);
+  insertTopoOrderPreds(BCHDef, *BCH, *KernStart, MRI);
+
+  Register PHReg = MI->getOperand(2).getReg();
+  MachineInstr *PHDef = MRI.getVRegDef(PHReg);
+  insertTopoOrderPreds(PHDef, *PH, *KernStart, MRI);
+
+  BuildMI(*KernStart, KernStart->begin(), DebugLoc(),
+          TII->get(TargetOpcode::PHI), MI->getOperand(0).getReg())
+      .addReg(BCHDef->getOperand(0).getReg())
+      .addMBB(BCH)
+      .addReg(PHDef->getOperand(0).getReg())
+      .addMBB(PH);
+  
+  MI->eraseFromParent();
+
+  for (auto &Preload : MFI->getArgInfo().PreloadKernArgs) {
+    for (auto Reg : Preload.second.Regs) {
+      PH->addLiveIn(Reg);
+    }
+  }
+
+  return KernStart;
 }

@@ -836,7 +836,7 @@ bool AMDGPUTargetELFStreamer::EmitHSAMetadata(
 bool AMDGPUTargetAsmStreamer::EmitKernargPreloadHeader(
     const MCSubtargetInfo &STI) {
   for (int i = 0; i < 64; ++i) {
-    OS << "\ts_nop 0\n";
+    //OS << "\ts_nop 0\n";
   }
   return true;
 }
@@ -846,7 +846,7 @@ bool AMDGPUTargetELFStreamer::EmitKernargPreloadHeader(
   const uint32_t Encoded_s_nop = 0xbf800000;
   MCStreamer &OS = getStreamer();
   for (int i = 0; i < 64; ++i) {
-    OS.emitInt32(Encoded_s_nop);
+    //OS.emitInt32(Encoded_s_nop);
   }
   return true;
 }

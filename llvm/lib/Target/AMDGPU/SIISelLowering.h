@@ -422,6 +422,11 @@ public:
   void bundleInstWithWaitcnt(MachineInstr &MI) const;
   MachineBasicBlock *emitGWSMemViolTestLoop(MachineInstr &MI,
                                             MachineBasicBlock *BB) const;
+  // Emit entry blocks for the ABI that supports kernel argument preloading as
+  // well as the entry block that is backward compatible with older GPU
+  // firmware.
+  MachineBasicBlock *emitKernargPreloadBCPrologue(MachineInstr *MI,
+                                                  MachineBasicBlock *BB) const;
 
   MachineBasicBlock *
   EmitInstrWithCustomInserter(MachineInstr &MI,
