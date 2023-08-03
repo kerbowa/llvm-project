@@ -3360,9 +3360,6 @@ define amdgpu_ps void @global_cmpxchg_saddr_i64_nortn_neg128(ptr addrspace(1) in
 ; amdgcn atomic inc
 ; --------------------------------------------------------------------------------
 
-declare i32 @llvm.amdgcn.atomic.inc.i32.p1(ptr addrspace(1) nocapture, i32, i32 immarg, i32 immarg, i1 immarg) #0
-declare i64 @llvm.amdgcn.atomic.inc.i64.p1(ptr addrspace(1) nocapture, i64, i32 immarg, i32 immarg, i1 immarg) #0
-
 define amdgpu_ps float @global_inc_saddr_i32_rtn(ptr addrspace(1) inreg %sbase, i32 %voffset, i32 %data) {
 ; GCN-LABEL: global_inc_saddr_i32_rtn:
 ; GCN:       ; %bb.0:
@@ -3377,7 +3374,7 @@ define amdgpu_ps float @global_inc_saddr_i32_rtn(ptr addrspace(1) inreg %sbase, 
 ; GFX11-NEXT:    ; return to shader part epilog
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %rtn = call i32 @llvm.amdgcn.atomic.inc.i32.p1(ptr addrspace(1) %gep0, i32 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw uinc_wrap ptr addrspace(1) %gep0, i32 %data monotonic
   %cast.rtn = bitcast i32 %rtn to float
   ret float %cast.rtn
 }
@@ -3397,7 +3394,7 @@ define amdgpu_ps float @global_inc_saddr_i32_rtn_neg128(ptr addrspace(1) inreg %
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %rtn = call i32 @llvm.amdgcn.atomic.inc.i32.p1(ptr addrspace(1) %gep1, i32 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw uinc_wrap ptr addrspace(1) %gep1, i32 %data monotonic
   %cast.rtn = bitcast i32 %rtn to float
   ret float %cast.rtn
 }
@@ -3416,7 +3413,7 @@ define amdgpu_ps void @global_inc_saddr_i32_nortn(ptr addrspace(1) inreg %sbase,
 ; GFX11-NEXT:    s_endpgm
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %unused = call i32 @llvm.amdgcn.atomic.inc.i32.p1(ptr addrspace(1) %gep0, i32 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw uinc_wrap ptr addrspace(1) %gep0, i32 %data monotonic
   ret void
 }
 
@@ -3435,7 +3432,7 @@ define amdgpu_ps void @global_inc_saddr_i32_nortn_neg128(ptr addrspace(1) inreg 
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %unused = call i32 @llvm.amdgcn.atomic.inc.i32.p1(ptr addrspace(1) %gep1, i32 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw uinc_wrap ptr addrspace(1) %gep1, i32 %data monotonic
   ret void
 }
 
@@ -3453,7 +3450,7 @@ define amdgpu_ps <2 x float> @global_inc_saddr_i64_rtn(ptr addrspace(1) inreg %s
 ; GFX11-NEXT:    ; return to shader part epilog
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %rtn = call i64 @llvm.amdgcn.atomic.inc.i64.p1(ptr addrspace(1) %gep0, i64 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw uinc_wrap ptr addrspace(1) %gep0, i64 %data monotonic
   %cast.rtn = bitcast i64 %rtn to <2 x float>
   ret <2 x float> %cast.rtn
 }
@@ -3473,7 +3470,7 @@ define amdgpu_ps <2 x float> @global_inc_saddr_i64_rtn_neg128(ptr addrspace(1) i
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %rtn = call i64 @llvm.amdgcn.atomic.inc.i64.p1(ptr addrspace(1) %gep1, i64 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw uinc_wrap ptr addrspace(1) %gep1, i64 %data monotonic
   %cast.rtn = bitcast i64 %rtn to <2 x float>
   ret <2 x float> %cast.rtn
 }
@@ -3492,7 +3489,7 @@ define amdgpu_ps void @global_inc_saddr_i64_nortn(ptr addrspace(1) inreg %sbase,
 ; GFX11-NEXT:    s_endpgm
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %unused = call i64 @llvm.amdgcn.atomic.inc.i64.p1(ptr addrspace(1) %gep0, i64 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw uinc_wrap ptr addrspace(1) %gep0, i64 %data monotonic
   ret void
 }
 
@@ -3511,7 +3508,7 @@ define amdgpu_ps void @global_inc_saddr_i64_nortn_neg128(ptr addrspace(1) inreg 
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %unused = call i64 @llvm.amdgcn.atomic.inc.i64.p1(ptr addrspace(1) %gep1, i64 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw uinc_wrap ptr addrspace(1) %gep1, i64 %data monotonic
   ret void
 }
 
@@ -3519,8 +3516,6 @@ define amdgpu_ps void @global_inc_saddr_i64_nortn_neg128(ptr addrspace(1) inreg 
 ; amdgcn atomic dec
 ; --------------------------------------------------------------------------------
 
-declare i32 @llvm.amdgcn.atomic.dec.i32.p1(ptr addrspace(1) nocapture, i32, i32 immarg, i32 immarg, i1 immarg) #0
-declare i64 @llvm.amdgcn.atomic.dec.i64.p1(ptr addrspace(1) nocapture, i64, i32 immarg, i32 immarg, i1 immarg) #0
 
 define amdgpu_ps float @global_dec_saddr_i32_rtn(ptr addrspace(1) inreg %sbase, i32 %voffset, i32 %data) {
 ; GCN-LABEL: global_dec_saddr_i32_rtn:
@@ -3536,7 +3531,7 @@ define amdgpu_ps float @global_dec_saddr_i32_rtn(ptr addrspace(1) inreg %sbase, 
 ; GFX11-NEXT:    ; return to shader part epilog
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %rtn = call i32 @llvm.amdgcn.atomic.dec.i32.p1(ptr addrspace(1) %gep0, i32 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw udec_wrap ptr addrspace(1) %gep0, i32 %data monotonic
   %cast.rtn = bitcast i32 %rtn to float
   ret float %cast.rtn
 }
@@ -3556,7 +3551,7 @@ define amdgpu_ps float @global_dec_saddr_i32_rtn_neg128(ptr addrspace(1) inreg %
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %rtn = call i32 @llvm.amdgcn.atomic.dec.i32.p1(ptr addrspace(1) %gep1, i32 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw udec_wrap ptr addrspace(1) %gep1, i32 %data monotonic
   %cast.rtn = bitcast i32 %rtn to float
   ret float %cast.rtn
 }
@@ -3575,7 +3570,7 @@ define amdgpu_ps void @global_dec_saddr_i32_nortn(ptr addrspace(1) inreg %sbase,
 ; GFX11-NEXT:    s_endpgm
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %unused = call i32 @llvm.amdgcn.atomic.dec.i32.p1(ptr addrspace(1) %gep0, i32 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw udec_wrap ptr addrspace(1) %gep0, i32 %data monotonic
   ret void
 }
 
@@ -3594,7 +3589,7 @@ define amdgpu_ps void @global_dec_saddr_i32_nortn_neg128(ptr addrspace(1) inreg 
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %unused = call i32 @llvm.amdgcn.atomic.dec.i32.p1(ptr addrspace(1) %gep1, i32 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw udec_wrap ptr addrspace(1) %gep1, i32 %data monotonic
   ret void
 }
 
@@ -3612,7 +3607,7 @@ define amdgpu_ps <2 x float> @global_dec_saddr_i64_rtn(ptr addrspace(1) inreg %s
 ; GFX11-NEXT:    ; return to shader part epilog
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %rtn = call i64 @llvm.amdgcn.atomic.dec.i64.p1(ptr addrspace(1) %gep0, i64 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw udec_wrap ptr addrspace(1) %gep0, i64 %data monotonic
   %cast.rtn = bitcast i64 %rtn to <2 x float>
   ret <2 x float> %cast.rtn
 }
@@ -3632,7 +3627,7 @@ define amdgpu_ps <2 x float> @global_dec_saddr_i64_rtn_neg128(ptr addrspace(1) i
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %rtn = call i64 @llvm.amdgcn.atomic.dec.i64.p1(ptr addrspace(1) %gep1, i64 %data, i32 0, i32 0, i1 false)
+  %rtn = atomicrmw udec_wrap ptr addrspace(1) %gep1, i64 %data monotonic
   %cast.rtn = bitcast i64 %rtn to <2 x float>
   ret <2 x float> %cast.rtn
 }
@@ -3651,7 +3646,7 @@ define amdgpu_ps void @global_dec_saddr_i64_nortn(ptr addrspace(1) inreg %sbase,
 ; GFX11-NEXT:    s_endpgm
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
-  %unused = call i64 @llvm.amdgcn.atomic.dec.i64.p1(ptr addrspace(1) %gep0, i64 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw udec_wrap ptr addrspace(1) %gep0, i64 %data monotonic
   ret void
 }
 
@@ -3670,7 +3665,7 @@ define amdgpu_ps void @global_dec_saddr_i64_nortn_neg128(ptr addrspace(1) inreg 
   %zext.offset = zext i32 %voffset to i64
   %gep0 = getelementptr inbounds i8, ptr addrspace(1) %sbase, i64 %zext.offset
   %gep1 = getelementptr inbounds i8, ptr addrspace(1) %gep0, i64 -128
-  %unused = call i64 @llvm.amdgcn.atomic.dec.i64.p1(ptr addrspace(1) %gep1, i64 %data, i32 0, i32 0, i1 false)
+  %unused = atomicrmw udec_wrap ptr addrspace(1) %gep1, i64 %data monotonic
   ret void
 }
 

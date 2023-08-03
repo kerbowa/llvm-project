@@ -34,13 +34,11 @@ using namespace llvm::omp::target;
 
 // List of all plugins that can support offloading.
 static const char *RTLNames[] = {
-    /* PowerPC target       */ "libomptarget.rtl.ppc64",
-    /* x86_64 target        */ "libomptarget.rtl.x86_64",
-    /* CUDA target          */ "libomptarget.rtl.cuda",
-    /* AArch64 target       */ "libomptarget.rtl.aarch64",
-    /* SX-Aurora VE target  */ "libomptarget.rtl.ve",
     /* AMDGPU target        */ "libomptarget.rtl.amdgpu",
-    /* Remote target        */ "libomptarget.rtl.rpc",
+    /* CUDA target          */ "libomptarget.rtl.cuda",
+    /* x86_64 target        */ "libomptarget.rtl.x86_64",
+    /* PowerPC target       */ "libomptarget.rtl.ppc64",
+    /* AArch64 target       */ "libomptarget.rtl.aarch64",
 };
 
 PluginManager *PM;
@@ -132,6 +130,7 @@ void RTLsTy::loadRTLs() {
 
   DP("Loading RTLs...\n");
   BoolEnvar NextGenPlugins("LIBOMPTARGET_NEXTGEN_PLUGINS", true);
+  BoolEnvar UseFirstGoodRTL("LIBOMPTARGET_USE_FIRST_GOOD_RTL", false);
 
   // Attempt to open all the plugins and, if they exist, check if the interface
   // is correct and if they are supporting any devices.
@@ -142,9 +141,11 @@ void RTLsTy::loadRTLs() {
 
     const std::string BaseRTLName(Name);
     if (NextGenPlugins) {
-      if (attemptLoadRTL(BaseRTLName + ".nextgen.so", RTL))
+      if (attemptLoadRTL(BaseRTLName + ".nextgen.so", RTL)) {
+        if (UseFirstGoodRTL)
+          break;
         continue;
-
+      }
       DP("Falling back to original plugin...\n");
     }
 
@@ -275,7 +276,7 @@ bool RTLsTy::attemptLoadRTL(const std::string &RTLName, RTLInfoTy &RTL) {
     return false;
   }
 
-#ifdef LIBOMPTARGET_DEBUG
+#ifdef OMPTARGET_DEBUG
   RTL.RTLName = Name;
 #endif
 
@@ -608,7 +609,7 @@ void RTLsTy::registerLib(__tgt_bin_desc *Desc) {
         // Add all globals to the list of globals in this image, so later
         // look-ups for globals are faster.
         for (auto *Entry : PM->HostEntriesBeginRegistrationOrder)
-          if (Entry->size > 0) // globals have a size larger 0
+          if (Entry->size > 0) // globals have a size larger than 0
             HostPtrsRequireAlloc.insert(Entry->addr);
         DP("USM_SPECIAL: Marked %i pointers for alloc handling\n",
            HostPtrsRequireAlloc.size());

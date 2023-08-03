@@ -304,6 +304,12 @@ Error GenericKernelTy::launch(GenericDeviceTy &GenericDevice, void **ArgPtrs,
                                     KernelArgs.NumArgs, Args, Ptrs);
 
   uint32_t NumThreads = getNumThreads(GenericDevice, KernelArgs.ThreadLimit);
+
+  std::pair<bool, uint32_t> AdjustInfo = adjustNumThreadsForLowTripCount(
+      GenericDevice, NumThreads, KernelArgs.Tripcount, KernelArgs.ThreadLimit);
+  if (AdjustInfo.first)
+    NumThreads = AdjustInfo.second;
+
   uint64_t NumBlocks = getNumBlocks(GenericDevice, KernelArgs.NumTeams,
                                     KernelArgs.Tripcount, NumThreads);
 
@@ -479,7 +485,7 @@ GenericDeviceTy::GenericDeviceTy(int32_t DeviceId, int32_t NumDevices,
       OMPX_InitialNumEvents("LIBOMPTARGET_NUM_INITIAL_EVENTS", 32),
       DeviceId(DeviceId), GridValues(OMPGridValues),
       PeerAccesses(NumDevices, PeerAccessState::PENDING), PeerAccessesLock(),
-      PinnedAllocs(*this) {}
+      PinnedAllocs(*this), RPCHandle(nullptr) {}
 
 Error GenericDeviceTy::init(GenericPluginTy &Plugin) {
   if (auto Err = initImpl(Plugin))
@@ -545,6 +551,10 @@ Error GenericDeviceTy::deinit(GenericPluginTy &Plugin) {
   OMPT_IF_ENABLED(
       ompt_device_callbacks.ompt_callback_device_finalize(DeviceId););
 
+  if (RPCHandle)
+    if (auto Err = RPCHandle->deinitDevice())
+      return Err;
+
   return deinitImpl();
 }
 Expected<__tgt_target_table *>
@@ -593,6 +603,9 @@ GenericDeviceTy::loadBinary(GenericPluginTy &Plugin,
           /*HostAddr=*/InputTgtImage->ImageStart, /*DeviceAddr=*/nullptr,
           /* FIXME: ModuleId=*/0););
 
+  if (auto Err = setupRPCServer(Plugin, *Image))
+    return std::move(Err);
+
   // Return the pointer to the table of entries.
   return Image->getOffloadEntryTable();
 }
@@ -609,6 +622,7 @@ Error GenericDeviceTy::setupDeviceEnvironment(GenericPluginTy &Plugin,
   // TODO: The device ID used here is not the real device ID used by OpenMP.
   DeviceEnvironment.DeviceNum = DeviceId;
   DeviceEnvironment.DynamicMemSize = OMPX_SharedMemorySize;
+  DeviceEnvironment.ClockFrequency = getClockFrequency();
 
   // Create the metainfo of the device environment global.
   GlobalTy DevEnvGlobal("__omp_rtl_device_environment",
@@ -621,6 +635,33 @@ Error GenericDeviceTy::setupDeviceEnvironment(GenericPluginTy &Plugin,
        DevEnvGlobal.getName().data());
     consumeError(std::move(Err));
   }
+  return Plugin::success();
+}
+
+Error GenericDeviceTy::setupRPCServer(GenericPluginTy &Plugin,
+                                      DeviceImageTy &Image) {
+  // The plugin either does not need an RPC server or it is unavailible.
+  if (!shouldSetupRPCServer())
+    return Plugin::success();
+
+  // Check if this device needs to run an RPC server.
+  RPCServerTy &Server = Plugin.getRPCServer();
+  auto UsingOrErr =
+      Server.isDeviceUsingRPC(*this, Plugin.getGlobalHandler(), Image);
+  if (!UsingOrErr)
+    return UsingOrErr.takeError();
+
+  if (!UsingOrErr.get())
+    return Plugin::success();
+
+  if (auto Err = Server.initDevice(*this, Plugin.getGlobalHandler(), Image))
+    return Err;
+
+  auto DeviceOrErr = Server.getDevice(*this);
+  if (!DeviceOrErr)
+    return DeviceOrErr.takeError();
+  RPCHandle = *DeviceOrErr;
+  DP("Running an RPC server on device %d\n", getDeviceId());
   return Plugin::success();
 }
 
@@ -1146,8 +1187,16 @@ uint32_t GenericDeviceTy::queryCoarseGrainMemory(const void *ptr,
 }
 
 Error GenericDeviceTy::printInfo() {
-  // TODO: Print generic information here
-  return printInfoImpl();
+  InfoQueueTy InfoQueue;
+
+  // Get the vendor-specific info entries describing the device properties.
+  if (auto Err = obtainInfoImpl(InfoQueue))
+    return Err;
+
+  // Print all info entries.
+  InfoQueue.print();
+
+  return Plugin::success();
 }
 
 Error GenericDeviceTy::createEvent(void **EventPtrStorage) {
@@ -1194,6 +1243,11 @@ Error GenericPluginTy::init() {
   GlobalHandler = Plugin::createGlobalHandler();
   assert(GlobalHandler && "Invalid global handler");
 
+  RPCServer = nullptr;
+#if RPC_FIXME
+  RPCServer = new RPCServerTy(NumDevices);
+  assert(RPCServer && "Invalid RPC server");
+#endif
   return Plugin::success();
 }
 
@@ -1211,6 +1265,10 @@ Error GenericPluginTy::deinit() {
     assert(!Devices[DeviceId] && "Device was not deinitialized");
   }
 
+#if RPC_FIXME
+  if (RPCServer)
+    delete RPCServer;
+#endif
   // Perform last deinitializations on the plugin.
   return deinitImpl();
 }
@@ -1243,6 +1301,15 @@ Error GenericPluginTy::deinitDevice(int32_t DeviceId) {
   Devices[DeviceId] = nullptr;
 
   return Plugin::success();
+}
+
+const bool llvm::omp::target::plugin::libomptargetSupportsRPC() {
+#ifdef LIBOMPTARGET_RPC_SUPPORT
+	assert(0);
+  return true;
+#else
+  return false;
+#endif
 }
 
 /// Exposed library API function, basically wrappers around the GenericDeviceTy
@@ -1344,8 +1411,7 @@ int32_t __tgt_rtl_deinit_device(int32_t DeviceId) {
 int32_t __tgt_rtl_number_of_devices() { return Plugin::get().getNumDevices(); }
 
 int __tgt_rtl_number_of_team_procs(int DeviceId) {
-  // TODO have this find and return the correct number of CUs
-  return Plugin::get().getDevice(DeviceId).getDefaultNumThreads();
+  return Plugin::get().getDevice(DeviceId).getNumComputeUnits();
 }
 
 bool __tgt_rtl_has_apu_device() { return Plugin::get().hasAPUDevice(); }

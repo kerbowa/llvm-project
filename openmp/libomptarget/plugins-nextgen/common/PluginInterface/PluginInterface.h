@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <list>
 #include <map>
 #include <shared_mutex>
@@ -23,6 +24,7 @@
 #include "GlobalHandler.h"
 #include "JIT.h"
 #include "MemoryManager.h"
+#include "RPC.h"
 #include "Utilities.h"
 #include "omptarget.h"
 
@@ -33,6 +35,7 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MemoryBufferRef.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Triple.h"
 
 namespace llvm {
@@ -82,6 +85,76 @@ private:
   GenericDeviceTy &Device;
   __tgt_async_info LocalAsyncInfo;
   __tgt_async_info *AsyncInfoPtr;
+};
+
+/// The information level represents the level of a key-value property in the
+/// info tree print (i.e. indentation). The first level should be the default.
+enum InfoLevelKind { InfoLevel1 = 1, InfoLevel2, InfoLevel3 };
+
+/// Class for storing device information and later be printed. An object of this
+/// type acts as a queue of key-value properties. Each property has a key, a
+/// a value, and an optional unit for the value. For printing purposes, the
+/// information can be classified into several levels. These levels are useful
+/// for defining sections and subsections. Thus, each key-value property also
+/// has an additional field indicating to which level belongs to. Notice that
+/// we use the level to determine the indentation of the key-value property at
+/// printing time. See the enum InfoLevelKind for the list of accepted levels.
+class InfoQueueTy {
+  struct InfoQueueEntryTy {
+    std::string Key;
+    std::string Value;
+    std::string Units;
+    uint64_t Level;
+  };
+
+  std::deque<InfoQueueEntryTy> Queue;
+
+public:
+  /// Add a new info entry to the queue. The entry requires at least a key
+  /// string in \p Key. The value in \p Value is optional and can be any type
+  /// that is representable as a string. The units in \p Units is optional and
+  /// must be a string. The info level is a template parameter that defaults to
+  /// the first level (top level).
+  template <InfoLevelKind L = InfoLevel1, typename T = std::string>
+  void add(const std::string &Key, T Value = T(),
+           const std::string &Units = std::string()) {
+    assert(!Key.empty() && "Invalid info key");
+
+    // Convert the value to a string depending on its type.
+    if constexpr (std::is_same_v<T, bool>)
+      Queue.push_back({Key, Value ? "Yes" : "No", Units, L});
+    else if constexpr (std::is_arithmetic_v<T>)
+      Queue.push_back({Key, std::to_string(Value), Units, L});
+    else
+      Queue.push_back({Key, Value, Units, L});
+  }
+
+  /// Print all info entries added to the queue.
+  void print() const {
+    // We print four spances for each level.
+    constexpr uint64_t IndentSize = 4;
+
+    // Find the maximum key length (level + key) to compute the individual
+    // indentation of each entry.
+    uint64_t MaxKeySize = 0;
+    for (const auto &Entry : Queue) {
+      uint64_t KeySize = Entry.Key.size() + Entry.Level * IndentSize;
+      if (KeySize > MaxKeySize)
+        MaxKeySize = KeySize;
+    }
+
+    // Print all info entries.
+    for (const auto &Entry : Queue) {
+      // Compute the indentations for the current entry.
+      uint64_t KeyIndentSize = Entry.Level * IndentSize;
+      uint64_t ValIndentSize =
+          MaxKeySize - (Entry.Key.size() + KeyIndentSize) + IndentSize;
+
+      llvm::outs() << std::string(KeyIndentSize, ' ') << Entry.Key
+                   << std::string(ValIndentSize, ' ') << Entry.Value
+                   << (Entry.Units.empty() ? "" : " ") << Entry.Units << "\n";
+    }
+  }
 };
 
 /// Class wrapping a __tgt_device_image and its offload entry table on a
@@ -166,8 +239,8 @@ public:
 struct GenericKernelTy {
   /// Construct a kernel with a name and a execution mode.
   GenericKernelTy(const char *Name, OMPTgtExecModeFlags ExecutionMode)
-      : Name(Name), ExecutionMode(ExecutionMode),
-        PreferredNumThreads(0), MaxNumThreads(0) {}
+      : Name(Name), ExecutionMode(ExecutionMode), PreferredNumThreads(0),
+        MaxNumThreads(0) {}
 
   virtual ~GenericKernelTy() {}
 
@@ -182,8 +255,8 @@ struct GenericKernelTy {
                ptrdiff_t *ArgOffsets, KernelArgsTy &KernelArgs,
                AsyncInfoWrapperTy &AsyncInfoWrapper) const;
   virtual Error launchImpl(GenericDeviceTy &GenericDevice, uint32_t NumThreads,
-                           uint64_t NumBlocks,
-                           KernelArgsTy &KernelArgs, void *Args,
+                           uint64_t NumBlocks, KernelArgsTy &KernelArgs,
+                           void *Args,
                            AsyncInfoWrapperTy &AsyncInfoWrapper) const = 0;
 
   /// Get the kernel name.
@@ -254,13 +327,35 @@ private:
   virtual uint32_t getDefaultNumThreads(GenericDeviceTy &Device) const = 0;
   virtual uint32_t getDefaultNumBlocks(GenericDeviceTy &Device) const = 0;
 
+  /// Lower number of threads if tripcount is low.
+  virtual std::pair<bool, uint32_t>
+  adjustNumThreadsForLowTripCount(GenericDeviceTy &GenericDevice,
+                                  uint32_t BlockSize, uint64_t LoopTripCount,
+                                  uint32_t ThreadLimitClause[3]) const {
+    return std::make_pair(false, BlockSize);
+  }
+
   /// Get the number of threads and blocks for the kernel based on the
   /// user-defined threads and block clauses.
-  uint32_t getNumThreads(GenericDeviceTy &GenericDevice,
-                         uint32_t ThreadLimitClause[3]) const;
-  uint64_t getNumBlocks(GenericDeviceTy &GenericDevice,
-                        uint32_t BlockLimitClause[3], uint64_t LoopTripCount,
-                        uint32_t NumThreads) const;
+  virtual uint32_t getNumThreads(GenericDeviceTy &GenericDevice,
+                                 uint32_t ThreadLimitClause[3]) const;
+  virtual uint64_t getNumBlocks(GenericDeviceTy &GenericDevice,
+                                uint32_t BlockLimitClause[3],
+                                uint64_t LoopTripCount,
+                                uint32_t NumThreads) const;
+
+  /// The kernel name.
+  const char *Name;
+
+  /// The execution flags of the kernel.
+  OMPTgtExecModeFlags ExecutionMode;
+
+protected:
+  /// The preferred number of threads to run the kernel.
+  uint32_t PreferredNumThreads;
+
+  /// The maximum number of threads which the kernel could leverage.
+  uint32_t MaxNumThreads;
 
   /// Indicate if the kernel works in Generic SPMD, Generic or SPMD mode.
   bool isGenericSPMDMode() const {
@@ -281,19 +376,6 @@ private:
   bool isXTeamReductionsMode() const {
     return ExecutionMode == OMP_TGT_EXEC_MODE_XTEAM_RED;
   }
-
-  /// The kernel name.
-  const char *Name;
-
-  /// The execution flags of the kernel.
-  OMPTgtExecModeFlags ExecutionMode;
-
-protected:
-  /// The preferred number of threads to run the kernel.
-  uint32_t PreferredNumThreads;
-
-  /// The maximum number of threads which the kernel could leverage.
-  uint32_t MaxNumThreads;
 };
 
 /// Class representing a map of host pinned allocations. We track these pinned
@@ -554,6 +636,11 @@ struct GenericDeviceTy : public DeviceAllocatorTy {
   /// this behavior by overriding the shouldSetupDeviceEnvironment function.
   Error setupDeviceEnvironment(GenericPluginTy &Plugin, DeviceImageTy &Image);
 
+  // Setup the RPC server for this device if needed. This may not run on some
+  // plugins like the CPU targets. By default, it will not be executed so it is
+  // up to the target to override this using the shouldSetupRPCServer function.
+  Error setupRPCServer(GenericPluginTy &Plugin, DeviceImageTy &Image);
+
   /// Register the offload entries for a specific image on the device.
   Error registerOffloadEntries(DeviceImageTy &Image);
 
@@ -683,7 +770,7 @@ struct GenericDeviceTy : public DeviceAllocatorTy {
 
   /// Print information about the device.
   Error printInfo();
-  virtual Error printInfoImpl() = 0;
+  virtual Error obtainInfoImpl(InfoQueueTy &Info) = 0;
 
   /// Getters of the grid values.
   uint32_t getWarpSize() const { return GridValues.GV_Warp_Size; }
@@ -695,7 +782,19 @@ struct GenericDeviceTy : public DeviceAllocatorTy {
   uint32_t getDefaultNumBlocks() const {
     return GridValues.GV_Default_Num_Teams;
   }
+
+  int32_t getOMPNumTeams() const { return OMP_NumTeams; }
+  int32_t getOMPTeamsThreadLimit() const { return OMP_TeamsThreadLimit; }
+
   uint32_t getDynamicMemorySize() const { return OMPX_SharedMemorySize; }
+  virtual uint64_t getClockFrequency() const { return CLOCKS_PER_SEC; }
+
+  virtual uint32_t getOMPXLowTripCount() const {
+    llvm_unreachable("Unimplemented");
+  }
+  virtual uint32_t getOMPXSmallBlockSize() const {
+    llvm_unreachable("Unimplemented");
+  }
 
   /// Get target compute unit kind (e.g., sm_80, or gfx908).
   virtual std::string getComputeUnitKind() const { return "unknown"; }
@@ -708,6 +807,10 @@ struct GenericDeviceTy : public DeviceAllocatorTy {
   doJITPostProcessing(std::unique_ptr<MemoryBuffer> MB) const {
     return std::move(MB);
   }
+
+
+  /// Get the RPC server running on this device.
+  RPCHandleTy *getRPCHandle() const { return RPCHandle; }
 
 private:
   /// Register offload entry for global variable.
@@ -737,6 +840,10 @@ private:
   /// that returning false in this function will change the behavior of the
   /// setupDeviceEnvironment() function.
   virtual bool shouldSetupDeviceEnvironment() const { return true; }
+
+  /// Indicate whether or not the device should setup the RPC server. This is
+  /// only necessary for unhosted targets like the GPU.
+  virtual bool shouldSetupRPCServer() const { return false; }
 
   /// Pointer to the memory manager or nullptr if not available.
   MemoryManagerTy *MemoryManager;
@@ -789,6 +896,10 @@ protected:
 
   /// Map of host pinned allocations used for optimize device transfers.
   PinnedAllocationMapTy PinnedAllocs;
+
+  /// A pointer to an RPC server instance attached to this device if present.
+  /// This is used to run the RPC server during task synchronization.
+  RPCHandleTy *RPCHandle;
 };
 
 /// Class implementing common functionalities of offload plugins. Each plugin
@@ -850,6 +961,12 @@ struct GenericPluginTy {
   /// plugin.
   JITEngine &getJIT() { return JIT; }
 
+  /// Get a reference to the RPC server used to provide host services.
+  RPCServerTy &getRPCServer() {
+    assert(RPCServer && "RPC server not initialized");
+    return *RPCServer;
+  }
+
   /// Get the OpenMP requires flags set for this plugin.
   int64_t getRequiresFlags() const { return RequiresFlags; }
 
@@ -904,6 +1021,9 @@ private:
 
   /// The JIT engine shared by all devices connected to this plugin.
   JITEngine JIT;
+
+  /// The interface between the plugin and the GPU for host services.
+  RPCServerTy *RPCServer;
 };
 
 /// Class for simplifying the getter operation of the plugin. Anywhere on the
@@ -1166,6 +1286,9 @@ private:
   /// The actual resource pool.
   std::deque<ResourceRef> ResourcePool;
 };
+
+/// A static check on whether or not we support RPC in libomptarget.
+const bool libomptargetSupportsRPC();
 
 } // namespace plugin
 } // namespace target

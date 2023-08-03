@@ -91,7 +91,7 @@ CodeGenFunction::EmitBigJumpLoopStartingIndex(const ForStmt &FStmt) {
   llvm::Value *WorkGroupSize =
       CGM.isXteamRedKernel(&FStmt)
           ? RT.getXteamRedBlockSize(*this, CGM.getXteamRedBlockSize(&FStmt))
-          : RT.getXteamRedBlockSize(*this, CGM.getBigJumpLoopBlockSize(&FStmt));
+          : RT.getGPUNumThreads(*this);
 
   // workgroup_id
   llvm::Value *WorkGroupId = RT.getGPUBlockID(*this);
@@ -114,8 +114,9 @@ CodeGenFunction::EmitBigJumpLoopStartingIndex(const ForStmt &FStmt) {
   if (CGM.isXteamRedKernel(&FStmt)) {
     // Cache the thread specific initial loop iteration value and the number of
     // teams
+    llvm::Value *NumTeams = RT.getGPUNumBlocks(*this);
     CGM.updateXteamRedKernel(&FStmt, Builder.CreateIntCast(Iv, Int64Ty, false),
-                             RT.getGPUNumBlocks(*this));
+                             NumTeams);
   }
   // Set the initial value of the loop iteration
   Builder.CreateStore(Iv, IvAddr);
@@ -149,7 +150,7 @@ void CodeGenFunction::EmitBigJumpLoopInc(const ForStmt &FStmt,
   llvm::Value *BlockSize =
       CGM.isXteamRedKernel(&FStmt)
           ? RT.getXteamRedBlockSize(*this, CGM.getXteamRedBlockSize(&FStmt))
-          : RT.getXteamRedBlockSize(*this, CGM.getBigJumpLoopBlockSize(&FStmt));
+          : RT.getGPUNumThreads(*this);
 
   llvm::Value *NumBlocks = CGM.isXteamRedKernel(&FStmt)
                                ? CGM.getXteamRedNumTeams(&FStmt)
@@ -177,8 +178,18 @@ CodeGenFunction::EmitNoLoopIV(const OMPLoopDirective &LD) {
   // Emit the original loop indices
   for (const Expr *CE : LD.counters()) {
     const auto *CEDecl = cast<VarDecl>(cast<DeclRefExpr>(CE)->getDecl());
-    if (!hasAddrOfLocalVar(CEDecl))
-      EmitVarDecl(*CEDecl);
+    if (!hasAddrOfLocalVar(CEDecl)) {
+      if (CEDecl->hasLocalStorage())
+        EmitVarDecl(*CEDecl);
+      else {
+        llvm::Type *CEDeclType = ConvertTypeForMem(CEDecl->getType());
+        llvm::AllocaInst *LocalForGlobal =
+            Builder.CreateAlloca(CEDeclType, nullptr, "lglobal");
+        setAddrOfLocalVar(CEDecl, Address(LocalForGlobal, CEDeclType,
+                                          getContext().getTypeAlignInChars(
+                                              CEDecl->getType())));
+      }
+    }
   }
 
   // Emit the preinits
@@ -323,11 +334,8 @@ void CodeGenFunction::EmitNoLoopCode(const OMPExecutableDirective &D,
   llvm::Value *GpuThreadId = RT.getGPUThreadID(*this);
 
   // workgroup_size
-  assert((CGM.isNoLoopKernel(D) || CGM.isBigJumpLoopKernel(D)) &&
-         "Unexpected optimized kernel type");
-  llvm::Value *WorkGroupSize = llvm::ConstantInt::get(
-      Int32Ty, CGM.isNoLoopKernel(D) ? CGM.getNoLoopBlockSize(D)
-                                     : CGM.getBigJumpLoopBlockSize(D));
+  assert(CGM.isNoLoopKernel(D) && "Unexpected optimized kernel type");
+  llvm::Value *WorkGroupSize = RT.getGPUNumThreads(*this);
 
   // workgroup_id
   llvm::Value *WorkGroupId = RT.getGPUBlockID(*this);
@@ -408,8 +416,13 @@ void CodeGenFunction::EmitXteamRedCode(const OMPExecutableDirective &D,
 /// an initializer for each of them
 void CodeGenFunction::EmitXteamLocalAggregator(const ForStmt *FStmt) {
   const CodeGenModule::XteamRedVarMap &RedVarMap = CGM.getXteamRedVarMap(FStmt);
-  for (const auto &RedVarInfo : RedVarMap) {
-    const Expr *RedVarExpr = RedVarInfo.second.RedVarExpr;
+  auto XteamOrdVars = CGM.getXteamOrderedRedVar(FStmt);
+  // Always emit thread-local reduction variables  in the same order as
+  // user-specified reduction variables.
+  for (auto XteamVD : XteamOrdVars) {
+    auto Itr = RedVarMap.find(XteamVD);
+    assert(Itr != RedVarMap.end() && "Metadata not found");
+    const Expr *RedVarExpr = Itr->second.RedVarExpr;
     llvm::Type *RedVarType = ConvertTypeForMem(RedVarExpr->getType());
     assert((RedVarType->isFloatTy() || RedVarType->isDoubleTy() ||
             RedVarType->isIntegerTy()) &&
@@ -430,8 +443,7 @@ void CodeGenFunction::EmitXteamLocalAggregator(const ForStmt *FStmt) {
     // Update the map with the local aggregator address
     // TODO update only the address, the expression is already there
     // TODO don't do a lookup again, use the element avail here
-    CGM.updateXteamRedVarMap(FStmt, RedVarInfo.first, RedVarExpr,
-                             XteamRedVarAddr);
+    CGM.updateXteamRedVarMap(FStmt, XteamVD, RedVarExpr, XteamRedVarAddr);
   }
 }
 
@@ -442,12 +454,20 @@ void CodeGenFunction::EmitXteamRedSum(const ForStmt *FStmt,
                                       int BlockSize) {
   auto &RT = static_cast<CGOpenMPRuntimeGPU &>(CGM.getOpenMPRuntime());
   const CodeGenModule::XteamRedVarMap &RedVarMap = CGM.getXteamRedVarMap(FStmt);
+
   llvm::Value *ThreadStartIdx = CGM.getXteamRedThreadStartIndex(FStmt);
   assert(ThreadStartIdx && "Thread start index cannot be null");
   llvm::Value *NumTeams = CGM.getXteamRedNumTeams(FStmt);
   assert(NumTeams && "Number of teams cannot be null");
-  for (const auto &RedVarInfo : RedVarMap) {
-    const CodeGenModule::XteamRedVarInfo &RVI = RedVarInfo.second;
+
+  auto XteamOrdVars = CGM.getXteamOrderedRedVar(FStmt);
+  // Always emit calls to Xteam device functions in the same order as
+  // user-specified reduction variables.
+  for (auto XteamVD : XteamOrdVars) {
+    auto Itr = RedVarMap.find(XteamVD);
+    assert(Itr != RedVarMap.end() && "Metadata not found");
+
+    const CodeGenModule::XteamRedVarInfo &RVI = Itr->second;
 
     assert(RVI.ArgPos + 1 < Args.size() && "Arg position beyond bounds");
 
@@ -541,14 +561,17 @@ bool CodeGenFunction::EmitXteamRedStmt(const Stmt *S) {
   // Compute *xteam_red_local_addr + rhs_value
   llvm::Value *RedRHS = nullptr;
   llvm::Type *RedVarType = ConvertTypeForMem(RedVarDecl->getType());
-  if (RedVarType->isFloatTy() || RedVarType->isDoubleTy())
-    RedRHS =
-        Builder.CreateFAdd(Builder.CreateLoad(XteamRedLocalAddr), RHSValue);
-  else if (RedVarType->isIntegerTy())
-    RedRHS =
-        Builder.CreateAdd(Builder.CreateLoad(XteamRedLocalAddr),
-                          Builder.CreateIntCast(RHSValue, RedVarType, false));
-  else
+  if (RedVarType->isFloatTy() || RedVarType->isDoubleTy()) {
+    auto RHSOp = RHSValue->getType()->isIntegerTy()
+                     ? Builder.CreateUIToFP(RHSValue, RedVarType)
+                     : Builder.CreateFPCast(RHSValue, RedVarType);
+    RedRHS = Builder.CreateFAdd(Builder.CreateLoad(XteamRedLocalAddr), RHSOp);
+  } else if (RedVarType->isIntegerTy()) {
+    auto RHSOp = RHSValue->getType()->isIntegerTy()
+                     ? Builder.CreateIntCast(RHSValue, RedVarType, false)
+                     : Builder.CreateFPToUI(RHSValue, RedVarType);
+    RedRHS = Builder.CreateAdd(Builder.CreateLoad(XteamRedLocalAddr), RHSOp);
+  } else
     llvm_unreachable("Unhandled type");
   // *xteam_red_local_addr = *xteam_red_local_addr + rhs_value
   Builder.CreateStore(RedRHS, XteamRedLocalAddr);
@@ -1540,7 +1563,7 @@ void CodeGenFunction::EmitForStmt(const ForStmt &S,
   Address BigJumpLoopIvAddr = Address::invalid();
   const VarDecl *LoopVar = nullptr;
   const OMPLoopDirective *BigJumpLoopLD = nullptr;
-  if (CGM.getLangOpts().OpenMPIsDevice &&
+  if (CGM.getLangOpts().OpenMPIsTargetDevice &&
       (CGM.isXteamRedKernel(&S) || CGM.isBigJumpLoopKernel(&S))) {
     const CodeGenModule::OptKernelNestDirectives &Directives =
         CGM.isXteamRedKernel(&S) ? CGM.getXteamRedNestDirs(&S)
@@ -1644,7 +1667,7 @@ void CodeGenFunction::EmitForStmt(const ForStmt &S,
     // a compound statement.
     RunCleanupsScope BodyScope(*this);
 
-    if (CGM.getLangOpts().OpenMPIsDevice &&
+    if (CGM.getLangOpts().OpenMPIsTargetDevice &&
         (CGM.isXteamRedKernel(&S) || CGM.isBigJumpLoopKernel(&S))) {
       EmitBigJumpLoopUpdates(S);
       EmitOMPNoLoopBody(*BigJumpLoopLD);
@@ -1653,7 +1676,7 @@ void CodeGenFunction::EmitForStmt(const ForStmt &S,
     }
   }
 
-  if (CGM.getLangOpts().OpenMPIsDevice &&
+  if (CGM.getLangOpts().OpenMPIsTargetDevice &&
       (CGM.isXteamRedKernel(&S) || CGM.isBigJumpLoopKernel(&S))) {
     EmitBlock(Continue.getBlock());
     EmitBigJumpLoopInc(
@@ -2734,9 +2757,9 @@ std::pair<llvm::Value*, llvm::Type *> CodeGenFunction::EmitAsmInputLValue(
         getTargetHooks().isScalarizableAsmOperand(*this, Ty)) {
       Ty = llvm::IntegerType::get(getLLVMContext(), Size);
 
-      return {Builder.CreateLoad(Builder.CreateElementBitCast(
-                  InputValue.getAddress(*this), Ty)),
-              nullptr};
+      return {
+          Builder.CreateLoad(InputValue.getAddress(*this).withElementType(Ty)),
+          nullptr};
     }
   }
 
@@ -2936,8 +2959,7 @@ EmitAsmStores(CodeGenFunction &CGF, const AsmStmt &S,
     // ResultTypeRequiresCast.size() elements of RegResults.
     if ((i < ResultTypeRequiresCast.size()) && ResultTypeRequiresCast[i]) {
       unsigned Size = CGF.getContext().getTypeSize(ResultRegQualTys[i]);
-      Address A =
-          Builder.CreateElementBitCast(Dest.getAddress(CGF), ResultRegTypes[i]);
+      Address A = Dest.getAddress(CGF).withElementType(ResultRegTypes[i]);
       if (CGF.getTargetHooks().isScalarizableAsmOperand(CGF, TruncTy)) {
         Builder.CreateStore(Tmp, A);
         continue;
@@ -3117,8 +3139,7 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
       // Otherwise there will be a mis-match if the matrix is also an
       // input-argument which is represented as vector.
       if (isa<MatrixType>(OutExpr->getType().getCanonicalType()))
-        DestAddr = Builder.CreateElementBitCast(
-            DestAddr, ConvertType(OutExpr->getType()));
+        DestAddr = DestAddr.withElementType(ConvertType(OutExpr->getType()));
 
       ArgTypes.push_back(DestAddr.getType());
       ArgElemTypes.push_back(DestAddr.getElementType());
@@ -3320,7 +3341,7 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
          "unwind clobber can't be used with asm goto");
 
   // Add machine specific clobbers
-  std::string MachineClobbers = getTarget().getClobbers();
+  std::string_view MachineClobbers = getTarget().getClobbers();
   if (!MachineClobbers.empty()) {
     if (!Constraints.empty())
       Constraints += ',';

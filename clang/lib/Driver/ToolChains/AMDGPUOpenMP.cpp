@@ -20,6 +20,7 @@
 #include "clang/Driver/SanitizerArgs.h"
 #include "clang/Driver/Tool.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/StringExtras.h"    
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/FormatAdapters.h"
 #include "llvm/Support/FormatVariadic.h"
@@ -169,7 +170,6 @@ const char *AMDGCN::OpenMPLinker::constructLLVMLinkCommand(
   // marked linkonce_odr so that they can be removed if not used.
   const char *CbslExec =
     Args.MakeArgString(getToolChain().GetProgramPath("clang-build-select-link"));
-  CmdArgs.push_back(Args.MakeArgString("-opaque-pointers"));
   // ArgStringList CmdArgs;
   for (const auto &II : Inputs)
     if (II.isFilename())
@@ -199,7 +199,6 @@ const char *AMDGCN::OpenMPLinker::constructLLVMLinkCommand(
 
   LastLinkArgs.push_back(Args.MakeArgString("--internalize"));
   LastLinkArgs.push_back(Args.MakeArgString("--only-needed"));
-  LastLinkArgs.push_back(Args.MakeArgString("-opaque-pointers"));
   StringRef GPUArch =
       getProcessorFromTargetID(getToolChain().getTriple(), TargetID);
 

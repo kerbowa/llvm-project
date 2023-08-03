@@ -39,3 +39,19 @@ reverted
 [ADT] Allow `llvm::enumerate` to enumerate over 
 [ADT] Work around `enumerate` compilation error with modules
 
+Revert "[SLP][NFC]Add missing finalize params in the CostEstimator, NFC."
+        seeing rocThrust SLP aborts in merges, try avoiding
+
+Revert: lots of crashes in FastRegAlloc: Assertion `Reg.isPhysical()' failed.
+  c4a872badb53 FastRegAlloc: Fix implicit operands not rewritten
+
+Revert: 2be0abb7fe72 Rewrite load-store-vectorizer.
+
+Revert "[AMDGPU] Remove extract_subvector patterns"  
+
+breaks rccl build:
+Revert "Implement P2361 Unevaluated string literals"
+
+Revert: [libc] Add support for creating wrapper headers for offloading in clang
+
+Revert "[Attributor][FIX] Ensure the function manager cache is updated"  

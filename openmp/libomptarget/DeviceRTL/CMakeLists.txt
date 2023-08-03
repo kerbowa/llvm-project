@@ -45,7 +45,6 @@ elseif (LLVM_TOOL_CLANG_BUILD AND NOT CMAKE_CROSSCOMPILING AND NOT OPENMP_STANDA
   set(PACKAGER_TOOL $<TARGET_FILE:clang-offload-packager>)
   set(LINK_TOOL $<TARGET_FILE:llvm-link>)
   set(OPT_TOOL $<TARGET_FILE:opt>)
-  set(EXTRACT_TOOL $<TARGET_FILE:llvm-extract>)
   libomptarget_say("Building DeviceRTL. Using clang from in-tree build")
 else()
   libomptarget_say("Not building DeviceRTL. No appropriate clang found")
@@ -56,22 +55,35 @@ set(devicertl_base_directory ${CMAKE_CURRENT_SOURCE_DIR})
 set(include_directory ${devicertl_base_directory}/include)
 set(source_directory ${devicertl_base_directory}/src)
 
-set(all_capabilities 35 37 50 52 53 60 61 62 70 72 75 80 86 89 90)
+set(all_capabilities 35 37 50 52 53 60 61 62 70 72 75 80 86 89 87 90)
+set(all_amdgpu_architectures "gfx700;gfx701;gfx801;gfx803;gfx900;gfx902;gfx906"
+                             "gfx908;gfx90a;gfx90c;gfx940;gfx1010;gfx1030"
+                             "gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036"
+                             "gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151")
+set(all_nvptx_architectures "sm_35;sm_37;sm_50;sm_52;sm_53;sm_60;sm_61;sm_62"
+                            "sm_70;sm_72;sm_75;sm_80;sm_86;sm_87;sm_89;sm_90")
+set(all_gpu_architectures
+    "${all_amdgpu_architectures};${all_nvptx_architectures}")
 
 set(LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES ${all_capabilities} CACHE STRING
   "List of CUDA Compute Capabilities to be used to compile the NVPTX DeviceRTL.")
 string(TOLOWER ${LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES} LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES)
 
-if (LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES STREQUAL "all")
-  set(nvptx_sm_list ${all_capabilities})
-elseif(LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES STREQUAL "auto")
-  if (NOT LIBOMPTARGET_DEP_CUDA_FOUND)
-    libomptarget_error_say("[NVPTX] Cannot auto detect compute capability as CUDA not found.")
+if(LIBOMPTARGET_DEVICE_ARCHITECTURES STREQUAL "all")
+  set(LIBOMPTARGET_DEVICE_ARCHITECTURES ${all_gpu_architectures})
+elseif(LIBOMPTARGET_DEVICE_ARCHITECTURES STREQUAL "auto" OR
+       LIBOMPTARGET_DEVICE_ARCHITECTURES STREQUAL "native")
+  if(NOT LIBOMPTARGET_NVPTX_ARCH AND NOT LIBOMPTARGET_AMDGPU_ARCH)
+    libomptarget_error_say(
+      "Could not find 'amdgpu-arch' and 'nvptx-arch' tools required for 'auto'")
+  elseif(NOT LIBOMPTARGET_FOUND_NVIDIA_GPU AND NOT LIBOMPTARGET_FOUND_AMDGPU_GPU)
+    libomptarget_error_say("No AMD or NVIDIA GPU found on the system when using 'auto'")
   endif()
   set(nvptx_sm_list ${LIBOMPTARGET_DEP_CUDA_ARCH})
 else()
   string(REPLACE "," ";" nvptx_sm_list "${LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES}")
 endif()
+list(REMOVE_DUPLICATES LIBOMPTARGET_DEVICE_ARCHITECTURES)
 
 # Check all SM values
 foreach(sm ${nvptx_sm_list})
@@ -126,7 +138,7 @@ set(src_files
 set(clang_opt_flags -O3 -mllvm -openmp-opt-disable -DSHARED_SCRATCHPAD_SIZE=512)
 set(link_opt_flags  -O3        -openmp-opt-disable -attributor-enable=module)
 set(link_export_flag -passes=internalize -internalize-public-api-file=${source_directory}/exports)
-#set(link_extract_flag --func='__keep_alive' --delete)
+set(link_extract_flag --func='__keep_alive' --delete)
 
 # Prepend -I to each list element
 set (LIBOMPTARGET_LLVM_INCLUDE_DIRS_DEVICERTL "${LIBOMPTARGET_LLVM_INCLUDE_DIRS}")
@@ -159,18 +171,20 @@ function(compileDeviceRTLLibrary target_cpu target_name target_triple)
     get_filename_component(infile ${src} ABSOLUTE)
     get_filename_component(outfile ${src} NAME)
     set(outfile "${outfile}-${target_cpu}.bc")
+    set(depfile "${outfile}.d")
 
     add_custom_target(${outfile}
       COMMAND ${CLANG_TOOL}
       ${bc_flags}
       --offload-arch=${target_cpu}
       ${target_bc_flags}
+      -MD -MF ${depfile}
       ${infile} -o ${outfile}
       DEPENDS ${infile} ${include_files}
       COMMENT "Building LLVM bitcode ${outfile}"
       VERBATIM
     )
-    if("${CLANG_TOOL}" STREQUAL "$<TARGET_FILE:clang>")
+    if(TARGET clang)
       # Add a target-level dependency to ensure that clang is up-to-date.
       # By default, add_custom_target only builds clang if the
       # executable is missing.
@@ -240,7 +254,7 @@ function(compileDeviceRTLLibrary target_cpu target_name target_triple)
         ockl ocml oclc_wavefrontsize64_on oclc_wavefrontsize64_off oclc_isa_version_${gfxnum})
     endif()
     # Add amdgcn-specific bc files to link command
-    list(APPEND bc_files ${ocml_bc_file} ${ockl_bc_file} ${oclc_wf_bc_file} ${oclc_isa_bc_file} ${oclc_abi_version_file})
+    list(APPEND bc_files ${ocml_bc_file} ${ockl_bc_file} ${oclc_wf_bc_file} ${oclc_isa_bc_file})
     # Add touch-target-$(target_cpu) to local_depend_files so all $bc_files will exist or be created.
     list(APPEND local_depend_files touch-target-${target_cpu})
   endif()
@@ -301,19 +315,19 @@ function(compileDeviceRTLLibrary target_cpu target_name target_triple)
 
   # Add a target-level dependency to ensure that llvm-link and opt are up-to-date.
   # By default, add_custom_target only builds the tool if the executable is missing
-  if("${LINK_TOOL}" STREQUAL "$<TARGET_FILE:llvm-link>")
+  if(TARGET llvm-link)
     add_dependencies(linked_${bclib_name} llvm-link)
   endif()
-  if("${OPT_TOOL}" STREQUAL "$<TARGET_FILE:opt>")
+  if(TARGET opt)
     add_dependencies(${bclib_name} opt)
   endif()
   if("${EXTRACT_TOOL}" STREQUAL "$<TARGET_FILE:llvm-extract>")
     add_dependencies(extracted_${bclib_name} llvm-extract)
   endif()
-  if("${PACKAGER_TOOL}" STREQUAL "$<TARGET_FILE:clang-offload-packager>")
+   if(TARGET clang-offload-packager) 
     add_dependencies(packaged_${bclib_name} clang-offload-packager)
   endif()
-  if("${CLANG_TOOL}" STREQUAL "$<TARGET_FILE:clang>")
+  if(TARGET clang)  
     add_dependencies(embedded_${target_name}-${target_cpu} clang)
   endif()
 
@@ -361,7 +375,23 @@ function(compileDeviceRTLLibrary target_cpu target_name target_triple)
     add_dependencies("omptarget.devicertl.${target_name}" "${bclib_target_name_old}")
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${bclib_name_old_driver} DESTINATION "${DEVEL_PACKAGE}${OPENMP_INSTALL_LIBDIR}")
   endif()
-# _____________________________________________________________________________
+  if (CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(ide_target_name omptarget-ide-${target_name}-${target_cpu})
+    add_library(${ide_target_name} STATIC EXCLUDE_FROM_ALL ${src_files})
+    target_compile_options(${ide_target_name} PRIVATE
+      -fopenmp --offload-arch=${target_cpu} -fopenmp-cuda-mode
+      -mllvm -openmp-opt-disable
+      -foffload-lto -fvisibility=hidden --offload-device-only
+      -nocudalib -nogpulib -nostdinc -Wno-unknown-cuda-version
+    )
+    target_compile_definitions(${ide_target_name} PRIVATE SHARED_SCRATCHPAD_SIZE=512)
+    target_include_directories(${ide_target_name} PRIVATE
+      ${include_directory}
+      ${devicertl_base_directory}/../include
+      ${LIBOMPTARGET_LLVM_INCLUDE_DIRS}
+    )
+    install(TARGETS ${ide_target_name} EXCLUDE_FROM_ALL)
+  endif()
 endfunction()
 
 # Generate a Bitcode library for all the compute capabilities the user requested
