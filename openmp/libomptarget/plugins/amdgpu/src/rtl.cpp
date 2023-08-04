@@ -519,7 +519,7 @@ public:
 
     Current = Q.Current.load();
 
-    for (uint8_t I = 0; I < MaxHWQueues; I++) {
+    for (int32_t I = 0; I < MaxHWQueues; I++) {
       HSAQueues[I] = Q.HSAQueues[I];
       Q.HSAQueues[I] = nullptr;
     }
@@ -527,7 +527,7 @@ public:
 
   // \return false if any HSA queue creation fails
   bool createQueues(hsa_agent_t HSAAgent, uint32_t QueueSize) {
-    for (uint8_t I = 0; I < MaxHWQueues; I++) {
+    for (int32_t I = 0; I < MaxHWQueues; I++) {
       hsa_queue_t *Q = nullptr;
       hsa_status_t Rc =
           hsa_queue_create(HSAAgent, QueueSize, HSA_QUEUE_TYPE_MULTI,
@@ -542,7 +542,7 @@ public:
   }
 
   ~HSAQueueScheduler() {
-    for (uint8_t I = 0; I < MaxHWQueues; I++) {
+    for (int32_t I = 0; I < MaxHWQueues; I++) {
       if (HSAQueues[I]) {
         hsa_status_t Err = hsa_queue_destroy(HSAQueues[I]);
         if (Err != HSA_STATUS_SUCCESS)
@@ -559,7 +559,7 @@ public:
 
   /// Enable/disable queue profiling for OMPT trace records
   void enableQueueProfiling(int enable) {
-    for (uint8_t i = 0; i < MaxHWQueues; ++i) {
+    for (int32_t i = 0; i < MaxHWQueues; ++i) {
       hsa_status_t err =
           hsa_amd_profiling_set_profiler_enabled(HSAQueues[i], enable);
       if (err != HSA_STATUS_SUCCESS)
