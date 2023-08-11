@@ -275,6 +275,7 @@ public:
 } // end anonymous namespace
 
 bool AMDGPUCodeGenPrepareImpl::run(Function &F) {
+  BreakPhiNodesCache.clear();
   bool MadeChange = false;
 
   Function::iterator NextBB;
