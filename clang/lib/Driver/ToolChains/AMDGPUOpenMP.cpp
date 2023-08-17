@@ -101,7 +101,8 @@ static void addLLCOptArg(const llvm::opt::ArgList &Args,
                  .Default("0");
     }
     CmdArgs.push_back(Args.MakeArgString("-O" + OOpt));
-  }
+  } else
+    CmdArgs.push_back(Args.MakeArgString("-O0"));
 }
 
 static bool checkSystemForAMDGPU(const ArgList &Args, const AMDGPUToolChain &TC,
