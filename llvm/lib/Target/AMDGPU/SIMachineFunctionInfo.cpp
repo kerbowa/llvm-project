@@ -7,17 +7,18 @@
 //===----------------------------------------------------------------------===//
 
 #include "SIMachineFunctionInfo.h"
-#include "AMDGPUTargetMachine.h"
 #include "AMDGPUSubtarget.h"
-#include "SIRegisterInfo.h"
+#include "AMDGPUTargetMachine.h"
+#include "GCNSubtarget.h"
 #include "MCTargetDesc/AMDGPUMCTargetDesc.h"
+#include "SIRegisterInfo.h"
 #include "Utils/AMDGPUBaseInfo.h"
 #include "llvm/CodeGen/LiveIntervals.h"
+#include "llvm/CodeGen/MIRParser/MIParser.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
-#include "llvm/CodeGen/MIRParser/MIParser.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Function.h"
@@ -39,12 +40,7 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
   : AMDGPUMachineFunction(F, *STI),
     Mode(F),
     GWSResourcePSV(getTM(STI)),
-    PrivateSegmentBuffer(false),
-    DispatchPtr(false),
-    QueuePtr(false),
-    KernargSegmentPtr(false),
-    DispatchID(false),
-    FlatScratchInit(false),
+    UserSGPRInfo(F, *STI),
     WorkGroupIDX(false),
     WorkGroupIDY(false),
     WorkGroupIDZ(false),
@@ -54,7 +50,6 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
     WorkItemIDX(false),
     WorkItemIDY(false),
     WorkItemIDZ(false),
-    ImplicitBufferPtr(false),
     ImplicitArgPtr(false),
     HostcallPtr(false),
     HeapPtr(false),
@@ -69,16 +64,10 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
 
   VRegFlags.reserve(1024);
 
-  // FIXME: Should have analysis or something rather than attribute to detect
-  // calls.
-  const bool HasCalls = F.hasFnAttribute("amdgpu-calls");
-
   const bool IsKernel = CC == CallingConv::AMDGPU_KERNEL ||
                         CC == CallingConv::SPIR_KERNEL;
 
   if (IsKernel) {
-    if (!F.arg_empty() || ST.getImplicitArgNumBytes(F) != 0)
-      KernargSegmentPtr = true;
     WorkGroupIDX = true;
     WorkItemIDX = true;
   } else if (CC == CallingConv::AMDGPU_PS) {
@@ -117,12 +106,6 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
       MayNeedAGPRs = false; // We will select all MAI with VGPR operands.
   }
 
-  bool isAmdHsaOrMesa = ST.isAmdHsaOrMesa(F);
-  if (isAmdHsaOrMesa && !ST.enableFlatScratch())
-    PrivateSegmentBuffer = true;
-  else if (ST.isMesaGfxShader(F))
-    ImplicitBufferPtr = true;
-
   if (!AMDGPU::isGraphics(CC) ||
       (CC == CallingConv::AMDGPU_CS && ST.hasArchitectedSGPRs())) {
     if (IsKernel || !F.hasFnAttribute("amdgpu-no-workgroup-id-x"))
@@ -147,34 +130,11 @@ SIMachineFunctionInfo::SIMachineFunctionInfo(const Function &F,
         ST.getMaxWorkitemID(F, 2) != 0)
       WorkItemIDZ = true;
 
-    if (!F.hasFnAttribute("amdgpu-no-dispatch-ptr"))
-      DispatchPtr = true;
-
-    if (!F.hasFnAttribute("amdgpu-no-queue-ptr"))
-      QueuePtr = true;
-
-    if (!F.hasFnAttribute("amdgpu-no-dispatch-id"))
-      DispatchID = true;
-
     if (!F.hasFnAttribute("amdgpu-no-hostcall-ptr"))
       HostcallPtr = true;
 
     if (!F.hasFnAttribute("amdgpu-no-heap-ptr"))
       HeapPtr = true;
-  }
-
-  // FIXME: This attribute is a hack, we just need an analysis on the function
-  // to look for allocas.
-  bool HasStackObjects = F.hasFnAttribute("amdgpu-stack-objects");
-
-  // TODO: This could be refined a lot. The attribute is a poor way of
-  // detecting calls or stack objects that may require it before argument
-  // lowering.
-  if (ST.hasFlatAddressSpace() && isEntryFunction() &&
-      (isAmdHsaOrMesa || ST.enableFlatScratch()) &&
-      (HasCalls || HasStackObjects || ST.enableFlatScratch()) &&
-      !ST.flatScratchIsArchitected()) {
-    FlatScratchInit = true;
   }
 
   if (isEntryFunction()) {
