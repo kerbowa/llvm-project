@@ -535,6 +535,9 @@ enum NodeType : unsigned {
   FPTRUNC_ROUND_DOWNWARD,
 
   DUMMY_CHAIN,
+  // Select between kernel argument lowering on the preloading or backward
+  // compatibility paths.
+  SELECT_KERNARG,
   FIRST_MEM_OPCODE_NUMBER = ISD::FIRST_TARGET_MEMORY_OPCODE,
   LOAD_D16_HI,
   LOAD_D16_LO,

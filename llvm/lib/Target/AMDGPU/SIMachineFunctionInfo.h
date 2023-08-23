@@ -265,7 +265,6 @@ struct SIMachineFunctionInfo final : public yaml::MachineFunctionInfo {
   bool HasSpilledSGPRs = false;
   bool HasSpilledVGPRs = false;
   uint32_t HighBitsOf32BitAddress = 0;
-
   // TODO: 10 may be a better default since it's the maximum.
   unsigned Occupancy = 0;
 
@@ -490,6 +489,12 @@ public:
     bool FullyAllocated = false;
     bool IsDead = false;
   };
+
+  // Backward compatability header for kernarg preloading.
+  bool HasKernargPreloadBCH = false;
+  MachineBasicBlock *BCH = nullptr;
+  MachineBasicBlock *PH = nullptr;
+  MachineBasicBlock *KernStart = nullptr;
 
 private:
   // To track virtual VGPR + lane index for each subregister of the SGPR spilled
