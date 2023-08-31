@@ -447,13 +447,11 @@ void TailDuplicator::duplicateInstruction(
           } else {
             // The direct replacement is not possible, due to failing register
             // class constraints. An explicit COPY is necessary. Create one
-            // that can be reused
-            auto *NewRC = MI->getRegClassConstraint(i, TII, TRI);
-            if (NewRC == nullptr)
-              NewRC = OrigRC;
-            Register NewReg = MRI->createVirtualRegister(NewRC);
-            TII->buildCopy(*PredBB, NewMI, NewMI.getDebugLoc(), NewReg,
-                           VI->second.Reg, 0, VI->second.SubReg);
+            // that can be reused.
+            Register NewReg = MRI->createVirtualRegister(OrigRC);
+	    BuildMI(*PredBB, NewMI, NewMI.getDebugLoc(),
+	            TII->get(TargetOpcode::COPY), NewReg)	                
+		    .addReg(VI->second.Reg, 0, VI->second.SubReg);
             LocalVRMap.erase(VI);
             LocalVRMap.insert(std::make_pair(Reg, RegSubRegPair(NewReg, 0)));
             MO.setReg(NewReg);
@@ -1039,9 +1037,10 @@ void TailDuplicator::appendCopies(MachineBasicBlock *MBB,
       SmallVectorImpl<std::pair<Register, RegSubRegPair>> &CopyInfos,
       SmallVectorImpl<MachineInstr*> &Copies) {
   MachineBasicBlock::iterator Loc = MBB->getFirstTerminator();
+  const MCInstrDesc &CopyD = TII->get(TargetOpcode::COPY);
   for (auto &CI : CopyInfos) {
-    auto C = TII->buildCopy(*MBB, Loc, DebugLoc(), CI.first, CI.second.Reg, 0,
-                            CI.second.SubReg);
+    auto C = BuildMI(*MBB, Loc, DebugLoc(), CopyD, CI.first)
+                .addReg(CI.second.Reg, 0, CI.second.SubReg);
     Copies.push_back(C);
   }
 }

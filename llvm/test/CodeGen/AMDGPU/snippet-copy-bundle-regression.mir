@@ -72,6 +72,8 @@ body:             |
   ; CHECK-NEXT:   $sgpr9 = V_READLANE_B32 $vgpr1, 5
   ; CHECK-NEXT:   $sgpr10 = V_READLANE_B32 $vgpr1, 6
   ; CHECK-NEXT:   $sgpr11 = V_READLANE_B32 $vgpr1, 7
+  ; CHECK-NEXT:   $noreg = S_OR_SAVEEXEC_B64 -1, implicit-def $exec, implicit-def dead $scc, implicit $exec
+  ; CHECK-NEXT:   $exec = S_MOV_B64 killed $noreg
   ; CHECK-NEXT:   S_BRANCH %bb.3
   ; CHECK-NEXT: {{  $}}
   ; CHECK-NEXT: bb.2:
@@ -88,6 +90,8 @@ body:             |
   ; CHECK-NEXT:   $sgpr10 = V_READLANE_B32 $vgpr1, 6
   ; CHECK-NEXT:   $sgpr11 = V_READLANE_B32 $vgpr1, 7
   ; CHECK-NEXT:   S_CMP_LG_U64 renamable $sgpr4_sgpr5, 0, implicit-def $scc
+  ; CHECK-NEXT:   $noreg = S_OR_SAVEEXEC_B64 -1, implicit-def $exec, implicit-def dead $scc, implicit $exec
+  ; CHECK-NEXT:   $exec = S_MOV_B64 killed $noreg
   ; CHECK-NEXT: {{  $}}
   ; CHECK-NEXT: bb.3:
   ; CHECK-NEXT:   successors: %bb.5(0x40000000), %bb.4(0x40000000)

@@ -602,8 +602,9 @@ optimizeExtInstr(MachineInstr &MI, MachineBasicBlock &MBB,
         RC = MRI->getRegClass(UseMI->getOperand(0).getReg());
 
       Register NewVR = MRI->createVirtualRegister(RC);
-      TII->buildCopy(*UseMBB, UseMI, UseMI->getDebugLoc(), NewVR, DstReg, 0,
-                     SubIdx);
+      BuildMI(*UseMBB, UseMI, UseMI->getDebugLoc(),
+              TII->get(TargetOpcode::COPY), NewVR)
+        .addReg(DstReg, 0, SubIdx);
       if (UseSrcSubIdx)
         UseMO->setSubReg(0);
 
@@ -1250,8 +1251,9 @@ PeepholeOptimizer::rewriteSource(MachineInstr &CopyLike,
   Register NewVReg = MRI->createVirtualRegister(DefRC);
 
   MachineInstr *NewCopy =
-      TII->buildCopy(*CopyLike.getParent(), &CopyLike, CopyLike.getDebugLoc(),
-                     NewVReg, NewSrc.Reg, 0, NewSrc.SubReg);
+      BuildMI(*CopyLike.getParent(), &CopyLike, CopyLike.getDebugLoc(),
+              TII->get(TargetOpcode::COPY), NewVReg)
+          .addReg(NewSrc.Reg, 0, NewSrc.SubReg);
 
   if (Def.SubReg) {
     NewCopy->getOperand(0).setSubReg(Def.SubReg);

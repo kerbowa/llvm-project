@@ -1254,8 +1254,9 @@ bool SelectionDAGISel::PrepareEHLandingPad() {
         assert(EHPhysReg && "target lacks exception pointer register");
         MBB->addLiveIn(EHPhysReg);
         unsigned VReg = FuncInfo->getCatchPadExceptionPointerVReg(CPI, PtrRC);
-        TII->buildCopy(*MBB, FuncInfo->InsertPt, SDB->getCurDebugLoc(), VReg,
-                       EHPhysReg, RegState::Kill);
+        BuildMI(*MBB, FuncInfo->InsertPt, SDB->getCurDebugLoc(),
+                TII->get(TargetOpcode::COPY), VReg)
+            .addReg(EHPhysReg, RegState::Kill);
       }
     }
     return true;

@@ -542,7 +542,7 @@ SlotIndex SplitEditor::buildCopy(Register FromReg, Register ToReg,
   if (LaneMask.all() || LaneMask == MRI.getMaxLaneMaskForVReg(FromReg)) {
     // The full vreg is copied.
     MachineInstr *CopyMI =
-        TII.buildCopy(MBB, InsertBefore, DebugLoc(), ToReg, FromReg);
+        BuildMI(MBB, InsertBefore, DebugLoc(), Desc, ToReg).addReg(FromReg);
     return Indexes.insertMachineInstrInMaps(*CopyMI, Late).getRegSlot();
   }
 

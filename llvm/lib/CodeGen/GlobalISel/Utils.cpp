@@ -73,11 +73,14 @@ Register llvm::constrainOperandRegClass(
     // FIXME: The copy needs to have the classes constrained for its operands.
     // Use operand's regbank to get the class for old register (Reg).
     if (RegMO.isUse()) {
-      TII.buildCopy(MBB, InsertIt, InsertPt.getDebugLoc(), ConstrainedReg, Reg);
+      BuildMI(MBB, InsertIt, InsertPt.getDebugLoc(),
+              TII.get(TargetOpcode::COPY), ConstrainedReg)
+          .addReg(Reg);
     } else {
       assert(RegMO.isDef() && "Must be a definition");
-      TII.buildCopy(MBB, std::next(InsertIt), InsertPt.getDebugLoc(), Reg,
-                    ConstrainedReg);
+      BuildMI(MBB, std::next(InsertIt), InsertPt.getDebugLoc(),
+              TII.get(TargetOpcode::COPY), Reg)
+          .addReg(ConstrainedReg);
     }
     if (GISelChangeObserver *Observer = MF.getObserver()) {
       Observer->changingInstr(*RegMO.getParent());
@@ -746,7 +749,8 @@ Register llvm::getFunctionLiveInPhysReg(MachineFunction &MF,
       MRI.setType(LiveIn, RegTy);
   }
 
-  TII.buildCopy(EntryMBB, EntryMBB.begin(), DL, LiveIn, PhysReg);
+  BuildMI(EntryMBB, EntryMBB.begin(), DL, TII.get(TargetOpcode::COPY), LiveIn)
+    .addReg(PhysReg);
   if (!EntryMBB.isLiveIn(PhysReg))
     EntryMBB.addLiveIn(PhysReg);
   return LiveIn;
