@@ -7,7 +7,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "clang/CodeGen/CodeGenAction.h"
-#include "CGCall.h"
 #include "CodeGenModule.h"
 #include "CoverageMappingGen.h"
 #include "MacroPPCallbacks.h"
@@ -264,7 +263,7 @@ namespace clang {
     }
 
     // Links each entry in LinkModules into our module.  Returns true on error.
-    bool LinkInModules(llvm::Module *M) {
+    bool LinkInModules() {
       for (auto &LM : LinkModules) {
         assert(LM.Module && "LinkModule does not actually have a module");
         if (LM.PropagateAttrs)
@@ -273,8 +272,8 @@ namespace clang {
             // in LLVM IR.
             if (F.isIntrinsic())
               continue;
-            CodeGen::mergeDefaultFunctionDefinitionAttributes(
-                F, CodeGenOpts, LangOpts, TargetOpts, LM.Internalize);
+            Gen->CGM().mergeDefaultFunctionDefinitionAttributes(F,
+                                                                LM.Internalize);
           }
 
         CurLinkModule = LM.Module.get();
@@ -282,14 +281,15 @@ namespace clang {
         bool Err;
         if (LM.Internalize) {
           Err = Linker::linkModules(
-              *M, std::move(LM.Module), LM.LinkFlags,
+              *getModule(), std::move(LM.Module), LM.LinkFlags,
               [](llvm::Module &M, const llvm::StringSet<> &GVS) {
                 internalizeModule(M, [&GVS](const llvm::GlobalValue &GV) {
                   return !GV.hasName() || (GVS.count(GV.getName()) == 0);
                 });
               });
         } else {
-          Err = Linker::linkModules(*M, std::move(LM.Module), LM.LinkFlags);
+          Err = Linker::linkModules(*getModule(), std::move(LM.Module),
+                                    LM.LinkFlags);
         }
 
         if (Err)
@@ -358,7 +358,7 @@ namespace clang {
       }
 
       // Link each LinkModule into our module.
-      if (LinkInModules(getModule()))
+      if (LinkInModules())
         return;
 
       for (auto &F : getModule()->functions()) {
@@ -994,36 +994,6 @@ CodeGenAction::~CodeGenAction() {
     delete VMContext;
 }
 
-bool CodeGenAction::loadLinkModules(CompilerInstance &CI) {
-  if (!LinkModules.empty())
-    return false;
-
-  for (const CodeGenOptions::BitcodeFileToLink &F :
-       CI.getCodeGenOpts().LinkBitcodeFiles) {
-    auto BCBuf = CI.getFileManager().getBufferForFile(F.Filename);
-    if (!BCBuf) {
-      CI.getDiagnostics().Report(diag::err_cannot_open_file)
-          << F.Filename << BCBuf.getError().message();
-      LinkModules.clear();
-      return true;
-    }
-
-    Expected<std::unique_ptr<llvm::Module>> ModuleOrErr =
-        getOwningLazyBitcodeModule(std::move(*BCBuf), *VMContext);
-    if (!ModuleOrErr) {
-      handleAllErrors(ModuleOrErr.takeError(), [&](ErrorInfoBase &EIB) {
-        CI.getDiagnostics().Report(diag::err_cannot_open_file)
-            << F.Filename << EIB.message();
-      });
-      LinkModules.clear();
-      return true;
-    }
-    LinkModules.push_back({std::move(ModuleOrErr.get()), F.PropagateAttrs,
-                           F.Internalize, F.LinkFlags});
-  }
-  return false;
-}
-
 bool CodeGenAction::hasIRSupport() const { return true; }
 
 void CodeGenAction::EndSourceFileAction() {
@@ -1078,8 +1048,6 @@ CodeGenAction::CreateASTConsumer(CompilerInstance &CI, StringRef InFile) {
   if (BA != Backend_EmitNothing && !OS)
     return nullptr;
 
-  if (loadLinkModules(CI))
-    return nullptr;
   // Load bitcode modules to link with, if we need to.
   if (LinkModules.empty())
     for (const CodeGenOptions::BitcodeFileToLink &F :
@@ -1219,10 +1187,6 @@ CodeGenAction::loadModule(MemoryBufferRef MBRef) {
     return std::move(*MOrErr);
   }
 
-  // Load bitcode modules to link with, if we need to.
-  if (loadLinkModules(CI))
-    return nullptr;
-
   llvm::SMDiagnostic Err;
   if (std::unique_ptr<llvm::Module> M = parseIR(MBRef, Err, *VMContext))
     return M;
@@ -1302,11 +1266,6 @@ void CodeGenAction::ExecuteAction() {
                          CI.getCodeGenOpts(), CI.getTargetOpts(),
                          CI.getLangOpts(), TheModule.get(),
                          std::move(LinkModules), *VMContext, nullptr);
-
-  // Link in each pending link module.
-  if (Result.LinkInModules(&*TheModule))
-    return;
-
   // PR44896: Force DiscardValueNames as false. DiscardValueNames cannot be
   // true here because the valued names are needed for reading textual IR.
   Ctx.setDiscardValueNames(false);
