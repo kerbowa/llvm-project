@@ -46,7 +46,7 @@ class VOP1_Pseudo <string opName, VOPProfile P, list<dag> pattern=[], bit VOP1On
   let Size = 4;
   let mayLoad = 0;
   let mayStore = 0;
-  let hasSideEffects = 0;
+  let hasSideEffects = P.HasSideEffects;
 
   let ReadsModeReg = !or(isFloatType<P.DstVT>.ret, isFloatType<P.Src0VT>.ret);
 
@@ -187,6 +187,7 @@ def VOP1_F16_I16_t16 : VOPProfileI2F_True16 <f16, i16>;
 
 def VOP_NOP_PROFILE : VOPProfile <[untyped, untyped, untyped, untyped]>{
   let HasExtVOP3DPP = 0;
+  let HasSideEffects = 1;
 }
 
 // OMod clears exceptions when set. OMod was always an operand, but its
@@ -210,6 +211,10 @@ def VOP_I16_F16_SPECIAL_OMOD_t16 : VOPProfile_Fake16<VOP_I16_F16> {
 let VOPAsmPrefer32Bit = 1 in {
 defm V_NOP : VOP1Inst <"v_nop", VOP_NOP_PROFILE>;
 }
+
+def : GCNPat<
+    (int_amdgcn_v_nop),
+    (V_NOP_e32)>;
 
 def VOPProfile_MOV : VOPProfile <[i32, i32, untyped, untyped]> {
   let InsVOPDX = (ins Src0RC32:$src0X);

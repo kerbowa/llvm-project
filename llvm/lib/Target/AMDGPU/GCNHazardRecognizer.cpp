@@ -2326,6 +2326,8 @@ int GCNHazardRecognizer::checkMAIHazards90A(MachineInstr *MI) {
       break;
   }
 
+  WaitStatesNeeded = std::max(WaitStatesNeeded, checkMFMAPadding(MI));
+
   return WaitStatesNeeded;
 }
 

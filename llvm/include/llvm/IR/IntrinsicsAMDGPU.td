@@ -1676,6 +1676,10 @@ def int_amdgcn_s_nop :
                                 IntrHasSideEffects]> {
 }
 
+def int_amdgcn_v_nop :
+  ClangBuiltin<"__builtin_amdgcn_v_nop">,
+  DefaultAttrsIntrinsic<[], [], [IntrNoMem, IntrHasSideEffects]>;
+
 def int_amdgcn_s_incperflevel :
   ClangBuiltin<"__builtin_amdgcn_s_incperflevel">,
   DefaultAttrsIntrinsic<[], [llvm_i32_ty], [ImmArg<ArgIndex<0>>, IntrNoMem,

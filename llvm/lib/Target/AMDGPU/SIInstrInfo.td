@@ -2298,6 +2298,7 @@ class VOPProfile <list<ValueType> _ArgVT, bit _EnableClamp = 0> {
   field Operand Src1ModSDWA = getSrcModSDWA<Src1VT>.ret;
 
 
+  field bit HasSideEffects = 0;
   field bit IsMAI = 0;
   field bit IsVOP3P = 0;
   field bit IsDOT = 0;
