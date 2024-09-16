@@ -2539,10 +2539,7 @@ void SITargetLowering::allocatePreloadKernArgSGPRs(
           alignTo(ArgLoc.getLocVT().getFixedSizeInBits(), 32) / 32;
 
       // Add padding SPGR to fix alignment for hidden arguments.
-      if (!AlignedForImplictArgs &&
-          F.getAttributes().hasAttributeAtIndex(AttributeList::FirstArgIndex +
-                                                    Arg.getArgNo(),
-                                                "amdgpu-hidden-argument")) {
+      if (!AlignedForImplictArgs && Arg.hasAttribute("amdgpu-work-group-id")) {
         unsigned OffsetBefore = LastExplicitArgOffset;
         LastExplicitArgOffset = alignTo(
             LastExplicitArgOffset, Subtarget->getAlignmentForImplicitArgPtr());

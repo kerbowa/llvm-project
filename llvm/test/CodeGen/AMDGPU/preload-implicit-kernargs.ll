@@ -594,4 +594,36 @@ define amdgpu_kernel void @preloadremainder_xyz(ptr addrspace(1) inreg %out) #0 
   ret void
 }
 
+define amdgpu_kernel void @no_free_sgprs_preloadremainder_z(ptr addrspace(1) inreg %out) {
+; GFX940-LABEL: no_free_sgprs_preloadremainder_z:
+; GFX940:         s_trap 2 ; Kernarg preload header. Trap with incompatible firmware that doesn't support preloading kernel arguments.
+; GFX940-NEXT:    .fill 63, 4, 0xbf800000 ; s_nop 0
+; GFX940-NEXT:  ; %bb.0:
+; GFX940-NEXT:    s_load_dword s0, s[2:3], 0x1c
+; GFX940-NEXT:    v_mov_b32_e32 v0, 0
+; GFX940-NEXT:    s_waitcnt lgkmcnt(0)
+; GFX940-NEXT:    s_lshr_b32 s0, s0, 16
+; GFX940-NEXT:    v_mov_b32_e32 v1, s0
+; GFX940-NEXT:    global_store_dword v0, v1, s[6:7] sc0 sc1
+; GFX940-NEXT:    s_endpgm
+;
+; GFX90a-LABEL: no_free_sgprs_preloadremainder_z:
+; GFX90a:         s_trap 2 ; Kernarg preload header. Trap with incompatible firmware that doesn't support preloading kernel arguments.
+; GFX90a-NEXT:    .fill 63, 4, 0xbf800000 ; s_nop 0
+; GFX90a-NEXT:  ; %bb.0:
+; GFX90a-NEXT:    s_load_dword s0, s[6:7], 0x1c
+; GFX90a-NEXT:    v_mov_b32_e32 v0, 0
+; GFX90a-NEXT:    s_waitcnt lgkmcnt(0)
+; GFX90a-NEXT:    s_lshr_b32 s0, s0, 16
+; GFX90a-NEXT:    v_mov_b32_e32 v1, s0
+; GFX90a-NEXT:    global_store_dword v0, v1, s[10:11]
+; GFX90a-NEXT:    s_endpgm
+  %imp_arg_ptr = call ptr addrspace(4) @llvm.amdgcn.implicitarg.ptr()
+  %gep = getelementptr i8, ptr addrspace(4) %imp_arg_ptr, i32 22
+  %load = load i16, ptr addrspace(4) %gep
+  %conv = zext i16 %load to i32
+  store i32 %conv, ptr addrspace(1) %out
+  ret void
+}
+
 attributes #0 = { "amdgpu-no-agpr" "amdgpu-no-completion-action" "amdgpu-no-default-queue" "amdgpu-no-dispatch-id" "amdgpu-no-dispatch-ptr" "amdgpu-no-heap-ptr" "amdgpu-no-hostcall-ptr" "amdgpu-no-lds-kernel-id" "amdgpu-no-multigrid-sync-arg" "amdgpu-no-queue-ptr" "amdgpu-no-workgroup-id-x" "amdgpu-no-workgroup-id-y" "amdgpu-no-workgroup-id-z" "amdgpu-no-workitem-id-x" "amdgpu-no-workitem-id-y" "amdgpu-no-workitem-id-z" "uniform-work-group-size"="false" }

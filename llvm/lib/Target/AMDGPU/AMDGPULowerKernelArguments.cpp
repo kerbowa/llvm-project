@@ -212,11 +212,7 @@ public:
 
     // Allocate loads in order of offset. We need to be sure that the implicit
     // argument can actually be preloaded.
-    std::sort(ImplicitArgLoads.begin(), ImplicitArgLoads.end(),
-              [](const std::pair<LoadInst *, unsigned> &A,
-                 const std::pair<LoadInst *, unsigned> &B) {
-                return A.second < B.second;
-              });
+    std::sort(ImplicitArgLoads.begin(), ImplicitArgLoads.end(), less_second());
 
     uint64_t LastExplicitArgOffset = ImplicitArgsBaseOffset;
     // If we fail to preload any implicit argument we know we don't have SGPRs

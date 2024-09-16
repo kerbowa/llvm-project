@@ -261,9 +261,7 @@ void MetadataStreamerMsgPackV4::emitKernelArgs(const MachineFunction &MF,
   unsigned Offset = 0;
   auto Args = HSAMetadataDoc->getArrayNode();
   for (auto &Arg : Func.args()) {
-    if (Func.getAttributes().hasAttributeAtIndex(AttributeList::FirstArgIndex +
-                                                     Arg.getArgNo(),
-                                                 "amdgpu-hidden-argument"))
+    if (Arg.hasAttribute("amdgpu-hidden-argument"))
       continue;
 
     emitKernelArg(Arg, Offset, Args);
