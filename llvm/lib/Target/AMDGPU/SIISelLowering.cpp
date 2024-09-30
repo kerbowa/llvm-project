@@ -2510,8 +2510,7 @@ void SITargetLowering::allocatePreloadKernArgSGPRs(
     const SmallVectorImpl<ISD::InputArg> &Ins, MachineFunction &MF,
     const SIRegisterInfo &TRI, SIMachineFunctionInfo &Info) const {
   Function &F = MF.getFunction();
-  unsigned LastExplicitArgOffset =
-      MF.getSubtarget<GCNSubtarget>().getExplicitKernelArgOffset();
+  unsigned LastExplicitArgOffset = Subtarget->getExplicitKernelArgOffset();
   GCNUserSGPRUsageInfo &SGPRInfo = Info.getUserSGPRInfo();
   bool InPreloadSequence = true;
   unsigned InIdx = 0;
@@ -2539,14 +2538,15 @@ void SITargetLowering::allocatePreloadKernArgSGPRs(
           alignTo(ArgLoc.getLocVT().getFixedSizeInBits(), 32) / 32;
 
       // Add padding SPGR to fix alignment for hidden arguments.
-      if (!AlignedForImplictArgs && Arg.hasAttribute("amdgpu-work-group-id")) {
+      if (!AlignedForImplictArgs &&
+          Arg.hasAttribute("amdgpu-hidden-argument")) {
         unsigned OffsetBefore = LastExplicitArgOffset;
         LastExplicitArgOffset = alignTo(
             LastExplicitArgOffset, Subtarget->getAlignmentForImplicitArgPtr());
         if (OffsetBefore != LastExplicitArgOffset) {
           unsigned PaddingSGPRs =
               alignTo(LastExplicitArgOffset - OffsetBefore, 4) / 4;
-          Info.allocateUserSGPRs(PaddingSGPRs);
+          Info.allocateUserSGPRs(*Subtarget, PaddingSGPRs);
           ArgOffset += PaddingSGPRs * 4;
         }
         AlignedForImplictArgs = true;

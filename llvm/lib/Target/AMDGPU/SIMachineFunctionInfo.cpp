@@ -277,11 +277,13 @@ SmallVectorImpl<MCRegister> *SIMachineFunctionInfo::addPreloadedKernArg(
   return &ArgInfo.PreloadKernArgs[KernArgIdx].Regs;
 }
 
-bool SIMachineFunctionInfo::allocateUserSGPRs(unsigned Number) {
-  if (Number <= getNumUserSGPRs())
+bool SIMachineFunctionInfo::allocateUserSGPRs(const GCNSubtarget &ST,
+                                              unsigned Number) {
+  unsigned NewUserSGPRs = NumUserSGPRs + Number;
+  if (NewUserSGPRs > ST.getMaxNumUserSGPRs())
     return false;
 
-  NumUserSGPRs = Number;
+  NumUserSGPRs = NewUserSGPRs;
   return true;
 }
 
