@@ -2546,7 +2546,9 @@ void SITargetLowering::allocatePreloadKernArgSGPRs(
         if (OffsetBefore != LastExplicitArgOffset) {
           unsigned PaddingSGPRs =
               alignTo(LastExplicitArgOffset - OffsetBefore, 4) / 4;
-          Info.allocateUserSGPRs(*Subtarget, PaddingSGPRs);
+          if (!Info.allocateUserSGPRs(*Subtarget, PaddingSGPRs))
+            break;
+
           ArgOffset += PaddingSGPRs * 4;
         }
         AlignedForImplictArgs = true;

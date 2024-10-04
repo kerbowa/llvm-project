@@ -325,6 +325,12 @@ static bool lowerKernelArguments(Function &F, const TargetMachine &TM) {
     uint64_t LastExplicitArgOffset = ExplicitArgOffset;
     ExplicitArgOffset = alignTo(ExplicitArgOffset, ABITypeAlign) + AllocSize;
 
+    // Guard against the situation where hidden arguments have already been lowered
+    // and added to the kernel function signiture, i.e. in a situation where this
+    // pass has run twice.
+    if (Arg.hasAttribute("amdgpu-hidden-argument"))
+      break;
+
     // Try to preload this argument into user SGPRs.
     if (Arg.hasInRegAttr() && InPreloadSequence && ST.hasKernargPreload() &&
         !Arg.getType()->isAggregateType())
