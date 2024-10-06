@@ -131,6 +131,7 @@ private:
 
     NF->setAttributes(AL);
     F.replaceAllUsesWith(NF);
+    F.setCallingConv(CallingConv::C);
 
     return NF;
   }

@@ -2515,6 +2515,7 @@ void SITargetLowering::allocatePreloadKernArgSGPRs(
   bool InPreloadSequence = true;
   unsigned InIdx = 0;
   bool AlignedForImplictArgs = false;
+  unsigned ImplicitArgOffset = 0;
   for (auto &Arg : F.args()) {
     if (!InPreloadSequence || !Arg.hasInRegAttr())
       break;
@@ -2537,21 +2538,16 @@ void SITargetLowering::allocatePreloadKernArgSGPRs(
       unsigned NumAllocSGPRs =
           alignTo(ArgLoc.getLocVT().getFixedSizeInBits(), 32) / 32;
 
-      // Add padding SPGR to fix alignment for hidden arguments.
-      if (!AlignedForImplictArgs &&
-          Arg.hasAttribute("amdgpu-hidden-argument")) {
-        unsigned OffsetBefore = LastExplicitArgOffset;
-        LastExplicitArgOffset = alignTo(
-            LastExplicitArgOffset, Subtarget->getAlignmentForImplicitArgPtr());
-        if (OffsetBefore != LastExplicitArgOffset) {
-          unsigned PaddingSGPRs =
-              alignTo(LastExplicitArgOffset - OffsetBefore, 4) / 4;
-          if (!Info.allocateUserSGPRs(*Subtarget, PaddingSGPRs))
-            break;
-
-          ArgOffset += PaddingSGPRs * 4;
+      // Fix alignment for hidden arguments.
+      if (Arg.hasAttribute("amdgpu-hidden-argument")) {
+        if (!AlignedForImplictArgs) {
+          ImplicitArgOffset =
+              alignTo(LastExplicitArgOffset,
+                      Subtarget->getAlignmentForImplicitArgPtr()) -
+              LastExplicitArgOffset;
+          AlignedForImplictArgs = true;
         }
-        AlignedForImplictArgs = true;
+        ArgOffset += ImplicitArgOffset;
       }
 
       // Arg is preloaded into the previous SGPR.

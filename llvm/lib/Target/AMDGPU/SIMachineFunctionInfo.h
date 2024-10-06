@@ -783,9 +783,6 @@ public:
                       unsigned AllocSizeDWord, int KernArgIdx,
                       int PaddingSGPRs);
 
-  /// Reserve up to \p Number of user SGPRs.
-  bool allocateUserSGPRs(const GCNSubtarget &ST, unsigned Number);
-
   /// Increment user SGPRs used for padding the argument list only.
   Register addReservedUserSGPR() {
     Register Next = getNextUserSGPR();

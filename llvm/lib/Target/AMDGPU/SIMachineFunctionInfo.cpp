@@ -277,16 +277,6 @@ SmallVectorImpl<MCRegister> *SIMachineFunctionInfo::addPreloadedKernArg(
   return &ArgInfo.PreloadKernArgs[KernArgIdx].Regs;
 }
 
-bool SIMachineFunctionInfo::allocateUserSGPRs(const GCNSubtarget &ST,
-                                              unsigned Number) {
-  unsigned NewUserSGPRs = NumUserSGPRs + Number;
-  if (NewUserSGPRs > ST.getMaxNumUserSGPRs())
-    return false;
-
-  NumUserSGPRs = NewUserSGPRs;
-  return true;
-}
-
 void SIMachineFunctionInfo::allocateWWMSpill(MachineFunction &MF, Register VGPR,
                                              uint64_t Size, Align Alignment) {
   // Skip if it is an entry function or the register is already added.
