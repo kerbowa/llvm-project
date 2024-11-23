@@ -24,7 +24,18 @@ namespace llvm {
 class SIMachineFunctionInfo;
 class SIRegisterInfo;
 class GCNSubtarget;
+class GCNSchedStrategy;
 class GCNSchedStage;
+class ScheduleMetrics;
+
+class GCNCandidateHeuristic {
+public:
+  virtual bool tryCandidate(const GCNSchedStrategy &S,
+                            GenericSchedulerBase::SchedCandidate &Cand,
+                            GenericSchedulerBase::SchedCandidate &TryCand,
+                            SchedBoundary *Zone) const = 0;
+  virtual ~GCNCandidateHeuristic() = default;
+};
 
 enum class GCNSchedStageID : unsigned {
   OccInitialSchedule = 0,
@@ -32,7 +43,8 @@ enum class GCNSchedStageID : unsigned {
   ClusteredLowOccupancyReschedule = 2,
   PreRARematerialize = 3,
   ILPInitialSchedule = 4,
-  MemoryClauseInitialSchedule = 5
+  MemoryClauseInitialSchedule = 5,
+  BalancedReschedule = 6
 };
 
 #ifndef NDEBUG
@@ -54,6 +66,14 @@ protected:
                      const RegPressureTracker &RPTracker,
                      const SIRegisterInfo *SRI, unsigned SGPRPressure,
                      unsigned VGPRPressure, bool IsBottomUp);
+
+  // If set, delegate candidate comparison to the active per-stage heuristic.
+  const GCNCandidateHeuristic *ActiveHeuristic = nullptr;
+
+  // Decison point for list-scheduling comparisons. Falls back to the
+  // GenericScheduler heuristics when no stage heuristic is set.
+  bool tryCandidate(SchedCandidate &Cand, SchedCandidate &TryCand,
+                    SchedBoundary *Zone) const override;
 
   std::vector<unsigned> Pressure;
 
@@ -78,6 +98,9 @@ protected:
 
   // GCN RP Tracker for botttom-up scheduling
   mutable GCNUpwardRPTracker UpwardTracker;
+
+  // Last initialized DAG for this strategy.
+  ScheduleDAGMI *DAGMI = nullptr;
 
 public:
   // schedule() have seen register pressure over the critical limits and had to
@@ -116,10 +139,12 @@ public:
   void initialize(ScheduleDAGMI *DAG) override;
 
   unsigned getTargetOccupancy() { return TargetOccupancy; }
+  unsigned getTargetOccupancy() const { return TargetOccupancy; }
 
   void setTargetOccupancy(unsigned Occ) { TargetOccupancy = Occ; }
 
   GCNSchedStageID getCurrentStage();
+  GCNSchedStageID getCurrentStage() const;
 
   // Advances stage. Returns true if there are remaining stages.
   bool advanceStage();
@@ -131,6 +156,51 @@ public:
   GCNDownwardRPTracker *getDownwardTracker() { return &DownwardTracker; }
 
   GCNUpwardRPTracker *getUpwardTracker() { return &UpwardTracker; }
+
+  // Read-only accessors for heuristics and strategies.
+  const MachineFunction &getMF() const { return *MF; }
+  const SIMachineFunctionInfo &getMFI() const;
+  const GCNSubtarget &getSubtarget() const;
+  unsigned getSGPRCriticalLimit() const { return SGPRCriticalLimit; }
+  unsigned getVGPRCriticalLimit() const { return VGPRCriticalLimit; }
+  bool hasKnownExcessRP() const { return KnownExcessRP; }
+  const ScheduleDAGMI *getScheduleDAGMI() const { return DAGMI; }
+
+  void setCandidateHeuristic(const GCNCandidateHeuristic *H) {
+    ActiveHeuristic = H;
+  }
+  void clearCandidateHeuristic() { ActiveHeuristic = nullptr; }
+
+  // Strategy-specific per-stage heuristic (default: none). A stage may call
+  // this to get a heuristic if it doesn't provide its own.
+  virtual const GCNCandidateHeuristic *
+  getStageHeuristic(GCNSchedStageID S) const {
+    return nullptr;
+  }
+
+  // Called after a stage completes, to let a strategy cache results.
+  // Default does nothing.
+  virtual void onStageFinished(GCNSchedStageID /*Stage*/,
+                               const ScheduleMetrics & /*Metrics*/,
+                               unsigned /*Occupancy*/) {}
+
+  virtual bool shouldRevertStage(GCNSchedStageID /*Stage*/) const {
+    return false;
+  }
+
+  // Governor hook: allow a strategy to decide whether a stage should run at
+  // all for the current function. Default: run all stages.
+  virtual bool shouldRunStage(GCNSchedStageID /*Stage*/) const { return true; }
+
+  using FullScheduleOrder = SmallVector<std::vector<MachineInstr *>, 32>;
+
+  virtual void onStageSnapshot(GCNSchedStageID /*Stage*/,
+                               const FullScheduleOrder & /*Order*/) {}
+
+  virtual const FullScheduleOrder *
+  getSnapshotToRestore(GCNSchedStageID /*Stage*/) const {
+    return nullptr;
+  }
 };
 
 /// The goal of this scheduling strategy is to maximize kernel occupancy (i.e.
@@ -338,6 +408,14 @@ protected:
 
   std::vector<std::unique_ptr<ScheduleDAGMutation>> SavedMutations;
 
+  // Aggregated schedule metrics across all regions processed in this stage.
+  unsigned AggregatedLen = 0;
+  unsigned AggregatedBubbles = 0;
+
+  // Original order snapshots per region for this stage, used to revert the
+  // entire stage if needed after it completes.
+  SmallVector<std::vector<MachineInstr *>, 32> StageOriginalOrders;
+
   GCNSchedStage(GCNSchedStageID StageID, GCNScheduleDAGMILive &DAG);
 
 public:
@@ -388,6 +466,10 @@ public:
   void advanceRegion() { RegionIdx++; }
 
   virtual ~GCNSchedStage() = default;
+
+  virtual const GCNCandidateHeuristic *getCandidateHeuristic() const {
+    return nullptr;
+  }
 };
 
 class OccInitialScheduleStage : public GCNSchedStage {
@@ -528,6 +610,16 @@ public:
 
   MemoryClauseInitialScheduleStage(GCNSchedStageID StageID,
                                    GCNScheduleDAGMILive &DAG)
+      : GCNSchedStage(StageID, DAG) {}
+};
+
+// Applies a balanced scheduling heuristic across a pass. This aims to
+// balance ILP and occupancy rather than maximizing only one objective.
+class BalancedScheduleStage : public GCNSchedStage {
+public:
+  bool shouldRevertScheduling(unsigned WavesAfter) override;
+
+  BalancedScheduleStage(GCNSchedStageID StageID, GCNScheduleDAGMILive &DAG)
       : GCNSchedStage(StageID, DAG) {}
 };
 

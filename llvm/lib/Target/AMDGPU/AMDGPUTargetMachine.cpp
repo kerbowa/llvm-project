@@ -17,6 +17,7 @@
 #include "AMDGPUTargetMachine.h"
 #include "AMDGPU.h"
 #include "AMDGPUAliasAnalysis.h"
+#include "AMDGPUBalancingScheduler.h"
 #include "AMDGPUCtorDtorLowering.h"
 #include "AMDGPUExportClustering.h"
 #include "AMDGPUExportKernelRuntimeHandles.h"
@@ -596,6 +597,20 @@ createGCNMaxOccupancyMachineScheduler(MachineSchedContext *C) {
 }
 
 static ScheduleDAGInstrs *
+createGCNBalancedMachineScheduler(MachineSchedContext *C) {
+  const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
+  ScheduleDAGMILive *DAG = new GCNScheduleDAGMILive(
+      C, std::make_unique<AMDGPUBalancingSchedStrategy>(C));
+  DAG->addMutation(createLoadClusterDAGMutation(DAG->TII, DAG->TRI));
+  if (ST.shouldClusterStores())
+    DAG->addMutation(createStoreClusterDAGMutation(DAG->TII, DAG->TRI));
+  DAG->addMutation(createIGroupLPDAGMutation(AMDGPU::SchedulingPhase::Initial));
+  DAG->addMutation(createAMDGPUMacroFusionDAGMutation());
+  DAG->addMutation(createAMDGPUExportClusteringDAGMutation());
+  return DAG;
+}
+
+static ScheduleDAGInstrs *
 createGCNMaxILPMachineScheduler(MachineSchedContext *C) {
   ScheduleDAGMILive *DAG =
       new GCNScheduleDAGMILive(C, std::make_unique<GCNMaxILPSchedStrategy>(C));
@@ -677,6 +692,10 @@ static MachineSchedRegistry GCNILPSchedRegistry(
     "gcn-iterative-ilp",
     "Run GCN iterative scheduler for ILP scheduling (experimental)",
     createIterativeILPMachineScheduler);
+
+static MachineSchedRegistry
+    GCNBalancedSchedRegistry("gcn-balanced", "Run GCN balanced scheduler",
+                             createGCNBalancedMachineScheduler);
 
 static StringRef computeDataLayout(const Triple &TT) {
   if (TT.getArch() == Triple::r600) {
@@ -1147,6 +1166,9 @@ GCNTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
 
   if (SchedStrategy == "iterative-maxocc")
     return createIterativeGCNMaxOccupancyMachineScheduler(C);
+
+  if (SchedStrategy == "balanced" || SchedStrategy == "gcn-balanced")
+    return createGCNBalancedMachineScheduler(C);
 
   return createGCNMaxOccupancyMachineScheduler(C);
 }

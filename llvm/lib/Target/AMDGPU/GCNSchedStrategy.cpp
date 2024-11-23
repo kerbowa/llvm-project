@@ -75,8 +75,20 @@ GCNSchedStrategy::GCNSchedStrategy(const MachineSchedContext *C)
       DownwardTracker(*C->LIS), UpwardTracker(*C->LIS), HasHighPressure(false) {
 }
 
+bool GCNSchedStrategy::tryCandidate(SchedCandidate &Cand,
+                                    SchedCandidate &TryCand,
+                                    SchedBoundary *Zone) const {
+  if (ActiveHeuristic)
+    return ActiveHeuristic->tryCandidate(*this, Cand, TryCand, Zone);
+  // Fall back to the default GenericScheduler heuristic.
+  return GenericScheduler::tryCandidate(Cand, TryCand, Zone);
+}
+
 void GCNSchedStrategy::initialize(ScheduleDAGMI *DAG) {
   GenericScheduler::initialize(DAG);
+
+  // Record the DAG for read-only access by stage heuristics/strategies.
+  DAGMI = DAG;
 
   MF = &DAG->MF;
 
@@ -504,6 +516,21 @@ GCNSchedStageID GCNSchedStrategy::getCurrentStage() {
   return *CurrentStage;
 }
 
+GCNSchedStageID GCNSchedStrategy::getCurrentStage() const {
+  assert(CurrentStage && CurrentStage != SchedStages.end());
+  return *CurrentStage;
+}
+
+const SIMachineFunctionInfo &GCNSchedStrategy::getMFI() const {
+  assert(MF && "MachineFunction not initialized");
+  return *MF->getInfo<SIMachineFunctionInfo>();
+}
+
+const GCNSubtarget &GCNSchedStrategy::getSubtarget() const {
+  assert(MF && "MachineFunction not initialized");
+  return MF->getSubtarget<GCNSubtarget>();
+}
+
 bool GCNSchedStrategy::advanceStage() {
   assert(CurrentStage != SchedStages.end());
   if (!CurrentStage)
@@ -795,6 +822,8 @@ GCNScheduleDAGMILive::createSchedStage(GCNSchedStageID SchedStageID) {
   case GCNSchedStageID::MemoryClauseInitialSchedule:
     return std::make_unique<MemoryClauseInitialScheduleStage>(SchedStageID,
                                                               *this);
+  case GCNSchedStageID::BalancedReschedule:
+    return std::make_unique<BalancedScheduleStage>(SchedStageID, *this);
   }
 
   llvm_unreachable("Unknown SchedStageID.");
@@ -962,6 +991,9 @@ void GCNScheduleDAGMILive::runSchedStages() {
   GCNSchedStrategy &S = static_cast<GCNSchedStrategy &>(*SchedImpl);
   while (S.advanceStage()) {
     auto Stage = createSchedStage(S.getCurrentStage());
+    // Strategy-wide governor: skip stages deemed too expensive or irrelevant.
+    if (!S.shouldRunStage(S.getCurrentStage()))
+      continue;
     if (!Stage->initGCNSchedStage())
       continue;
 
@@ -1017,6 +1049,9 @@ raw_ostream &llvm::operator<<(raw_ostream &OS, const GCNSchedStageID &StageID) {
   case GCNSchedStageID::MemoryClauseInitialSchedule:
     OS << "Max memory clause Initial Schedule";
     break;
+  case GCNSchedStageID::BalancedReschedule:
+    OS << "Balanced Reschedule";
+    break;
   }
 
   return OS;
@@ -1032,6 +1067,14 @@ bool GCNSchedStage::initGCNSchedStage() {
     return false;
 
   LLVM_DEBUG(dbgs() << "Starting scheduling stage: " << StageID << "\n");
+  AggregatedLen = 0;
+  AggregatedBubbles = 0;
+  // Prefer a stage-provided heuristic; otherwise, consult the strategy for
+  // a per-stage heuristic.
+  if (const GCNCandidateHeuristic *H = getCandidateHeuristic())
+    S.setCandidateHeuristic(H);
+  else
+    S.setCandidateHeuristic(S.getStageHeuristic(StageID));
   return true;
 }
 
@@ -1135,6 +1178,55 @@ bool PreRARematStage::initGCNSchedStage() {
 
 void GCNSchedStage::finalizeGCNSchedStage() {
   DAG.finishBlock();
+  // Report the per-stage aggregated metrics (summed across finalized regions).
+  ScheduleMetrics Metrics(AggregatedLen, AggregatedBubbles);
+  unsigned Occ = DAG.MinOccupancy;
+  S.onStageFinished(StageID, Metrics, Occ);
+
+  // Capture a full snapshot of the current schedule order per region and
+  // notify the strategy in case it wants to cache it for future restore.
+  GCNSchedStrategy::FullScheduleOrder FullOrder;
+  FullOrder.resize(DAG.Regions.size());
+  for (unsigned Idx = 0, E = DAG.Regions.size(); Idx != E; ++Idx) {
+    auto [Begin, End] = DAG.Regions[Idx];
+    for (auto I = Begin; I != End; ++I)
+      FullOrder[Idx].push_back(&*I);
+  }
+  S.onStageSnapshot(StageID, FullOrder);
+
+  // If the strategy decided this stage is not beneficial, revert the entire
+  // stage by restoring original orders per region.
+  if (S.shouldRevertStage(StageID)) {
+    LLVM_DEBUG(dbgs() << "Reverting entire stage: " << StageID << "\n");
+    const auto *Restore = S.getSnapshotToRestore(StageID);
+    for (unsigned Idx = 0, E = DAG.Regions.size(); Idx != E; ++Idx) {
+      const auto &Orig = Restore ? (*Restore)[Idx]
+                                 : (StageOriginalOrders.size() > Idx
+                                        ? StageOriginalOrders[Idx]
+                                        : std::vector<MachineInstr *>{});
+      if (Orig.empty())
+        continue;
+      // Restore this region to its original order.
+      auto [Begin, End] = DAG.Regions[Idx];
+      // Move all instructions in Orig back in order.
+      DAG.RegionBegin = Begin;
+      DAG.RegionEnd = Begin;
+      for (MachineInstr *MI : Orig) {
+        if (MI->getParent() != Begin->getParent())
+          continue;
+        if (MI->getIterator() != DAG.RegionEnd) {
+          DAG.BB->splice(DAG.RegionEnd, DAG.BB, MI);
+          if (!MI->isDebugInstr())
+            DAG.LIS->handleMove(*MI, true);
+        }
+        DAG.RegionEnd = MI->getIterator();
+        ++DAG.RegionEnd;
+      }
+      DAG.Regions[Idx] = std::pair(DAG.RegionBegin, DAG.RegionEnd);
+      DAG.placeDebugValues();
+    }
+  }
+  S.clearCandidateHeuristic();
   LLVM_DEBUG(dbgs() << "Ending scheduling stage: " << StageID << "\n");
 }
 
@@ -1255,6 +1347,14 @@ void GCNSchedStage::setupNewBlock() {
       StageID == GCNSchedStageID::ILPInitialSchedule ||
       StageID == GCNSchedStageID::MemoryClauseInitialSchedule)
     DAG.computeBlockPressure(RegionIdx, CurrentMBB);
+
+  // Ensure StageOriginalOrders can hold an entry per region and record the
+  // original order for this region at stage entry.
+  if (StageOriginalOrders.size() < DAG.Regions.size())
+    StageOriginalOrders.resize(DAG.Regions.size());
+  StageOriginalOrders[RegionIdx].clear();
+  for (auto I = DAG.RegionBegin; I != DAG.RegionEnd; ++I)
+    StageOriginalOrders[RegionIdx].push_back(&*I);
 }
 
 void GCNSchedStage::finalizeGCNRegion() {
@@ -1271,6 +1371,29 @@ void GCNSchedStage::finalizeGCNRegion() {
     SavedMutations.swap(DAG.Mutations);
 
   DAG.exitRegion();
+
+  // Accumulate per-region schedule metrics for this stage. Iterate only the
+  // current region range, modeling ready cycles similarly to
+  // getScheduleMetrics.
+  {
+    const TargetSchedModel &SM = ST.getInstrInfo()->getSchedModel();
+    DenseMap<unsigned, unsigned> ReadyCycles;
+    unsigned SumBubbles = 0;
+    unsigned CurrCycle = 0;
+    for (auto MIIt = DAG.Regions[RegionIdx].first;
+         MIIt != DAG.Regions[RegionIdx].second; ++MIIt) {
+      SUnit *SU = DAG.getSUnit(&*MIIt);
+      if (!SU)
+        continue;
+      unsigned ReadyCycle =
+          computeSUnitReadyCycle(*SU, CurrCycle, ReadyCycles, SM);
+      SumBubbles += ReadyCycle - CurrCycle;
+      CurrCycle = ++ReadyCycle;
+    }
+    AggregatedLen += CurrCycle;
+    AggregatedBubbles += SumBubbles;
+  }
+
   advanceRegion();
 }
 
@@ -1559,6 +1682,15 @@ bool ILPInitialScheduleStage::shouldRevertScheduling(unsigned WavesAfter) {
 bool MemoryClauseInitialScheduleStage::shouldRevertScheduling(
     unsigned WavesAfter) {
   return mayCauseSpilling(WavesAfter);
+}
+
+bool BalancedScheduleStage::shouldRevertScheduling(unsigned WavesAfter) {
+  // Keep existing safety checks for occupancy/spilling.
+  if (GCNSchedStage::shouldRevertScheduling(WavesAfter) ||
+      mayCauseSpilling(WavesAfter))
+    return true;
+  // Otherwise defer to the strategy’s stage-wide decision at finalize time.
+  return false;
 }
 
 bool GCNSchedStage::mayCauseSpilling(unsigned WavesAfter) {
