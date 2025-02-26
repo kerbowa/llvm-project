@@ -200,7 +200,7 @@ unsigned TargetSchedModel::computeOperandLatency(
   if (DefIdx < SCDesc->NumWriteLatencyEntries) {
     // Lookup the definition's write latency in SubtargetInfo.
     const MCWriteLatencyEntry *WLEntry =
-      STI->getWriteLatencyEntry(SCDesc, DefIdx);
+        STI->getWriteLatencyEntry(SCDesc, DefIdx);
     unsigned WriteID = WLEntry->WriteResourceID;
     unsigned Latency = capLatency(WLEntry->Cycles);
     if (!UseMI)
@@ -216,8 +216,6 @@ unsigned TargetSchedModel::computeOperandLatency(
       return 0;
     return Latency - Advance;
   }
-  // If DefIdx does not exist in the model (e.g. implicit defs), then return
-  // unit latency (defaultDefLatency may be too conservative).
 #ifndef NDEBUG
   if (SCDesc->isValid() && !DefMI->getOperand(DefOperIdx).isImplicit() &&
       !DefMI->getDesc().operands()[DefOperIdx].isOptionalDef() &&
@@ -259,12 +257,9 @@ TargetSchedModel::computeInstrLatency(const MachineInstr *MI,
       (!hasInstrSchedModel() && !UseDefaultDefLatency))
     return TII->getInstrLatency(&InstrItins, *MI);
 
-  if (hasInstrSchedModel()) {
-    const MCSchedClassDesc *SCDesc = resolveSchedClass(MI);
-    if (SCDesc->isValid())
-      return computeInstrLatency(*SCDesc);
-  }
-  return TII->defaultDefLatency(SchedModel, *MI);
+  // This is used by targets that define an InstrSchedModel or want to use the
+  // default def latency.
+  return TII->getInstrLatency(*this, *MI);
 }
 
 unsigned TargetSchedModel::
