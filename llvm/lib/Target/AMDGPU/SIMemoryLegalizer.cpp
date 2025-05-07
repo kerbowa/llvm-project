@@ -1084,6 +1084,7 @@ bool SIGfx6CacheControl::insertWait(MachineBasicBlock::iterator &MI,
 
   bool VMCnt = false;
   bool LGKMCnt = false;
+  bool DirectLDSWait = false;
 
   if ((AddrSpace & (SIAtomicAddrSpace::GLOBAL | SIAtomicAddrSpace::SCRATCH)) !=
       SIAtomicAddrSpace::NONE) {
@@ -1124,6 +1125,7 @@ bool SIGfx6CacheControl::insertWait(MachineBasicBlock::iterator &MI,
     default:
       llvm_unreachable("Unsupported synchronization scope");
     }
+    DirectLDSWait = true;
   }
 
   if ((AddrSpace & SIAtomicAddrSpace::GDS) != SIAtomicAddrSpace::NONE) {
@@ -1156,6 +1158,16 @@ bool SIGfx6CacheControl::insertWait(MachineBasicBlock::iterator &MI,
                             getExpcntBitMask(IV),
                             LGKMCnt ? 0 : getLgkmcntBitMask(IV));
     BuildMI(MBB, MI, DL, TII->get(AMDGPU::S_WAITCNT_soft))
+        .addImm(WaitCntImmediate);
+    Changed = true;
+  }
+  if (DirectLDSWait) {
+    unsigned WaitCntImmediate =
+      AMDGPU::encodeWaitcnt(IV,
+                            0,
+                            getExpcntBitMask(IV),
+                            getLgkmcntBitMask(IV));
+    BuildMI(MBB, MI, DL, TII->get(AMDGPU::S_WAITCNT_VMCNT_LDS_DMA_soft))
         .addImm(WaitCntImmediate);
     Changed = true;
   }
