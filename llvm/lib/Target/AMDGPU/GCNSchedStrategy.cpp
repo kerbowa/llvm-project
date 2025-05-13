@@ -442,6 +442,8 @@ SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
            Bot.Available.empty() && Bot.Pending.empty() && "ReadyQ garbage");
     return nullptr;
   }
+  if (CustomResTracking)
+    RegionPolicy.OnlyTopDown = true;
   SUnit *SU;
   do {
     if (RegionPolicy.OnlyTopDown) {
@@ -476,6 +478,30 @@ SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
   if (SU->isBottomReady())
     Bot.removeReady(SU);
 
+  if (CustomResTracking) {
+#ifndef NDEBUG
+    unsigned XDLCyclesBefore = XDLProcRes.CyclesReserved;
+#endif
+
+    const SIInstrInfo *TII = static_cast<const SIInstrInfo *>(DAG->TII);
+    bool IsXDL = TII->isXDL(*SU->getInstr());
+    unsigned Cycles = SU->Latency;
+    if (IsXDL) {
+      // FIXME: Hack since XDL is only actually occupying for 24 cycles with 8
+      // pass MFMA.
+      if (Cycles > 2)
+        Cycles -= 2;
+      XDLProcRes.reset();
+      XDLProcRes.reserve(Cycles);
+    } else {
+      XDLProcRes.release(Cycles);
+    }
+
+    LLVM_DEBUG(dbgs() << "OldXDLProcRes: " << XDLCyclesBefore
+                      << "\nNewXDLProcRes: " << XDLProcRes.CyclesReserved
+                      << "\n");
+  }
+
   LLVM_DEBUG(dbgs() << "Scheduling SU(" << SU->NodeNum << ") "
                     << *SU->getInstr());
   return SU;
@@ -489,6 +515,110 @@ void GCNSchedStrategy::schedNode(SUnit *SU, bool IsTopNode) {
   }
 
   return GenericScheduler::schedNode(SU, IsTopNode);
+}
+
+bool GCNMaxOccupancySchedStrategy::tryCandidate(SchedCandidate &Cand,
+                                                SchedCandidate &TryCand,
+                                                SchedBoundary *Zone) const {
+  // Initialize the candidate if needed.
+  if (!Cand.isValid()) {
+    TryCand.Reason = FirstValid;
+    return true;
+  }
+
+  // Bias PhysReg Defs and copies to their uses and defined respectively.
+  if (tryGreater(biasPhysReg(TryCand.SU, TryCand.AtTop),
+                 biasPhysReg(Cand.SU, Cand.AtTop), TryCand, Cand, PhysReg))
+    return TryCand.Reason != NoCand;
+
+  // Avoid exceeding the target's limit.
+  if (DAG->isTrackingPressure() &&
+      tryPressure(TryCand.RPDelta.Excess, Cand.RPDelta.Excess, TryCand, Cand,
+                  RegExcess, TRI, DAG->MF))
+    return TryCand.Reason != NoCand;
+
+  // Avoid increasing the max critical pressure in the scheduled region.
+  if (DAG->isTrackingPressure() &&
+      tryPressure(TryCand.RPDelta.CriticalMax, Cand.RPDelta.CriticalMax,
+                  TryCand, Cand, RegCritical, TRI, DAG->MF))
+    return TryCand.Reason != NoCand;
+
+  // Avoid increasing the max pressure of the entire region.
+  if (DAG->isTrackingPressure() &&
+      tryPressure(TryCand.RPDelta.CurrentMax, Cand.RPDelta.CurrentMax, TryCand,
+                  Cand, RegMax, TRI, DAG->MF))
+    return TryCand.Reason != NoCand;
+
+  if (CustomResTracking && tryXDL(Cand, TryCand, Zone))
+    return TryCand.Reason != NoCand;
+
+  // We only compare a subset of features when comparing nodes between
+  // Top and Bottom boundary. Some properties are simply incomparable, in many
+  // other instances we should only override the other boundary if something
+  // is a clear good pick on one boundary. Skip heuristics that are more
+  // "tie-breaking" in nature.
+  bool SameBoundary = Zone != nullptr;
+  if (SameBoundary) {
+    // For loops that are acyclic path limited, aggressively schedule for
+    // latency. Within an single cycle, whenever CurrMOps > 0, allow normal
+    // heuristics to take precedence.
+    if (Rem.IsAcyclicLatencyLimited && !Zone->getCurrMOps() &&
+        tryLatency(TryCand, Cand, *Zone))
+      return TryCand.Reason != NoCand;
+
+    // Prioritize instructions that read unbuffered resources by stall cycles.
+    if (tryLess(Zone->getLatencyStallCycles(TryCand.SU),
+                Zone->getLatencyStallCycles(Cand.SU), TryCand, Cand, Stall))
+      return TryCand.Reason != NoCand;
+  }
+
+  // Keep clustered nodes together to encourage downstream peephole
+  // optimizations which may reduce resource requirements.
+  //
+  // This is a best effort to set things up for a post-RA pass. Optimizations
+  // like generating loads of multiple registers should ideally be done within
+  // the scheduler pass by combining the loads during DAG postprocessing.
+  const SUnit *CandNextClusterSU =
+      Cand.AtTop ? DAG->getNextClusterSucc() : DAG->getNextClusterPred();
+  const SUnit *TryCandNextClusterSU =
+      TryCand.AtTop ? DAG->getNextClusterSucc() : DAG->getNextClusterPred();
+  if (tryGreater(TryCand.SU == TryCandNextClusterSU,
+                 Cand.SU == CandNextClusterSU, TryCand, Cand, Cluster))
+    return TryCand.Reason != NoCand;
+
+  if (SameBoundary) {
+    // Weak edges are for clustering and other constraints.
+    if (tryLess(getWeakLeft(TryCand.SU, TryCand.AtTop),
+                getWeakLeft(Cand.SU, Cand.AtTop), TryCand, Cand, Weak))
+      return TryCand.Reason != NoCand;
+  }
+
+  if (SameBoundary) {
+    // Avoid critical resource consumption and balance the schedule.
+    TryCand.initResourceDelta(DAG, SchedModel);
+    if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
+                TryCand, Cand, ResourceReduce))
+      return TryCand.Reason != NoCand;
+    if (tryGreater(TryCand.ResDelta.DemandedResources,
+                   Cand.ResDelta.DemandedResources, TryCand, Cand,
+                   ResourceDemand))
+      return TryCand.Reason != NoCand;
+
+    // Avoid serializing long latency dependence chains.
+    // For acyclic path limited loops, latency was already checked above.
+    if (!RegionPolicy.DisableLatencyHeuristic && TryCand.Policy.ReduceLatency &&
+        !Rem.IsAcyclicLatencyLimited && tryLatency(TryCand, Cand, *Zone))
+      return TryCand.Reason != NoCand;
+
+    // Fall through to original instruction order.
+    if ((Zone->isTop() && TryCand.SU->NodeNum < Cand.SU->NodeNum) ||
+        (!Zone->isTop() && TryCand.SU->NodeNum > Cand.SU->NodeNum)) {
+      TryCand.Reason = NodeOrder;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 GCNSchedStageID GCNSchedStrategy::getCurrentStage() {
@@ -619,6 +749,265 @@ GCNMaxMemoryClauseSchedStrategy::GCNMaxMemoryClauseSchedStrategy(
     const MachineSchedContext *C)
     : GCNSchedStrategy(C) {
   SchedStages.push_back(GCNSchedStageID::MemoryClauseInitialSchedule);
+}
+
+bool GCNSchedStrategy::tryXDL(SchedCandidate &Cand, SchedCandidate &TryCand,
+                              SchedBoundary *Zone) const {
+  assert(Zone->isTop());
+  MachineInstr *CInst = Cand.SU->getInstr();
+  MachineInstr *TCInst = TryCand.SU->getInstr();
+  const SIInstrInfo *TII = DAG->MF.getSubtarget<GCNSubtarget>().getInstrInfo();
+
+  bool CandIsXDL = TII->isXDL(*CInst);
+  bool TryCandIsXDL = TII->isXDL(*TCInst);
+
+  LLVM_DEBUG(dbgs() << "tryXDL"; DAG->dumpNode(*Cand.SU);
+             DAG->dumpNode(*TryCand.SU));
+
+  // XDL is free.
+  if (XDLProcRes.CyclesReserved == 0) {
+    if (!TryCandIsXDL && !CandIsXDL)
+      return false;
+
+    if (TryCandIsXDL && !CandIsXDL) {
+      TryCand.Reason = ResourceDemand;
+      return true;
+    }
+
+    if (CandIsXDL && !TryCandIsXDL) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+
+    // XDL is free and both candidates are XDL.
+    if (CandIsXDL && TryCandIsXDL) {
+      unsigned CandReadyVALUSuccs = 0;
+      unsigned TryReadyVALUSuccs = 0;
+
+      // Count VALU successors that would become ready after scheduling this
+      // MFMA.
+      SmallPtrSet<SUnit *, 8> CandSeenSuccs;
+      for (SDep &Succ : Cand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!CandSeenSuccs.insert(SuccSU).second)
+          continue;
+
+        if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+          ++CandReadyVALUSuccs;
+        }
+      }
+
+      SmallPtrSet<SUnit *, 8> TrySeenSuccs;
+      for (SDep &Succ : TryCand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!TrySeenSuccs.insert(SuccSU).second)
+          continue;
+
+        if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+          ++TryReadyVALUSuccs;
+        }
+      }
+
+      LLVM_DEBUG(dbgs() << "CandReadyVALUSuccs: " << CandReadyVALUSuccs
+                        << " TryReadyVALUSuccs: " << TryReadyVALUSuccs << "\n");
+
+      // Prefer the candidate that would immediately free up more VALU
+      // instructions
+      if (CandReadyVALUSuccs > TryReadyVALUSuccs) {
+        Cand.Reason = ResourceDemand;
+        return true;
+      }
+      if (CandReadyVALUSuccs < TryReadyVALUSuccs) {
+        TryCand.Reason = ResourceDemand;
+        return true;
+      }
+      if (CandReadyVALUSuccs > 0) {
+        Cand.Reason = ResourceDemand;
+        return true;
+      }
+
+      // If they free up the same number of VALUs, fall back to the old
+      // heuristic and just count the total number of VALU successors
+      unsigned CandVALUSuccs = 0;
+      unsigned TryVALUSuccs = 0;
+
+      // Reset and reuse our sets of seen successors
+      CandSeenSuccs.clear();
+      TrySeenSuccs.clear();
+
+      for (SDep &Succ : Cand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!CandSeenSuccs.insert(SuccSU).second)
+          continue;
+        if (TII->isVALU(*SuccSU->getInstr()))
+          ++CandVALUSuccs;
+      }
+
+      for (SDep &Succ : TryCand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!TrySeenSuccs.insert(SuccSU).second)
+          continue;
+        if (TII->isVALU(*SuccSU->getInstr()))
+          ++TryVALUSuccs;
+      }
+
+      LLVM_DEBUG(dbgs() << "CandVALUSuccs: " << CandVALUSuccs
+                        << " TryVALUSuccs: " << TryVALUSuccs << "\n");
+
+      // If one candidate has more total VALU successors, prefer it.
+      if (CandVALUSuccs > TryVALUSuccs) {
+        Cand.Reason = ResourceDemand;
+        return true;
+      }
+      if (CandVALUSuccs < TryVALUSuccs) {
+        TryCand.Reason = ResourceDemand;
+        return true;
+      }
+
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+  }
+
+  assert(XDLProcRes.CyclesReserved);
+
+  // XDL is in use and Cand is a MFMA.
+  if (CandIsXDL) {
+    if (!TryCandIsXDL) {
+      TryCand.Reason = ResourceReduce;
+      return true;
+    }
+    // TryCandIsXDL and CandIsXDL and resource is in use.
+    unsigned CandReadyVALUSuccs = 0;
+    unsigned TryReadyVALUSuccs = 0;
+
+    // Count VALU successors that would become ready after scheduling this
+    // MFMA.
+    SmallPtrSet<SUnit *, 8> CandSeenSuccs;
+    for (SDep &Succ : Cand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!CandSeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++CandReadyVALUSuccs;
+      }
+    }
+
+    SmallPtrSet<SUnit *, 8> TrySeenSuccs;
+    for (SDep &Succ : TryCand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!TrySeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++TryReadyVALUSuccs;
+      }
+    }
+
+    LLVM_DEBUG(dbgs() << "CandReadyVALUSuccs: " << CandReadyVALUSuccs
+                      << " TryReadyVALUSuccs: " << TryReadyVALUSuccs << "\n");
+
+    // Prefer the candidate that would immediately free up more VALU
+    // instructions
+    if (CandReadyVALUSuccs > TryReadyVALUSuccs) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs < TryReadyVALUSuccs) {
+      TryCand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs > 0) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+
+    // Let other heuristics take precedence if both are MFMA and resource is
+    // in use.
+    return false;
+  }
+
+  // Both candidates are not MFMA and resource is in use.
+  if (!TryCandIsXDL) {
+    unsigned CandReadyVALUSuccs = 0;
+    unsigned TryReadyVALUSuccs = 0;
+
+    SmallPtrSet<SUnit *, 8> CandSeenSuccs;
+    for (SDep &Succ : Cand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!CandSeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++CandReadyVALUSuccs;
+      }
+    }
+
+    SmallPtrSet<SUnit *, 8> TrySeenSuccs;
+    for (SDep &Succ : TryCand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!TrySeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++TryReadyVALUSuccs;
+      }
+    }
+
+    LLVM_DEBUG(dbgs() << "CandReadyVALUSuccs: " << CandReadyVALUSuccs
+                      << " TryReadyVALUSuccs: " << TryReadyVALUSuccs << "\n");
+
+    // Prefer the candidate that would immediately free up more VALU
+    // instructions
+    if (CandReadyVALUSuccs > TryReadyVALUSuccs) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs < TryReadyVALUSuccs) {
+      TryCand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs > 0) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+    unsigned CandCycles = Cand.SU->Latency;
+    unsigned TryCandCycles = TryCand.SU->Latency;
+
+    // Check if either instruction would cause XDL resources to go negative
+    bool CandOverflow = CandCycles > XDLProcRes.CyclesReserved;
+    bool TryCandOverflow = TryCandCycles > XDLProcRes.CyclesReserved;
+
+    // If one overflows and the other doesn't, prefer the one that overflows
+    // because it will free up the XDL resource
+    if (CandOverflow && !TryCandOverflow) {
+      Cand.Reason = ResourceReduce;
+      return true;
+    }
+    if (TryCandOverflow && !CandOverflow) {
+      TryCand.Reason = ResourceReduce;
+      return true;
+    }
+
+    // Both would overflow or neither would - pick the one that gets closest to
+    // zero
+    int CandRemainingXDL = static_cast<int>(XDLProcRes.CyclesReserved) -
+                           static_cast<int>(CandCycles);
+    int TryCandRemainingXDL = static_cast<int>(XDLProcRes.CyclesReserved) -
+                              static_cast<int>(TryCandCycles);
+
+    if (std::abs(TryCandRemainingXDL) < std::abs(CandRemainingXDL)) {
+      TryCand.Reason = ResourceReduce;
+      return true;
+    }
+    Cand.Reason = ResourceReduce;
+    return true;
+  }
+
+  // XDL resource is in use and Cand is not MFMA but TryCand is.
+  Cand.Reason = ResourceReduce;
+  return true;
 }
 
 /// GCNMaxMemoryClauseSchedStrategy tries best to clause memory instructions as
@@ -1167,6 +1556,9 @@ bool GCNSchedStage::initGCNRegion() {
   }
 
   PressureBefore = DAG.Pressure[RegionIdx];
+  S.CustomResTracking = DAG.RegionsWithIGLPInstrs[RegionIdx];
+  if (S.CustomResTracking)
+    S.XDLProcRes.reset();
 
   LLVM_DEBUG(
       dbgs() << "Pressure before scheduling:\nRegion live-ins:"
@@ -1446,6 +1838,9 @@ GCNSchedStage::getScheduleMetrics(const GCNScheduleDAGMILive &DAG) {
 }
 
 bool GCNSchedStage::shouldRevertScheduling(unsigned WavesAfter) {
+  if (S.CustomResTracking)
+    return false;
+
   if (WavesAfter < DAG.MinOccupancy)
     return true;
 
@@ -2048,13 +2443,417 @@ static bool hasIGLPInstrs(ScheduleDAGInstrs *DAG) {
   });
 }
 
+GCNPostSchedStrategy::GCNPostSchedStrategy(const MachineSchedContext *C)
+    : PostGenericScheduler(C) {}
+
+static void tracePick(GenericSchedulerBase::CandReason Reason, bool IsTop) {
+  LLVM_DEBUG(dbgs() << "Pick " << (IsTop ? "Top " : "Bot ")
+                    << GenericSchedulerBase::getReasonStr(Reason) << '\n');
+}
+
+static void tracePick(const GenericSchedulerBase::SchedCandidate &Cand) {
+  tracePick(Cand.Reason, Cand.AtTop);
+}
+
+SUnit *GCNPostSchedStrategy::pickNode(bool &IsTopNode) {
+  if (DAG->top() == DAG->bottom()) {
+    assert(Top.Available.empty() && Top.Pending.empty() &&
+           Bot.Available.empty() && Bot.Pending.empty() && "ReadyQ garbage");
+    return nullptr;
+  }
+  SUnit *SU;
+  do {
+    if (RegionPolicy.OnlyBottomUp) {
+      SU = Bot.pickOnlyChoice();
+      if (SU) {
+        tracePick(Only1, true);
+      } else {
+        CandPolicy NoPolicy;
+        BotCand.reset(NoPolicy);
+        // Set the bottom-up policy based on the state of the current bottom
+        // zone and the instructions outside the zone, including the top zone.
+        setPolicy(BotCand.Policy, /*IsPostRA=*/true, Bot, nullptr);
+        pickNodeFromQueue(Bot, BotCand);
+        assert(BotCand.Reason != NoCand && "failed to find a candidate");
+        tracePick(BotCand);
+        SU = BotCand.SU;
+      }
+      IsTopNode = false;
+    } else if (RegionPolicy.OnlyTopDown) {
+      SU = Top.pickOnlyChoice();
+      if (SU) {
+        tracePick(Only1, true);
+      } else {
+        CandPolicy NoPolicy;
+        TopCand.reset(NoPolicy);
+        // Set the top-down policy based on the state of the current top zone
+        // and the instructions outside the zone, including the bottom zone.
+        setPolicy(TopCand.Policy, /*IsPostRA=*/true, Top, nullptr);
+        pickNodeFromQueue(Top, TopCand);
+        assert(TopCand.Reason != NoCand && "failed to find a candidate");
+        tracePick(TopCand);
+        SU = TopCand.SU;
+      }
+      IsTopNode = true;
+    } else {
+      SU = pickNodeBidirectional(IsTopNode);
+    }
+  } while (SU->isScheduled);
+
+  if (SU->isTopReady())
+    Top.removeReady(SU);
+  if (SU->isBottomReady())
+    Bot.removeReady(SU);
+
+  if (CustomResTracking) {
+#ifndef NDEBUG
+    unsigned XDLCyclesBefore = XDLProcRes.CyclesReserved;
+#endif
+
+    const SIInstrInfo *TII = static_cast<const SIInstrInfo *>(DAG->TII);
+    bool IsXDL = TII->isXDL(*SU->getInstr());
+    unsigned Cycles = SU->Latency;
+    if (IsXDL) {
+      // FIXME: Hack since XDL is only actually occupying for 24 cycles with 8
+      // pass MFMA.
+      if (Cycles > 2)
+        Cycles -= 2;
+      XDLProcRes.reset();
+      XDLProcRes.reserve(Cycles);
+    } else {
+      XDLProcRes.release(Cycles);
+    }
+
+    LLVM_DEBUG(dbgs() << "OldXDLProcRes: " << XDLCyclesBefore
+                      << "\nNewXDLProcRes: " << XDLProcRes.CyclesReserved
+                      << "\n");
+  }
+
+  LLVM_DEBUG(dbgs() << "Scheduling SU(" << SU->NodeNum << ") "
+                    << *SU->getInstr());
+  return SU;
+}
+
+bool GCNPostSchedStrategy::tryXDL(SchedCandidate &Cand,
+                                  SchedCandidate &TryCand) {
+  MachineInstr *CInst = Cand.SU->getInstr();
+  MachineInstr *TCInst = TryCand.SU->getInstr();
+  const SIInstrInfo *TII = DAG->MF.getSubtarget<GCNSubtarget>().getInstrInfo();
+
+  bool CandIsXDL = TII->isXDL(*CInst);
+  bool TryCandIsXDL = TII->isXDL(*TCInst);
+
+  LLVM_DEBUG(dbgs() << "tryXDL"; DAG->dumpNode(*Cand.SU);
+             DAG->dumpNode(*TryCand.SU));
+
+  // XDL is free.
+  if (XDLProcRes.CyclesReserved == 0) {
+    if (!TryCandIsXDL && !CandIsXDL)
+      return false;
+
+    if (TryCandIsXDL && !CandIsXDL) {
+      TryCand.Reason = ResourceDemand;
+      return true;
+    }
+
+    if (CandIsXDL && !TryCandIsXDL) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+
+    // XDL is free and both candidates are XDL.
+    if (CandIsXDL && TryCandIsXDL) {
+      unsigned CandReadyVALUSuccs = 0;
+      unsigned TryReadyVALUSuccs = 0;
+
+      // Count VALU successors that would become ready after scheduling this
+      // MFMA.
+      SmallPtrSet<SUnit *, 8> CandSeenSuccs;
+      for (SDep &Succ : Cand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!CandSeenSuccs.insert(SuccSU).second)
+          continue;
+
+        if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+          ++CandReadyVALUSuccs;
+        }
+      }
+
+      SmallPtrSet<SUnit *, 8> TrySeenSuccs;
+      for (SDep &Succ : TryCand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!TrySeenSuccs.insert(SuccSU).second)
+          continue;
+
+        if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+          ++TryReadyVALUSuccs;
+        }
+      }
+
+      LLVM_DEBUG(dbgs() << "CandReadyVALUSuccs: " << CandReadyVALUSuccs
+                        << " TryReadyVALUSuccs: " << TryReadyVALUSuccs << "\n");
+
+      // Prefer the candidate that would immediately free up more VALU
+      // instructions
+      if (CandReadyVALUSuccs > TryReadyVALUSuccs) {
+        Cand.Reason = ResourceDemand;
+        return true;
+      }
+      if (CandReadyVALUSuccs < TryReadyVALUSuccs) {
+        TryCand.Reason = ResourceDemand;
+        return true;
+      }
+      if (CandReadyVALUSuccs > 0) {
+        Cand.Reason = ResourceDemand;
+        return true;
+      }
+
+      // If they free up the same number of VALUs, fall back to the old
+      // heuristic and just count the total number of VALU successors
+      unsigned CandVALUSuccs = 0;
+      unsigned TryVALUSuccs = 0;
+
+      // Reset and reuse our sets of seen successors
+      CandSeenSuccs.clear();
+      TrySeenSuccs.clear();
+
+      for (SDep &Succ : Cand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!CandSeenSuccs.insert(SuccSU).second)
+          continue;
+        if (TII->isVALU(*SuccSU->getInstr()))
+          ++CandVALUSuccs;
+      }
+
+      for (SDep &Succ : TryCand.SU->Succs) {
+        SUnit *SuccSU = Succ.getSUnit();
+        if (!TrySeenSuccs.insert(SuccSU).second)
+          continue;
+        if (TII->isVALU(*SuccSU->getInstr()))
+          ++TryVALUSuccs;
+      }
+
+      LLVM_DEBUG(dbgs() << "CandVALUSuccs: " << CandVALUSuccs
+                        << " TryVALUSuccs: " << TryVALUSuccs << "\n");
+
+      // If one candidate has more total VALU successors, prefer it.
+      if (CandVALUSuccs > TryVALUSuccs) {
+        Cand.Reason = ResourceDemand;
+        return true;
+      }
+      if (CandVALUSuccs < TryVALUSuccs) {
+        TryCand.Reason = ResourceDemand;
+        return true;
+      }
+
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+  }
+
+  assert(XDLProcRes.CyclesReserved);
+
+  // XDL is in use and Cand is a MFMA.
+  if (CandIsXDL) {
+    if (!TryCandIsXDL) {
+      TryCand.Reason = ResourceReduce;
+      return true;
+    }
+    // TryCandIsXDL and CandIsXDL and resource is in use.
+    unsigned CandReadyVALUSuccs = 0;
+    unsigned TryReadyVALUSuccs = 0;
+
+    // Count VALU successors that would become ready after scheduling this
+    // MFMA.
+    SmallPtrSet<SUnit *, 8> CandSeenSuccs;
+    for (SDep &Succ : Cand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!CandSeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++CandReadyVALUSuccs;
+      }
+    }
+
+    SmallPtrSet<SUnit *, 8> TrySeenSuccs;
+    for (SDep &Succ : TryCand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!TrySeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++TryReadyVALUSuccs;
+      }
+    }
+
+    LLVM_DEBUG(dbgs() << "CandReadyVALUSuccs: " << CandReadyVALUSuccs
+                      << " TryReadyVALUSuccs: " << TryReadyVALUSuccs << "\n");
+
+    // Prefer the candidate that would immediately free up more VALU
+    // instructions
+    if (CandReadyVALUSuccs > TryReadyVALUSuccs) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs < TryReadyVALUSuccs) {
+      TryCand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs > 0) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+
+    // Let other heuristics take precedence if both are MFMA and resource is
+    // in use.
+    return false;
+  }
+
+  // Both candidates are not MFMA and resource is in use.
+  if (!TryCandIsXDL) {
+    unsigned CandReadyVALUSuccs = 0;
+    unsigned TryReadyVALUSuccs = 0;
+
+    SmallPtrSet<SUnit *, 8> CandSeenSuccs;
+    for (SDep &Succ : Cand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!CandSeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++CandReadyVALUSuccs;
+      }
+    }
+
+    SmallPtrSet<SUnit *, 8> TrySeenSuccs;
+    for (SDep &Succ : TryCand.SU->Succs) {
+      SUnit *SuccSU = Succ.getSUnit();
+      if (!TrySeenSuccs.insert(SuccSU).second)
+        continue;
+
+      if (TII->isVALU(*SuccSU->getInstr()) && SuccSU->NumPredsLeft == 1) {
+        ++TryReadyVALUSuccs;
+      }
+    }
+
+    LLVM_DEBUG(dbgs() << "CandReadyVALUSuccs: " << CandReadyVALUSuccs
+                      << " TryReadyVALUSuccs: " << TryReadyVALUSuccs << "\n");
+
+    // Prefer the candidate that would immediately free up more VALU
+    // instructions
+    if (CandReadyVALUSuccs > TryReadyVALUSuccs) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs < TryReadyVALUSuccs) {
+      TryCand.Reason = ResourceDemand;
+      return true;
+    }
+    if (CandReadyVALUSuccs > 0) {
+      Cand.Reason = ResourceDemand;
+      return true;
+    }
+    unsigned CandCycles = Cand.SU->Latency;
+    unsigned TryCandCycles = TryCand.SU->Latency;
+
+    // Check if either instruction would cause XDL resources to go negative
+    bool CandOverflow = CandCycles > XDLProcRes.CyclesReserved;
+    bool TryCandOverflow = TryCandCycles > XDLProcRes.CyclesReserved;
+
+    // If one overflows and the other doesn't, prefer the one that overflows
+    // because it will free up the XDL resource
+    if (CandOverflow && !TryCandOverflow) {
+      Cand.Reason = ResourceReduce;
+      return true;
+    }
+    if (TryCandOverflow && !CandOverflow) {
+      TryCand.Reason = ResourceReduce;
+      return true;
+    }
+
+    // Both would overflow or neither would - pick the one that gets closest to
+    // zero
+    int CandRemainingXDL = static_cast<int>(XDLProcRes.CyclesReserved) -
+                           static_cast<int>(CandCycles);
+    int TryCandRemainingXDL = static_cast<int>(XDLProcRes.CyclesReserved) -
+                              static_cast<int>(TryCandCycles);
+
+    if (std::abs(TryCandRemainingXDL) < std::abs(CandRemainingXDL)) {
+      TryCand.Reason = ResourceReduce;
+      return true;
+    }
+    Cand.Reason = ResourceReduce;
+    return true;
+  }
+
+  // XDL resource is in use and Cand is not MFMA but TryCand is.
+  Cand.Reason = ResourceReduce;
+  return true;
+}
+
+bool GCNPostSchedStrategy::tryCandidate(SchedCandidate &Cand,
+                                        SchedCandidate &TryCand) {
+  // Initialize the candidate if needed.
+  if (!Cand.isValid()) {
+    TryCand.Reason = FirstValid;
+    return true;
+  }
+
+  if (CustomResTracking && tryXDL(Cand, TryCand))
+    return TryCand.Reason != NoCand;
+
+  // Prioritize instructions that read unbuffered resources by stall cycles.
+  if (tryLess(Top.getLatencyStallCycles(TryCand.SU),
+              Top.getLatencyStallCycles(Cand.SU), TryCand, Cand, Stall))
+    return TryCand.Reason != NoCand;
+
+  // Keep clustered nodes together.
+  const SUnit *CandNextClusterSU =
+      Cand.AtTop ? DAG->getNextClusterSucc() : DAG->getNextClusterPred();
+  const SUnit *TryCandNextClusterSU =
+      TryCand.AtTop ? DAG->getNextClusterSucc() : DAG->getNextClusterPred();
+  if (tryGreater(TryCand.SU == TryCandNextClusterSU,
+                 Cand.SU == CandNextClusterSU, TryCand, Cand, Cluster))
+    return TryCand.Reason != NoCand;
+
+  // Avoid critical resource consumption and balance the schedule.
+  if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
+              TryCand, Cand, ResourceReduce))
+    return TryCand.Reason != NoCand;
+  if (tryGreater(TryCand.ResDelta.DemandedResources,
+                 Cand.ResDelta.DemandedResources, TryCand, Cand,
+                 ResourceDemand))
+    return TryCand.Reason != NoCand;
+
+  // We only compare a subset of features when comparing nodes between
+  // Top and Bottom boundary.
+  if (Cand.AtTop == TryCand.AtTop) {
+    // Avoid serializing long latency dependence chains.
+    if (Cand.Policy.ReduceLatency &&
+        tryLatency(TryCand, Cand, Cand.AtTop ? Top : Bot))
+      return TryCand.Reason != NoCand;
+  }
+
+  // Fall through to original instruction order.
+  if (TryCand.SU->NodeNum < Cand.SU->NodeNum) {
+    TryCand.Reason = NodeOrder;
+    return true;
+  }
+
+  return false;
+}
+
 GCNPostScheduleDAGMILive::GCNPostScheduleDAGMILive(
-    MachineSchedContext *C, std::unique_ptr<MachineSchedStrategy> S,
+    MachineSchedContext *C, std::unique_ptr<GCNPostSchedStrategy> S,
     bool RemoveKillFlags)
     : ScheduleDAGMI(C, std::move(S), RemoveKillFlags) {}
 
 void GCNPostScheduleDAGMILive::schedule() {
   HasIGLPInstrs = hasIGLPInstrs(this);
+  S = static_cast<GCNPostSchedStrategy *>(SchedImpl.get());
+  S->CustomResTracking = HasIGLPInstrs;
+
   if (HasIGLPInstrs) {
     SavedMutations.clear();
     SavedMutations.swap(Mutations);
