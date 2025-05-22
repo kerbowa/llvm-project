@@ -70,7 +70,7 @@ static cl::opt<bool>
     RematLiveThru("amdgpu-remat-livethru", cl::Hidden,
                   cl::desc("Rematerialize the LiveThru registers for the first "
                            "loop found in the code"),
-                  cl::init(true));
+                  cl::init(false));
 
 static cl::opt<bool> RematLiveIn(
     "amdgpu-remat-into", cl::Hidden,
@@ -516,8 +516,10 @@ SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
     if (IsXDL) {
       // FIXME: Hack since XDL is only actually occupying for 24 cycles with 8
       // pass MFMA.
-      if (Cycles > 2)
-        Cycles -= 2;
+      if (Cycles > 2) {
+        const GCNSubtarget &ST = MF->getSubtarget<GCNSubtarget>();
+        Cycles -= ST.hasGFX950Insts() ? 2 : 1;
+      }
       XDLProcRes.reset();
       XDLProcRes.reserve(Cycles);
     } else if (IsALU) {
@@ -686,6 +688,19 @@ GCNMaxOccupancySchedStrategy::GCNMaxOccupancySchedStrategy(
   SchedStages.push_back(GCNSchedStageID::UnclusteredHighRPReschedule);
   SchedStages.push_back(GCNSchedStageID::ClusteredLowOccupancyReschedule);
   if (!DisableRemat) SchedStages.push_back(GCNSchedStageID::PreRARematerialize);
+
+  CI.clear();
+  CI.compute(*C->MF);
+
+  unsigned CycleCount = 0;
+  for (auto C : CI.toplevel_cycles()) {
+    ++CycleCount;
+  }
+  if (CycleCount >= 2) {
+    GCNTrackers = true;
+    RematLiveThru = true;
+  }
+
   GCNTrackers = GCNTrackers & !IsLegacyScheduler;
 }
 
@@ -1642,6 +1657,9 @@ bool PreRARematStage::initGCNSchedStage() {
   // need to be fixed if there is another pass after this pass.
   assert(!S.hasNextStage());
 
+  SIRegisterInfo *SRI = const_cast<SIRegisterInfo *>(
+      static_cast<const SIRegisterInfo *>(DAG.TRI));
+  SRI->setLocalAssignment(true);
   CI.clear();
   CI.compute(MF);
   PDT.recalculate(MF);
@@ -2834,8 +2852,10 @@ SUnit *GCNPostSchedStrategy::pickNode(bool &IsTopNode) {
     if (IsXDL) {
       // FIXME: Hack since XDL is only actually occupying for 24 cycles with 8
       // pass MFMA.
-      if (Cycles > 2)
-        Cycles -= 2;
+      if (Cycles > 2) {
+        const GCNSubtarget &ST = DAG->MF.getSubtarget<GCNSubtarget>();
+        Cycles -= ST.hasGFX950Insts() ? 2 : 1;
+      }
       XDLProcRes.reset();
       XDLProcRes.reserve(Cycles);
     } else if (IsALU) {
