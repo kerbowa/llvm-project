@@ -219,12 +219,7 @@ public:
                         const FoldableDef &OpToFold) const;
   bool isUseSafeToFold(const MachineInstr &MI,
                        const MachineOperand &UseMO) const;
-
-  const TargetRegisterClass *getRegSeqInit(
-      MachineInstr &RegSeq,
-      SmallVectorImpl<std::pair<MachineOperand *, unsigned>> &Defs) const;
-
-  const TargetRegisterClass *
+  bool
   getRegSeqInit(SmallVectorImpl<std::pair<MachineOperand *, unsigned>> &Defs,
                 Register UseReg) const;
 
@@ -940,24 +935,19 @@ static MachineOperand *lookUpCopyChain(const SIInstrInfo &TII,
   return Sub;
 }
 
-const TargetRegisterClass *SIFoldOperandsImpl::getRegSeqInit(
-    MachineInstr &RegSeq,
-    SmallVectorImpl<std::pair<MachineOperand *, unsigned>> &Defs) const {
+// Find a def of the UseReg, check if it is a reg_sequence and find initializers
+// for each subreg, tracking it to foldable inline immediate if possible.
+// Returns true on success.
+bool SIFoldOperandsImpl::getRegSeqInit(
+    SmallVectorImpl<std::pair<MachineOperand *, unsigned>> &Defs,
+    Register UseReg, uint8_t OpTy) const {
+  MachineInstr *Def = MRI->getVRegDef(UseReg);
+  if (!Def || !Def->isRegSequence())
+    return false;
 
-  assert(RegSeq.isRegSequence());
-
-  const TargetRegisterClass *RC = nullptr;
-
-  for (unsigned I = 1, E = RegSeq.getNumExplicitOperands(); I != E; I += 2) {
-    MachineOperand &SrcOp = RegSeq.getOperand(I);
-    unsigned SubRegIdx = RegSeq.getOperand(I + 1).getImm();
-
-    // Only accept reg_sequence with uniform reg class inputs for simplicity.
-    const TargetRegisterClass *OpRC = getRegOpRC(*MRI, *TRI, SrcOp);
-    if (!RC)
-      RC = OpRC;
-    else if (!TRI->getCommonSubClass(RC, OpRC))
-      return nullptr;
+  for (unsigned I = 1, E = Def->getNumExplicitOperands(); I != E; I += 2) {
+    MachineOperand &SrcOp = Def->getOperand(I);
+    unsigned SubRegIdx = Def->getOperand(I + 1).getImm();
 
     if (SrcOp.getSubReg()) {
       // TODO: Handle subregister compose
@@ -966,7 +956,8 @@ const TargetRegisterClass *SIFoldOperandsImpl::getRegSeqInit(
     }
 
     MachineOperand *DefSrc = lookUpCopyChain(*TII, *MRI, SrcOp.getReg());
-    if (DefSrc && (DefSrc->isReg() || DefSrc->isImm())) {
+    if (DefSrc && (DefSrc->isReg() ||
+                   (DefSrc->isImm() && TII->isInlineConstant(*DefSrc, OpTy)))) {
       Defs.emplace_back(DefSrc, SubRegIdx);
       continue;
     }
@@ -1121,6 +1112,7 @@ bool SIFoldOperandsImpl::tryToFoldACImm(
   if (!AMDGPU::isSISrcOperand(Desc, UseOpIdx))
     return false;
 
+  uint8_t OpTy = Desc.operands()[UseOpIdx].OperandType;
   MachineOperand &UseOp = UseMI->getOperand(UseOpIdx);
   if (OpToFold.isImm() && OpToFold.isOperandLegal(*TII, *UseMI, UseOpIdx)) {
     appendFoldCandidate(FoldList, UseMI, UseOpIdx, OpToFold);
@@ -1155,7 +1147,31 @@ bool SIFoldOperandsImpl::tryToFoldACImm(
     }
   }
 
-  return false;
+  SmallVector<std::pair<MachineOperand*, unsigned>, 32> Defs;
+  if (!getRegSeqInit(Defs, UseReg, OpTy))
+    return false;
+
+  int32_t Imm;
+  for (unsigned I = 0, E = Defs.size(); I != E; ++I) {
+    const MachineOperand *Op = Defs[I].first;
+    if (!Op->isImm())
+      return false;
+
+    auto SubImm = Op->getImm();
+    if (!I) {
+      Imm = SubImm;
+      if (!TII->isInlineConstant(*Op, OpTy) ||
+          !TII->isOperandLegal(*UseMI, UseOpIdx, Op))
+        return false;
+
+      continue;
+    }
+    if (Imm != SubImm)
+      return false; // Can only fold splat constants
+  }
+
+  appendFoldCandidate(FoldList, UseMI, UseOpIdx, Defs[0].first);
+  return true;
 }
 
 void SIFoldOperandsImpl::foldOperand(
@@ -1220,7 +1236,6 @@ void SIFoldOperandsImpl::foldOperand(
       foldOperand(OpToFold, RSUseMI, RSUseMI->getOperandNo(RSUse), FoldList,
                   CopiesToReplace);
     }
-
     return;
   }
 
@@ -2372,7 +2387,7 @@ bool SIFoldOperandsImpl::tryFoldRegSequence(MachineInstr &MI) {
     return false;
 
   SmallVector<std::pair<MachineOperand*, unsigned>, 32> Defs;
-  if (!getRegSeqInit(Defs, Reg))
+  if (!getRegSeqInit(Defs, Reg, MCOI::OPERAND_REGISTER))
     return false;
 
   for (auto &[Op, SubIdx] : Defs) {
