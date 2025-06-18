@@ -316,17 +316,34 @@ void GCNSchedStrategy::initCandidate(SchedCandidate &Cand, SUnit *SU,
   }
 }
 
+static bool shouldCheckPending(SchedBoundary &Zone,
+                               const TargetSchedModel *SchedModel) {
+  const unsigned ReadyListLimit = 256;
+  bool HasBufferedModel =
+      SchedModel->hasInstrSchedModel() && SchedModel->getMicroOpBufferSize();
+  return Zone.Available.size() + Zone.Pending.size() <= ReadyListLimit &&
+         HasBufferedModel;
+}
+
+static SUnit *pickOnlyChoice(SchedBoundary &Zone,
+                             const TargetSchedModel *SchedModel) {
+  if (!shouldCheckPending(Zone, SchedModel) || Zone.Pending.empty())
+    return Zone.pickOnlyChoice();
+  return nullptr;
+}
+
 // This function is mostly cut and pasted from
 // GenericScheduler::pickNodeFromQueue()
 void GCNSchedStrategy::pickNodeFromQueue(SchedBoundary &Zone,
                                          const CandPolicy &ZonePolicy,
                                          const RegPressureTracker &RPTracker,
-                                         SchedCandidate &Cand,
+                                         SchedCandidate &Cand, bool &IsPending,
                                          bool IsBottomUp) {
   const SIRegisterInfo *SRI = static_cast<const SIRegisterInfo *>(TRI);
   ArrayRef<unsigned> Pressure = RPTracker.getRegSetPressureAtPos();
   unsigned SGPRPressure = 0;
   unsigned VGPRPressure = 0;
+  IsPending = false;
   if (DAG->isTrackingPressure()) {
     if (!GCNTrackers) {
       SGPRPressure = Pressure[AMDGPU::RegisterPressureSets::SReg_32];
@@ -339,8 +356,8 @@ void GCNSchedStrategy::pickNodeFromQueue(SchedBoundary &Zone,
       VGPRPressure = T->getPressure().getArchVGPRNum();
     }
   }
-  ReadyQueue &Q = Zone.Available;
-  for (SUnit *SU : Q) {
+  ReadyQueue &AQ = Zone.Available;
+  for (SUnit *SU : AQ) {
 
     SchedCandidate TryCand(ZonePolicy);
     initCandidate(TryCand, SU, Zone.isTop(), RPTracker, SRI, SGPRPressure,
@@ -356,18 +373,41 @@ void GCNSchedStrategy::pickNodeFromQueue(SchedBoundary &Zone,
       LLVM_DEBUG(traceCandidate(Cand));
     }
   }
+
+  if (!shouldCheckPending(Zone, SchedModel))
+    return;
+
+  ReadyQueue &PQ = Zone.Pending;
+  for (SUnit *SU : PQ) {
+
+    SchedCandidate TryCand(ZonePolicy);
+    initCandidate(TryCand, SU, Zone.isTop(), RPTracker, SRI, SGPRPressure,
+                  VGPRPressure, IsBottomUp);
+    // Pass SchedBoundary only when comparing nodes from the same boundary.
+    SchedBoundary *ZoneArg = Cand.AtTop == TryCand.AtTop ? &Zone : nullptr;
+    tryPendingCandidate(Cand, TryCand, ZoneArg);
+    if (TryCand.Reason != NoCand) {
+      // Initialize resource delta if needed in case future heuristics query it.
+      if (TryCand.ResDelta == SchedResourceDelta())
+        TryCand.initResourceDelta(Zone.DAG, SchedModel);
+      IsPending |= true;
+      Cand.setBest(TryCand);
+      LLVM_DEBUG(traceCandidate(Cand));
+    }
+  }
 }
 
 // This function is mostly cut and pasted from
 // GenericScheduler::pickNodeBidirectional()
-SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
+SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode,
+                                               bool &PickedPending) {
   // Schedule as far as possible in the direction of no choice. This is most
   // efficient, but also provides the best heuristics for CriticalPSets.
-  if (SUnit *SU = Bot.pickOnlyChoice()) {
+  if (SUnit *SU = pickOnlyChoice(Bot, SchedModel)) {
     IsTopNode = false;
     return SU;
   }
-  if (SUnit *SU = Top.pickOnlyChoice()) {
+  if (SUnit *SU = pickOnlyChoice(Top, SchedModel)) {
     IsTopNode = true;
     return SU;
   }
@@ -380,12 +420,14 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
   CandPolicy TopPolicy;
   setPolicy(TopPolicy, /*IsPostRA=*/false, Top, &Bot);
 
+  bool BotPending = false;
   // See if BotCand is still valid (because we previously scheduled from Top).
   LLVM_DEBUG(dbgs() << "Picking from Bot:\n");
   if (!BotCand.isValid() || BotCand.SU->isScheduled ||
       BotCand.Policy != BotPolicy) {
     BotCand.reset(CandPolicy());
     pickNodeFromQueue(Bot, BotPolicy, DAG->getBotRPTracker(), BotCand,
+                      BotPending,
                       /*IsBottomUp=*/true);
     assert(BotCand.Reason != NoCand && "failed to find the first candidate");
   } else {
@@ -395,6 +437,7 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
       SchedCandidate TCand;
       TCand.reset(CandPolicy());
       pickNodeFromQueue(Bot, BotPolicy, DAG->getBotRPTracker(), TCand,
+                        BotPending,
                         /*IsBottomUp=*/true);
       assert(TCand.SU == BotCand.SU &&
              "Last pick result should correspond to re-picking right now");
@@ -402,12 +445,14 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
 #endif
   }
 
+  bool TopPending = false;
   // Check if the top Q has a better candidate.
   LLVM_DEBUG(dbgs() << "Picking from Top:\n");
   if (!TopCand.isValid() || TopCand.SU->isScheduled ||
       TopCand.Policy != TopPolicy) {
     TopCand.reset(CandPolicy());
     pickNodeFromQueue(Top, TopPolicy, DAG->getTopRPTracker(), TopCand,
+                      TopPending,
                       /*IsBottomUp=*/false);
     assert(TopCand.Reason != NoCand && "failed to find the first candidate");
   } else {
@@ -417,6 +462,7 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
       SchedCandidate TCand;
       TCand.reset(CandPolicy());
       pickNodeFromQueue(Top, TopPolicy, DAG->getTopRPTracker(), TCand,
+                        TopPending,
                         /*IsBottomUp=*/false);
       assert(TCand.SU == TopCand.SU &&
              "Last pick result should correspond to re-picking right now");
@@ -427,15 +473,24 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
   // Pick best from BotCand and TopCand.
   LLVM_DEBUG(dbgs() << "Top Cand: "; traceCandidate(TopCand);
              dbgs() << "Bot Cand: "; traceCandidate(BotCand););
-  SchedCandidate Cand = BotCand;
-  TopCand.Reason = NoCand;
-  tryCandidate(Cand, TopCand, nullptr);
-  if (TopCand.Reason != NoCand) {
-    Cand.setBest(TopCand);
+  SchedCandidate Cand = BotPending ? TopCand : BotCand;
+  SchedCandidate TryCand = BotPending ? BotCand : TopCand;
+  PickedPending = BotPending && TopPending;
+
+  TryCand.Reason = NoCand;
+  if (BotPending || TopPending) {
+    PickedPending |= tryPendingCandidate(Cand, TopCand, nullptr);
+  } else {
+    tryCandidate(Cand, TryCand, nullptr);
   }
+
+  if (TryCand.Reason != NoCand) {
+    Cand.setBest(TryCand);
+  }
+
   LLVM_DEBUG(dbgs() << "Picking: "; traceCandidate(Cand););
 
-  IsTopNode = Cand.AtTop;
+    IsTopNode = Cand.AtTop;
   return Cand.SU;
 }
 
@@ -447,34 +502,45 @@ SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
            Bot.Available.empty() && Bot.Pending.empty() && "ReadyQ garbage");
     return nullptr;
   }
+  bool PickedPending;
   SUnit *SU;
   do {
+    PickedPending = false;
     if (RegionPolicy.OnlyTopDown) {
-      SU = Top.pickOnlyChoice();
+      SU = pickOnlyChoice(Top, SchedModel);
       if (!SU) {
         CandPolicy NoPolicy;
         TopCand.reset(NoPolicy);
         pickNodeFromQueue(Top, NoPolicy, DAG->getTopRPTracker(), TopCand,
+                          PickedPending,
                           /*IsBottomUp=*/false);
         assert(TopCand.Reason != NoCand && "failed to find a candidate");
         SU = TopCand.SU;
       }
       IsTopNode = true;
     } else if (RegionPolicy.OnlyBottomUp) {
-      SU = Bot.pickOnlyChoice();
+      SU = pickOnlyChoice(Bot, SchedModel);
       if (!SU) {
         CandPolicy NoPolicy;
         BotCand.reset(NoPolicy);
         pickNodeFromQueue(Bot, NoPolicy, DAG->getBotRPTracker(), BotCand,
+                          PickedPending,
                           /*IsBottomUp=*/true);
         assert(BotCand.Reason != NoCand && "failed to find a candidate");
         SU = BotCand.SU;
       }
       IsTopNode = false;
     } else {
-      SU = pickNodeBidirectional(IsTopNode);
+      SU = pickNodeBidirectional(IsTopNode, PickedPending);
     }
   } while (SU->isScheduled);
+
+  if (PickedPending) {
+    unsigned ReadyCycle = IsTopNode ? SU->TopReadyCycle : SU->BotReadyCycle;
+    SchedBoundary &Zone = IsTopNode ? Top : Bot;
+    Zone.bumpCycle(ReadyCycle);
+    Zone.releasePending();
+  }
 
   if (SU->isTopReady())
     Top.removeReady(SU);
@@ -519,6 +585,47 @@ bool GCNSchedStrategy::hasNextStage() const {
 GCNSchedStageID GCNSchedStrategy::getNextStage() const {
   assert(CurrentStage && std::next(CurrentStage) != SchedStages.end());
   return *std::next(CurrentStage);
+}
+
+bool GCNSchedStrategy::tryPendingCandidate(SchedCandidate &Cand,
+                                           SchedCandidate &TryCand,
+                                           SchedBoundary *Zone) const {
+  // Initialize the candidate if needed.
+  if (!Cand.isValid()) {
+    TryCand.Reason = NodeOrder;
+    return true;
+  }
+
+  // Bias PhysReg Defs and copies to their uses and defined respectively.
+  if (tryGreater(biasPhysReg(TryCand.SU, TryCand.AtTop),
+                 biasPhysReg(Cand.SU, Cand.AtTop), TryCand, Cand, PhysReg))
+    return TryCand.Reason != NoCand;
+
+  // Avoid exceeding the target's limit.
+  if (DAG->isTrackingPressure() &&
+      tryPressure(TryCand.RPDelta.Excess, Cand.RPDelta.Excess, TryCand, Cand,
+                  RegExcess, TRI, DAG->MF))
+    return TryCand.Reason != NoCand;
+
+  // Avoid increasing the max critical pressure in the scheduled region.
+  if (DAG->isTrackingPressure() &&
+      tryPressure(TryCand.RPDelta.CriticalMax, Cand.RPDelta.CriticalMax,
+                  TryCand, Cand, RegCritical, TRI, DAG->MF))
+    return TryCand.Reason != NoCand;
+
+  bool SameBoundary = Zone != nullptr;
+  if (SameBoundary) {
+    TryCand.initResourceDelta(DAG, SchedModel);
+    if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
+                TryCand, Cand, ResourceReduce))
+      return TryCand.Reason != NoCand;
+    if (tryGreater(TryCand.ResDelta.DemandedResources,
+                   Cand.ResDelta.DemandedResources, TryCand, Cand,
+                   ResourceDemand))
+      return TryCand.Reason != NoCand;
+  }
+
+  return false;
 }
 
 GCNMaxOccupancySchedStrategy::GCNMaxOccupancySchedStrategy(
