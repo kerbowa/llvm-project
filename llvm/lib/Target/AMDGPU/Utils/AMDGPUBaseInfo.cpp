@@ -1346,7 +1346,7 @@ unsigned getNumSGPRBlocks(const MCSubtargetInfo *STI, unsigned NumSGPRs) {
 
 unsigned getVGPRReductionToIncreaseWavesPerEU(const MCSubtargetInfo *STI,
                                               unsigned NumVGPRs) {
-  unsigned Granule = getVGPRAllocGranule(STI);
+  unsigned Granule = getVGPRAllocGranule(STI, 0, std::nullopt);
   unsigned MaxWaves = getMaxWavesPerEU(STI);
   unsigned TotalNumVGPRs = getTotalNumVGPRs(STI);
 

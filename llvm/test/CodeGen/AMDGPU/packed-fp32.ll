@@ -2769,7 +2769,6 @@ define amdgpu_kernel void @fma_v2_v_lit_splat(ptr addrspace(1) %a) {
 ; PACKED-SDAG-NEXT:    global_store_dwordx2 v2, v[0:1], s[0:1]
 ; PACKED-SDAG-NEXT:    s_endpgm
 ;
-<<<<<<< HEAD
 ; GFX90A-GISEL-LABEL: fma_v2_v_lit_splat:
 ; GFX90A-GISEL:       ; %bb.0:
 ; GFX90A-GISEL-NEXT:    s_load_dwordx2 s[0:1], s[4:5], 0x24
