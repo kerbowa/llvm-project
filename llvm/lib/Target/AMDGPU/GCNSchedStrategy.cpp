@@ -391,6 +391,34 @@ static bool canUnpack(const MachineInstr *MI) {
   }
 }
 
+static bool tryPreferNonUnpackable(
+    bool CustomResTracking, const ProcRes &XDLProcRes,
+    GenericScheduler::SchedCandidate &Cand,
+    GenericScheduler::SchedCandidate &TryCand) {
+  if (!CustomResTracking || XDLProcRes.CyclesReserved == 0)
+    return false;
+
+  if (!Cand.SU || !TryCand.SU)
+    return false;
+
+  MachineInstr *CandMI = Cand.SU->getInstr();
+  MachineInstr *TryMI = TryCand.SU->getInstr();
+  if (!CandMI || !TryMI)
+    return false;
+
+  bool CandCanUnpack = canUnpack(CandMI);
+  bool TryCanUnpack = canUnpack(TryMI);
+  if (CandCanUnpack == TryCanUnpack)
+    return false;
+
+  if (!TryCanUnpack)
+    TryCand.Reason = GenericSchedulerBase::ResourceReduce;
+  else
+    Cand.Reason = GenericSchedulerBase::ResourceReduce;
+
+  return true;
+}
+
 // This function is mostly cut and pasted from
 // GenericScheduler::pickNodeBidirectional()
 SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode) {
@@ -661,6 +689,9 @@ bool GCNMaxOccupancySchedStrategy::tryCandidate(SchedCandidate &Cand,
     if (!RegionPolicy.DisableLatencyHeuristic && TryCand.Policy.ReduceLatency &&
         !Rem.IsAcyclicLatencyLimited && tryLatency(TryCand, Cand, *Zone))
       return TryCand.Reason != NoCand;
+
+    if (tryPreferNonUnpackable(CustomResTracking, XDLProcRes, Cand, TryCand))
+      return TryCand.Reason != GenericSchedulerBase::NoCand;
 
     // Fall through to original instruction order.
     if ((Zone->isTop() && TryCand.SU->NodeNum < Cand.SU->NodeNum) ||
@@ -3227,6 +3258,9 @@ bool GCNPostSchedStrategy::tryCandidate(SchedCandidate &Cand,
         tryLatency(TryCand, Cand, Cand.AtTop ? Top : Bot))
       return TryCand.Reason != NoCand;
   }
+
+  if (tryPreferNonUnpackable(CustomResTracking, XDLProcRes, Cand, TryCand))
+    return TryCand.Reason != GenericSchedulerBase::NoCand;
 
   // Fall through to original instruction order.
   if (TryCand.SU->NodeNum < Cand.SU->NodeNum) {
