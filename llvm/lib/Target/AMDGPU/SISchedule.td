@@ -115,8 +115,8 @@ def HWBranch : ProcResource<1> {
 def HWExport : ProcResource<1> {
   let BufferSize = 1;
 }
-def HWLGKM   : ProcResource<1> {
-  let BufferSize = 1;
+def HWLGKM   : ProcResource<8> {
+  let BufferSize = 0;
 }
 def HWSALU   : ProcResource<1> {
   let BufferSize = 1;
@@ -498,6 +498,7 @@ def : HWWriteRes<WritePseudoScalarTrans, [HWVALU, HWRC],   8>;
 
 def : HWWriteRes<WriteBranch,            [HWBranch],       32>;
 def : HWWriteRes<WriteExport,            [HWExport, HWRC], 16>;
+let ReleaseAtCycles = [4,0] in
 def : HWWriteRes<WriteLDS,               [HWLGKM,   HWRC], 20>;
 def : HWWriteRes<WriteSALU,              [HWSALU,   HWRC], 2>;
 def : HWWriteRes<WriteSFPU,              [HWSALU,   HWRC], 4>;

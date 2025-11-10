@@ -1700,6 +1700,11 @@ void ScheduleDAGMILive::schedule() {
   // This may initialize a DFSResult to be used for queue priority.
   SchedImpl->initialize(this);
 
+  for (auto SU : SUnits) {
+    SU.ComputeDepth();
+    SU.ComputeHeight();
+  }
+
   LLVM_DEBUG(dump());
   if (PrintDAGs) dump();
   if (ViewMISchedDAGs) viewGraph();
@@ -2780,6 +2785,7 @@ getOtherResourceCount(unsigned &OtherCritIdx) {
 
   unsigned OtherCritCount = Rem->RemIssueCount
     + (RetiredMOps * SchedModel->getMicroOpFactor());
+
   LLVM_DEBUG(dbgs() << "  " << Available.getName() << " + Remain MOps: "
                     << OtherCritCount / SchedModel->getMicroOpFactor() << '\n');
   for (unsigned PIdx = 1, PEnd = SchedModel->getNumProcResourceKinds();
@@ -4003,6 +4009,7 @@ bool GenericScheduler::tryCandidate(SchedCandidate &Cand,
     if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
                 TryCand, Cand, ResourceReduce))
       return TryCand.Reason != NoCand;
+
     if (tryGreater(TryCand.ResDelta.DemandedResources,
                    Cand.ResDelta.DemandedResources,
                    TryCand, Cand, ResourceDemand))
@@ -4049,6 +4056,7 @@ void GenericScheduler::pickNodeFromQueue(SchedBoundary &Zone,
       if (TryCand.ResDelta == SchedResourceDelta())
         TryCand.initResourceDelta(DAG, SchedModel);
       Cand.setBest(TryCand);
+
       LLVM_DEBUG(traceCandidate(Cand));
     }
   }
@@ -4145,7 +4153,7 @@ SUnit *GenericScheduler::pickNode(bool &IsTopNode) {
     if (!SU) {
       CandPolicy NoPolicy;
       TopCand.reset(NoPolicy);
-      pickNodeFromQueue(Top, NoPolicy, DAG->getTopRPTracker(), TopCand);
+      pickNodeFromQueue(Top, TopCand.Policy, DAG->getTopRPTracker(), TopCand);
       assert(TopCand.Reason != NoCand && "failed to find a candidate");
       tracePick(TopCand);
       SU = TopCand.SU;
@@ -4156,7 +4164,7 @@ SUnit *GenericScheduler::pickNode(bool &IsTopNode) {
     if (!SU) {
       CandPolicy NoPolicy;
       BotCand.reset(NoPolicy);
-      pickNodeFromQueue(Bot, NoPolicy, DAG->getBotRPTracker(), BotCand);
+      pickNodeFromQueue(Bot, BotCand.Policy, DAG->getBotRPTracker(), BotCand);
       assert(BotCand.Reason != NoCand && "failed to find a candidate");
       tracePick(BotCand);
       SU = BotCand.SU;

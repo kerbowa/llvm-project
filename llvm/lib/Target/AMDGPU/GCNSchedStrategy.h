@@ -16,6 +16,7 @@
 #include "GCNRegPressure.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/MapVector.h"
+#include "llvm/ADT/PriorityWorklist.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineScheduler.h"
 
@@ -38,6 +39,107 @@ enum class GCNSchedStageID : unsigned {
 #ifndef NDEBUG
 raw_ostream &operator<<(raw_ostream &OS, const GCNSchedStageID &StageID);
 #endif
+
+class HardwareUnitInfo {
+private:
+  const MCProcResourceDesc *ProcRes = nullptr;
+  SmallPtrSet<SUnit *, 16> PrioritySUs;
+  SmallPtrSet<SUnit *, 16> AllSUs;
+  unsigned TotalCycles = 0;
+
+public:
+  HardwareUnitInfo(const MCProcResourceDesc *Res) : ProcRes(Res) {};
+  HardwareUnitInfo() {}
+
+  void setRes(const MCProcResourceDesc *Res) { ProcRes = Res; }
+
+  unsigned size() { return AllSUs.size(); }
+  SUnit *getTargetSU() { return *PrioritySUs.begin(); }
+  SUnit *getNextTargetSU() {
+    for (auto *PrioritySU : PrioritySUs) {
+      if (!PrioritySU->isTopReady())
+        return PrioritySU;
+    }
+    return nullptr;
+  }
+
+  unsigned getTotalCycles() { return TotalCycles; }
+  const MCProcResourceDesc *getProcRes() { return ProcRes; }
+
+  void insert(SUnit *SU, unsigned ReleaseAtCycle) {
+    auto Inserted = AllSUs.insert(SU);
+    TotalCycles += ReleaseAtCycle;
+
+    // errs() << "TotalCycles increased to: " << TotalCycles << "\n";
+
+    assert(Inserted.second);
+    if (PrioritySUs.empty()) {
+      PrioritySUs.insert(SU);
+      return;
+    }
+    unsigned SUDepth = SU->getDepth();
+    unsigned CurrDepth = (*PrioritySUs.begin())->getDepth();
+    if (SUDepth > CurrDepth)
+      return;
+
+    if (SUDepth == CurrDepth) {
+      PrioritySUs.insert(SU);
+      return;
+    }
+
+    // SU is lower depth and should be prioritized.
+    PrioritySUs.clear();
+    PrioritySUs.insert(SU);
+  }
+
+  bool contains(SUnit *SU) { return AllSUs.contains(SU); }
+
+  bool isHigherPriority(SUnit *SU, SUnit *Other) {
+    for (auto *SUOrder : PrioritySUs) {
+      if (SUOrder == SU)
+        return true;
+      if (SUOrder == Other)
+        return false;
+    }
+
+    return false;
+  }
+
+  void schedule(SUnit *SU, unsigned ReleaseAtCycle) {
+    AllSUs.erase(SU);
+    PrioritySUs.erase(SU);
+    TotalCycles -= ReleaseAtCycle;
+    if (AllSUs.empty())
+      return;
+    if (PrioritySUs.empty()) {
+      for (auto SU : AllSUs) {
+        if (PrioritySUs.empty()) {
+          PrioritySUs.insert(SU);
+          continue;
+        }
+        unsigned SUDepth = SU->getDepth();
+        unsigned CurrDepth = (*PrioritySUs.begin())->getDepth();
+        if (SUDepth > CurrDepth)
+          continue;
+
+        if (SUDepth == CurrDepth) {
+          PrioritySUs.insert(SU);
+          continue;
+        }
+
+        // SU is lower depth and should be prioritized.
+        PrioritySUs.clear();
+        PrioritySUs.insert(SU);
+      }
+    }
+  }
+
+  void reset() {
+    AllSUs.clear();
+    PrioritySUs.clear();
+    TotalCycles = 0;
+  }
+};
 
 /// This is a minimal scheduler strategy.  The main difference between this
 /// and the GenericScheduler is that GCNSchedStrategy uses different
@@ -94,6 +196,16 @@ protected:
   // GCN RP Tracker for botttom-up scheduling
   mutable GCNUpwardRPTracker UpwardTracker;
 
+  SmallVector<SUnit *, 16> SchedDSR;
+
+  SmallVector<SUnit *, 16> SchedMFMA;
+
+  SmallVector<HardwareUnitInfo, 8> HWUInfo;
+
+  void collectUse();
+
+  void updateCriticalResource();
+
 public:
   // schedule() have seen register pressure over the critical limits and had to
   // track register pressure for actual scheduling heuristics.
@@ -102,6 +214,11 @@ public:
   // Schedule known to have excess register pressure. Be more conservative in
   // increasing ILP and preserving VGPRs.
   bool KnownExcessRP = false;
+
+  bool CollectedUse = false;
+
+  unsigned CriticalResourceIdx;
+  unsigned SecondaryResourceIdx;
 
   // An error margin is necessary because of poor performance of the generic RP
   // tracker and can be adjusted up for tuning heuristics to try and more
@@ -151,9 +268,34 @@ public:
 /// The goal of this scheduling strategy is to maximize kernel occupancy (i.e.
 /// maximum number of waves per simd).
 class GCNMaxOccupancySchedStrategy final : public GCNSchedStrategy {
+protected:
+  bool tryCandidate(SchedCandidate &Cand, SchedCandidate &TryCand,
+                    SchedBoundary *Zone) const override;
+
+  bool tryPendingCandidate(SchedCandidate &Cand, SchedCandidate &TryCand,
+                           SchedBoundary *Zone) const;
+
+  void pickNodeFromQueue(SchedBoundary &Zone, const CandPolicy &ZonePolicy,
+                         const RegPressureTracker &RPTracker,
+                         SchedCandidate &Cand, bool &IsPending,
+                         bool IsBottomUp);
+
+  SUnit *pickNode(bool &IsTopNode) override;
+
 public:
   GCNMaxOccupancySchedStrategy(const MachineSchedContext *C,
                                bool IsLegacyScheduler = false);
+
+  void schedNode(SUnit *SU, bool IsTopNode) override;
+
+  bool tryCriticalResource(SchedCandidate &TryCand, SchedCandidate &Cand,
+                           SchedBoundary *Zone) const;
+
+  bool tryCriticalResourceDependency(SchedCandidate &TryCand,
+                                     SchedCandidate &Cand, SchedBoundary *Zone,
+                                     unsigned ResourceIdx) const;
+
+  unsigned getLatencyStallCycles(SUnit *SU, unsigned CurrCycle) const;
 };
 
 /// The goal of this scheduling strategy is to maximize ILP for a single wave
