@@ -150,13 +150,6 @@ void GCNSchedStrategy::initialize(ScheduleDAGMI *DAG) {
                     << ", VGPRExcessLimit = " << VGPRExcessLimit
                     << ", SGPRCriticalLimit = " << SGPRCriticalLimit
                     << ", SGPRExcessLimit = " << SGPRExcessLimit << "\n\n");
-  const MCSchedModel &SM = MF->getSubtarget().getSchedModel();
-  unsigned NumPR = SM.getNumProcResourceKinds();
-  HWUInfo.resize(NumPR);
-  for (auto I = 0; I < NumPR; I++) {
-    HWUInfo[I].setRes(SM.getProcResource(I));
-  }
-  CriticalResourceIdx = NumPR + 1;
 }
 
 /// Checks whether \p SU can use the cached DAG pressure diffs to compute the
@@ -191,7 +184,7 @@ static bool canUsePressureDiffs(const SUnit &SU) {
   return true;
 }
 
-static void getRegisterPressures(
+void GCNSchedStrategy::getRegisterPressures(
     bool AtTop, const RegPressureTracker &RPTracker, SUnit *SU,
     std::vector<unsigned> &Pressure, std::vector<unsigned> &MaxPressure,
     GCNDownwardRPTracker &DownwardTracker, GCNUpwardRPTracker &UpwardTracker,
@@ -199,7 +192,7 @@ static void getRegisterPressures(
   // getDownwardPressure() and getUpwardPressure() make temporary changes to
   // the tracker, so we need to pass those function a non-const copy.
   RegPressureTracker &TempTracker = const_cast<RegPressureTracker &>(RPTracker);
-  if (!GCNTrackers) {
+  if (!useGCNTrackers()) {
     AtTop
         ? TempTracker.getDownwardPressure(SU->getInstr(), Pressure, MaxPressure)
         : TempTracker.getUpwardPressure(SU->getInstr(), Pressure, MaxPressure);
@@ -251,7 +244,7 @@ void GCNSchedStrategy::initCandidate(SchedCandidate &Cand, SUnit *SU,
   //
   // In EXPENSIVE_CHECKS, we always query RPTracker to verify the results of
   // PressureDiffs.
-  if (AtTop || !canUsePressureDiffs(*SU) || GCNTrackers) {
+  if (AtTop || !canUsePressureDiffs(*SU) || useGCNTrackers()) {
     getRegisterPressures(AtTop, RPTracker, SU, Pressure, MaxPressure,
                          DownwardTracker, UpwardTracker, DAG, SRI);
   } else {
@@ -382,449 +375,6 @@ void GCNSchedStrategy::printCandidateDecision(const SchedCandidate &Current,
   });
 }
 
-void GCNSchedStrategy::updateCriticalResource() {
-  unsigned MaxCycles = 0;
-
-  unsigned I = 0;
-  bool Updated = false;
-
-  for (auto &HWUI : HWUInfo) {
-    if (I == 4) {
-      I++;
-      continue;
-    }
-    if (HWUI.getTotalCycles() > MaxCycles) {
-      assert(HWUI.getProcRes() && "Missing resource?");
-      CriticalResourceIdx = I;
-      MaxCycles = HWUI.getTotalCycles();
-    }
-    I++;
-  }
-  unsigned SecondaryCycles = 0;
-  I = 0;
-
-  for (auto &HWUI : HWUInfo) {
-    if (I == 4) {
-      I++;
-      continue;
-    }
-    if (HWUI.getTotalCycles() > SecondaryCycles &&
-        HWUI.getTotalCycles() <= MaxCycles && CriticalResourceIdx != I) {
-      assert(HWUI.getProcRes() && "Missing resource?");
-      SecondaryResourceIdx = I;
-      Updated = true;
-      SecondaryCycles = HWUI.getTotalCycles();
-    }
-    I++;
-  }
-
-  if (!Updated) {
-    SecondaryResourceIdx = CriticalResourceIdx;
-  }
-}
-
-void GCNSchedStrategy::collectUse() {
-  CollectedUse = true;
-  SchedDSR.clear();
-  SchedMFMA.clear();
-
-  if (!SchedModel || !SchedModel->hasInstrSchedModel())
-    return;
-
-  for (auto &SU : DAG->SUnits) {
-    const MCSchedClassDesc *SC = DAG->getSchedClass(&SU);
-    for (TargetSchedModel::ProcResIter
-             PI = SchedModel->getWriteProcResBegin(SC),
-             PE = SchedModel->getWriteProcResEnd(SC);
-         PI != PE; ++PI) {
-      auto Opc = SU.getInstr()->getOpcode();
-      bool IsDMA = Opc == AMDGPU::TENSOR_LOAD_TO_LDS_D2 ||
-                   Opc == AMDGPU::TENSOR_LOAD_TO_LDS_D2_gfx1250 ||
-                   Opc == AMDGPU::TENSOR_LOAD_TO_LDS ||
-                   Opc == AMDGPU::TENSOR_LOAD_TO_LDS_gfx1250 ||
-                   Opc == AMDGPU::GLOBAL_LOAD_ASYNC_TO_LDS_B32 ||
-                   Opc == AMDGPU::GLOBAL_LOAD_ASYNC_TO_LDS_B32_gfx1250 ||
-                   Opc == AMDGPU::GLOBAL_LOAD_ASYNC_TO_LDS_B32_SADDR ||
-                   Opc == AMDGPU::GLOBAL_LOAD_ASYNC_TO_LDS_B32_SADDR_gfx1250;
-      unsigned Latency = IsDMA ? SU.Latency : PI->ReleaseAtCycle;
-      HWUInfo[PI->ProcResourceIdx].insert(&SU, Latency);
-    }
-  }
-
-  updateCriticalResource();
-}
-
-bool GCNMaxOccupancySchedStrategy::tryCriticalResource(
-    SchedCandidate &TryCand, SchedCandidate &Cand, SchedBoundary *Zone) const {
-  if (CriticalResourceIdx == SchedModel->getNumProcResourceKinds() + 1)
-    return false;
-
-  unsigned MaxAvailableLat = Zone->findMaxLatency(Zone->Available.elements());
-
-  HardwareUnitInfo HWUI = HWUInfo[CriticalResourceIdx];
-  unsigned CriticalUsage = HWUI.getTotalCycles();
-
-  if (MaxAvailableLat > CriticalUsage)
-    return false;
-
-  bool CandUsesCrit = HWUI.contains(Cand.SU);
-  bool TryCandUsesCrit = HWUI.contains(TryCand.SU);
-
-  if (!CandUsesCrit && !TryCandUsesCrit)
-    return false;
-
-  if (CandUsesCrit && !TryCandUsesCrit) {
-    if (Cand.Reason > RegCritical)
-      Cand.Reason = RegCritical;
-    return true;
-  }
-
-  if (!CandUsesCrit && TryCandUsesCrit) {
-    TryCand.Reason = RegCritical;
-    return true;
-  }
-
-  if (SecondaryResourceIdx != CriticalResourceIdx &&
-      tryCriticalResourceDependency(TryCand, Cand, Zone,
-                                    SecondaryResourceIdx)) {
-    return true;
-  }
-
-  if (HWUI.isHigherPriority(Cand.SU, TryCand.SU)) {
-    if (Cand.Reason > RegCritical)
-      Cand.Reason = RegCritical;
-    return true;
-  }
-
-  TryCand.Reason = RegCritical;
-  return true;
-}
-
-bool GCNMaxOccupancySchedStrategy::tryCriticalResourceDependency(
-    SchedCandidate &TryCand, SchedCandidate &Cand, SchedBoundary *Zone,
-    unsigned ResourceIdx) const {
-  if (ResourceIdx == SchedModel->getNumProcResourceKinds() + 1)
-    return false;
-
-  unsigned MaxAvailableLat = Zone->findMaxLatency(Zone->Available.elements());
-  HardwareUnitInfo HWUI = HWUInfo[ResourceIdx];
-  unsigned CriticalUsage = HWUI.getTotalCycles();
-
-  if (MaxAvailableLat > CriticalUsage)
-    return false;
-
-  auto *TargetSU = HWUI.getNextTargetSU();
-  if (!TargetSU)
-    return false;
-
-  bool CandEnables = DAG->IsReachable(TargetSU, Cand.SU);
-  bool TryCandEnables = DAG->IsReachable(TargetSU, TryCand.SU);
-
-  if (!CandEnables && !TryCandEnables)
-    return false;
-
-  if (CandEnables && !TryCandEnables) {
-    if (Cand.Reason > RegCritical)
-      Cand.Reason = RegCritical;
-
-    return true;
-  }
-
-  if (!CandEnables && TryCandEnables) {
-    TryCand.Reason = RegCritical;
-    return true;
-  }
-
-  // Both enable, prefer the critical path.
-  bool CandHeight = Cand.SU->getHeight();
-  bool TryCandHeight = TryCand.SU->getHeight();
-
-  if (CandHeight > TryCandHeight) {
-    if (Cand.Reason > RegCritical)
-      Cand.Reason = RegCritical;
-
-    return true;
-  }
-
-  if (CandHeight < TryCandHeight) {
-    TryCand.Reason = RegCritical;
-    return true;
-  }
-
-  // Same critical path, just prefer original candidate.
-  if (Cand.Reason > RegCritical)
-    Cand.Reason = RegCritical;
-
-  return true;
-}
-
-unsigned
-GCNMaxOccupancySchedStrategy::getLatencyStallCycles(SUnit *SU,
-                                                    unsigned CurrCycle) const {
-  unsigned ReadyCycle = SU->TopReadyCycle;
-  auto *MI = SU->getInstr();
-  const SIInstrInfo *SII = reinterpret_cast<const SIInstrInfo *>(DAG->TII);
-
-  if (SII->isDS(*MI) && MI->mayLoad()) {
-    if (SchedDSR.size() >= 8) {
-      unsigned TopOfFIFO = SchedDSR.size() - 8;
-      unsigned TopOfFIFOIssue = SchedDSR[TopOfFIFO]->TopReadyCycle;
-      // TODO -- should be release at cycle.
-      ReadyCycle = std::max(TopOfFIFOIssue + 20, ReadyCycle);
-    }
-  }
-
-  else if (SII->isMFMAorWMMA(*MI) && SchedMFMA.size()) {
-    auto PrevMFMA = SchedMFMA[SchedMFMA.size() - 1];
-    unsigned PrevMFMAIssue = PrevMFMA->TopReadyCycle;
-    ReadyCycle = std::max(PrevMFMAIssue + PrevMFMA->Latency, ReadyCycle);
-  }
-
-  if (ReadyCycle > CurrCycle)
-    return ReadyCycle - CurrCycle;
-  return 0;
-}
-
-bool GCNMaxOccupancySchedStrategy::tryPendingCandidate(
-    SchedCandidate &Cand, SchedCandidate &TryCand, SchedBoundary *Zone) const {
-  // Initialize the candidate if needed.
-  if (!Cand.isValid()) {
-    TryCand.Reason = NodeOrder;
-    return true;
-  }
-
-  // Bias PhysReg Defs and copies to their uses and defined respectively.
-  if (tryGreater(biasPhysReg(TryCand.SU, TryCand.AtTop),
-                 biasPhysReg(Cand.SU, Cand.AtTop), TryCand, Cand, PhysReg))
-    return TryCand.Reason != NoCand;
-
-  // Avoid exceeding the target's limit.
-  /*if (DAG->isTrackingPressure() &&
-      tryPressure(TryCand.RPDelta.Excess, Cand.RPDelta.Excess, TryCand, Cand,
-                  RegExcess, TRI, DAG->MF))
-    return TryCand.Reason != NoCand;
-
-  // Avoid increasing the max critical pressure in the scheduled region.
-  if (DAG->isTrackingPressure() &&
-      tryPressure(TryCand.RPDelta.CriticalMax, Cand.RPDelta.CriticalMax,
-                  TryCand, Cand, RegCritical, TRI, DAG->MF))
-    return TryCand.Reason != NoCand;*/
-
-  bool SameBoundary = Zone != nullptr;
-  if (SameBoundary) {
-    // Prioritize instructions that read unbuffered resources by stall cycles.
-    if (tryLess(getLatencyStallCycles(TryCand.SU, Zone->getCurrCycle()),
-                getLatencyStallCycles(Cand.SU, Zone->getCurrCycle()), TryCand,
-                Cand, Stall))
-      return TryCand.Reason != NoCand;
-
-    if (tryCriticalResource(TryCand, Cand, Zone)) {
-      return TryCand.Reason != NoCand;
-    }
-  }
-
-  return false;
-}
-
-/// Apply a set of heuristics to a new candidate. Heuristics are currently
-/// hierarchical. This may be more efficient than a graduated cost model because
-/// we don't need to evaluate all aspects of the model for each node in the
-/// queue. But it's really done to make the heuristics easier to debug and
-/// statistically analyze.
-///
-/// \param Cand provides the policy and current best candidate.
-/// \param TryCand refers to the next SUnit candidate, otherwise uninitialized.
-/// \param Zone describes the scheduled zone that we are extending, or nullptr
-///             if Cand is from a different zone than TryCand.
-/// \return \c true if TryCand is better than Cand (Reason is NOT NoCand)
-bool GCNMaxOccupancySchedStrategy::tryCandidate(SchedCandidate &Cand,
-                                                SchedCandidate &TryCand,
-                                                SchedBoundary *Zone) const {
-  // Initialize the candidate if needed.
-  if (!Cand.isValid()) {
-    TryCand.Reason = FirstValid;
-    return true;
-  }
-
-  // Bias PhysReg Defs and copies to their uses and defined respectively.
-  if (tryGreater(biasPhysReg(TryCand.SU, TryCand.AtTop),
-                 biasPhysReg(Cand.SU, Cand.AtTop), TryCand, Cand, PhysReg))
-    return TryCand.Reason != NoCand;
-
-  // Avoid exceeding the target's limit.
-  /*
-  if (DAG->isTrackingPressure() && tryPressure(TryCand.RPDelta.Excess,
-                                               Cand.RPDelta.Excess,
-                                               TryCand, Cand, RegExcess, TRI,
-                                               DAG->MF))
-    return TryCand.Reason != NoCand;
-
-  // Avoid increasing the max critical pressure in the scheduled region.
-  if (DAG->isTrackingPressure() && tryPressure(TryCand.RPDelta.CriticalMax,
-                                               Cand.RPDelta.CriticalMax,
-                                               TryCand, Cand, RegCritical, TRI,
-                                               DAG->MF))
-    return TryCand.Reason != NoCand;
-*/
-  // We only compare a subset of features when comparing nodes between
-  // Top and Bottom boundary. Some properties are simply incomparable, in many
-  // other instances we should only override the other boundary if something
-  // is a clear good pick on one boundary. Skip heuristics that are more
-  // "tie-breaking" in nature.
-  bool SameBoundary = Zone != nullptr;
-  if (SameBoundary) {
-
-    // Prioritize instructions that read unbuffered resources by stall cycles.
-    if (tryLess(getLatencyStallCycles(TryCand.SU, Zone->getCurrCycle()),
-                getLatencyStallCycles(Cand.SU, Zone->getCurrCycle()), TryCand,
-                Cand, Stall))
-      return TryCand.Reason != NoCand;
-
-    if (tryCriticalResource(TryCand, Cand, Zone)) {
-      return TryCand.Reason != NoCand;
-    }
-
-    // For loops that are acyclic path limited, aggressively schedule for
-    // latency. Within an single cycle, whenever CurrMOps > 0, allow normal
-    // heuristics to take precedence.
-    if (Rem.IsAcyclicLatencyLimited && !Zone->getCurrMOps() &&
-        tryLatency(TryCand, Cand, *Zone))
-      return TryCand.Reason != NoCand;
-
-    if (tryCriticalResourceDependency(TryCand, Cand, Zone,
-                                      CriticalResourceIdx)) {
-      return TryCand.Reason != NoCand;
-    }
-  }
-
-  // Keep clustered nodes together to encourage downstream peephole
-  // optimizations which may reduce resource requirements.
-  //
-  // This is a best effort to set things up for a post-RA pass. Optimizations
-  // like generating loads of multiple registers should ideally be done within
-  // the scheduler pass by combining the loads during DAG postprocessing.
-  unsigned CandZoneCluster = getClusterID(Cand.AtTop);
-  unsigned TryCandZoneCluster = getClusterID(TryCand.AtTop);
-  bool CandIsClusterSucc =
-      isTheSameCluster(CandZoneCluster, Cand.SU->ParentClusterIdx);
-  bool TryCandIsClusterSucc =
-      isTheSameCluster(TryCandZoneCluster, TryCand.SU->ParentClusterIdx);
-
-  if (tryGreater(TryCandIsClusterSucc, CandIsClusterSucc, TryCand, Cand,
-                 Cluster))
-    return TryCand.Reason != NoCand;
-
-  if (SameBoundary) {
-    // Weak edges are for clustering and other constraints.
-    if (tryLess(getWeakLeft(TryCand.SU, TryCand.AtTop),
-                getWeakLeft(Cand.SU, Cand.AtTop), TryCand, Cand, Weak))
-      return TryCand.Reason != NoCand;
-  }
-
-  // Avoid increasing the max pressure of the entire region.
-  if (DAG->isTrackingPressure() &&
-      tryPressure(TryCand.RPDelta.CurrentMax, Cand.RPDelta.CurrentMax, TryCand,
-                  Cand, RegMax, TRI, DAG->MF))
-    return TryCand.Reason != NoCand;
-
-  if (SameBoundary) {
-    // Avoid critical resource consumption and balance the schedule.
-    TryCand.initResourceDelta(DAG, SchedModel);
-    if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
-                TryCand, Cand, ResourceReduce)) {
-      return TryCand.Reason != NoCand;
-    }
-    if (tryGreater(TryCand.ResDelta.DemandedResources,
-                   Cand.ResDelta.DemandedResources, TryCand, Cand,
-                   ResourceDemand)) {
-      return TryCand.Reason != NoCand;
-    }
-
-    // Avoid serializing long latency dependence chains.
-    // For acyclic path limited loops, latency was already checked above.
-    if (!RegionPolicy.DisableLatencyHeuristic && TryCand.Policy.ReduceLatency &&
-        !Rem.IsAcyclicLatencyLimited && tryLatency(TryCand, Cand, *Zone))
-      return TryCand.Reason != NoCand;
-
-    // Fall through to original instruction order.
-    if ((Zone->isTop() && TryCand.SU->NodeNum < Cand.SU->NodeNum) ||
-        (!Zone->isTop() && TryCand.SU->NodeNum > Cand.SU->NodeNum)) {
-      TryCand.Reason = NodeOrder;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// This function is mostly cut and pasted from
-// GenericScheduler::pickNodeFromQueue()
-void GCNMaxOccupancySchedStrategy::pickNodeFromQueue(
-    SchedBoundary &Zone, const CandPolicy &ZonePolicy,
-    const RegPressureTracker &RPTracker, SchedCandidate &Cand, bool &IsPending,
-    bool IsBottomUp) {
-  const SIRegisterInfo *SRI = static_cast<const SIRegisterInfo *>(TRI);
-  ArrayRef<unsigned> Pressure = RPTracker.getRegSetPressureAtPos();
-  unsigned SGPRPressure = 0;
-  unsigned VGPRPressure = 0;
-  IsPending = false;
-  if (DAG->isTrackingPressure()) {
-    if (!GCNTrackers) {
-      SGPRPressure = Pressure[AMDGPU::RegisterPressureSets::SReg_32];
-      VGPRPressure = Pressure[AMDGPU::RegisterPressureSets::VGPR_32];
-    } else {
-      GCNRPTracker *T = IsBottomUp
-                            ? static_cast<GCNRPTracker *>(&UpwardTracker)
-                            : static_cast<GCNRPTracker *>(&DownwardTracker);
-      SGPRPressure = T->getPressure().getSGPRNum();
-      VGPRPressure = T->getPressure().getArchVGPRNum();
-    }
-  }
-  LLVM_DEBUG(dbgs() << "Available Q:\n");
-  ReadyQueue &AQ = Zone.Available;
-  for (SUnit *SU : AQ) {
-    SchedCandidate TryCand(ZonePolicy);
-    initCandidate(TryCand, SU, Zone.isTop(), RPTracker, SRI, SGPRPressure,
-                  VGPRPressure, IsBottomUp);
-    // Pass SchedBoundary only when comparing nodes from the same boundary.
-    SchedBoundary *ZoneArg = Cand.AtTop == TryCand.AtTop ? &Zone : nullptr;
-    tryCandidate(Cand, TryCand, ZoneArg);
-    if (TryCand.Reason != NoCand) {
-      // Initialize resource delta if needed in case future heuristics query it.
-      if (TryCand.ResDelta == SchedResourceDelta())
-        TryCand.initResourceDelta(Zone.DAG, SchedModel);
-      LLVM_DEBUG(printCandidateDecision(Cand, TryCand));
-      Cand.setBest(TryCand);
-    } else {
-      printCandidateDecision(TryCand, Cand);
-    }
-  }
-
-  if (!shouldCheckPending(Zone, SchedModel))
-    return;
-
-  LLVM_DEBUG(dbgs() << "Pending Q:\n");
-  ReadyQueue &PQ = Zone.Pending;
-  for (SUnit *SU : PQ) {
-    SchedCandidate TryCand(ZonePolicy);
-    initCandidate(TryCand, SU, Zone.isTop(), RPTracker, SRI, SGPRPressure,
-                  VGPRPressure, IsBottomUp);
-    // Pass SchedBoundary only when comparing nodes from the same boundary.
-    SchedBoundary *ZoneArg = Cand.AtTop == TryCand.AtTop ? &Zone : nullptr;
-    GCNMaxOccupancySchedStrategy::tryPendingCandidate(Cand, TryCand, ZoneArg);
-    if (TryCand.Reason != NoCand) {
-      // Initialize resource delta if needed in case future heuristics query it.
-      if (TryCand.ResDelta == SchedResourceDelta())
-        TryCand.initResourceDelta(Zone.DAG, SchedModel);
-      LLVM_DEBUG(printCandidateDecision(Cand, TryCand));
-      IsPending = true;
-      Cand.setBest(TryCand);
-    } else {
-      printCandidateDecision(TryCand, Cand);
-    }
-  }
-}
-
 // This function is mostly cut and pasted from
 // GenericScheduler::pickNodeFromQueue()
 void GCNSchedStrategy::pickNodeFromQueue(SchedBoundary &Zone,
@@ -838,7 +388,7 @@ void GCNSchedStrategy::pickNodeFromQueue(SchedBoundary &Zone,
   unsigned VGPRPressure = 0;
   IsPending = false;
   if (DAG->isTrackingPressure()) {
-    if (!GCNTrackers) {
+    if (!useGCNTrackers()) {
       SGPRPressure = Pressure[AMDGPU::RegisterPressureSets::SReg_32];
       VGPRPressure = Pressure[AMDGPU::RegisterPressureSets::VGPR_32];
     } else {
@@ -993,76 +543,6 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode,
 
 // This function is mostly cut and pasted from
 // GenericScheduler::pickNode()
-SUnit *GCNMaxOccupancySchedStrategy::pickNode(bool &IsTopNode) {
-  if (!CollectedUse)
-    collectUse();
-
-  if (DAG->top() == DAG->bottom()) {
-    assert(Top.Available.empty() && Top.Pending.empty() &&
-           Bot.Available.empty() && Bot.Pending.empty() && "ReadyQ garbage");
-    return nullptr;
-  }
-  bool PickedPending;
-  SUnit *SU;
-  do {
-    PickedPending = false;
-    if (RegionPolicy.OnlyTopDown) {
-      SU = pickOnlyChoice(Top, SchedModel);
-      if (!SU) {
-        CandPolicy NoPolicy;
-        TopCand.reset(NoPolicy);
-        pickNodeFromQueue(Top, TopCand.Policy, DAG->getTopRPTracker(), TopCand,
-                          PickedPending,
-                          /*IsBottomUp=*/false);
-        assert(TopCand.Reason != NoCand && "failed to find a candidate");
-        SU = TopCand.SU;
-      }
-      IsTopNode = true;
-    } else if (RegionPolicy.OnlyBottomUp) {
-      SU = pickOnlyChoice(Bot, SchedModel);
-      if (!SU) {
-        CandPolicy NoPolicy;
-        BotCand.reset(NoPolicy);
-        pickNodeFromQueue(Bot, BotCand.Policy, DAG->getBotRPTracker(), BotCand,
-                          PickedPending,
-                          /*IsBottomUp=*/true);
-        assert(BotCand.Reason != NoCand && "failed to find a candidate");
-        SU = BotCand.SU;
-      }
-      IsTopNode = false;
-    } else {
-      SU = pickNodeBidirectional(IsTopNode, PickedPending);
-    }
-  } while (SU->isScheduled);
-
-  if (PickedPending) {
-    unsigned ReadyCycle = IsTopNode ? SU->TopReadyCycle : SU->BotReadyCycle;
-    SchedBoundary &Zone = IsTopNode ? Top : Bot;
-    unsigned CurrentCycle = Zone.getCurrCycle();
-    if (ReadyCycle > CurrentCycle)
-      Zone.bumpCycle(ReadyCycle);
-
-    // FIXME: checkHazard() doesn't give information about which cycle the
-    // hazard will resolve so just keep bumping the cycle by 1. This could be
-    // made more efficient if checkHazard() returned more details.
-    while (Zone.checkHazard(SU))
-      Zone.bumpCycle(Zone.getCurrCycle() + 1);
-
-    Zone.releasePending();
-  }
-
-  if (SU->isTopReady())
-    Top.removeReady(SU);
-  if (SU->isBottomReady())
-    Bot.removeReady(SU);
-
-  LLVM_DEBUG(dbgs() << "Scheduling SU(" << SU->NodeNum << ") "
-                    << *SU->getInstr());
-  return SU;
-}
-
-// This function is mostly cut and pasted from
-// GenericScheduler::pickNode()
 SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
   if (DAG->top() == DAG->bottom()) {
     assert(Top.Available.empty() && Top.Pending.empty() &&
@@ -1130,34 +610,8 @@ SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
   return SU;
 }
 
-void GCNMaxOccupancySchedStrategy::schedNode(SUnit *SU, bool IsTopNode) {
-  auto MI = SU->getInstr();
-  const SIInstrInfo *SII = reinterpret_cast<const SIInstrInfo *>(DAG->TII);
-
-  if (SchedModel && SchedModel->hasInstrSchedModel()) {
-    const MCSchedClassDesc *SC = DAG->getSchedClass(SU);
-    for (TargetSchedModel::ProcResIter PI = SchedModel->getWriteProcResBegin(SC),
-                                      PE = SchedModel->getWriteProcResEnd(SC);
-        PI != PE; ++PI) {
-      HWUInfo[PI->ProcResourceIdx].schedule(SU, PI->ReleaseAtCycle);
-    }
-
-    updateCriticalResource();
-
-    if (SII->isMFMAorWMMA(*MI)) {
-      SchedMFMA.push_back(SU);
-    }
-    if (SII->isDS(*MI) && MI->mayLoad()) {
-      SchedDSR.push_back(SU);
-    }
-  }
-
-
-  GCNSchedStrategy::schedNode(SU, IsTopNode);
-}
-
 void GCNSchedStrategy::schedNode(SUnit *SU, bool IsTopNode) {
-  if (GCNTrackers) {
+  if (useGCNTrackers()) {
     MachineInstr *MI = SU->getInstr();
     IsTopNode ? (void)DownwardTracker.advance(MI, false)
               : UpwardTracker.recede(*MI);
@@ -1236,11 +690,10 @@ GCNMaxOccupancySchedStrategy::GCNMaxOccupancySchedStrategy(
     const MachineSchedContext *C, bool IsLegacyScheduler)
     : GCNSchedStrategy(C) {
   SchedStages.push_back(GCNSchedStageID::OccInitialSchedule);
-  // SchedStages.push_back(GCNSchedStageID::UnclusteredHighRPReschedule);
-  // SchedStages.push_back(GCNSchedStageID::ClusteredLowOccupancyReschedule);
+  SchedStages.push_back(GCNSchedStageID::UnclusteredHighRPReschedule);
+  SchedStages.push_back(GCNSchedStageID::ClusteredLowOccupancyReschedule);
   SchedStages.push_back(GCNSchedStageID::PreRARematerialize);
-  GCNTrackers = GCNTrackers & !IsLegacyScheduler;
-  // RemainingCounts.resize(SchedModel->getNumProcResourceKinds());
+  UseGCNTrackers = GCNTrackers & !IsLegacyScheduler;
 }
 
 GCNMaxILPSchedStrategy::GCNMaxILPSchedStrategy(const MachineSchedContext *C)
@@ -1662,9 +1115,10 @@ void GCNScheduleDAGMILive::finalizeSchedule() {
 void GCNScheduleDAGMILive::runSchedStages() {
   LLVM_DEBUG(dbgs() << "All regions recorded, starting actual scheduling.\n");
 
+  GCNSchedStrategy &S = static_cast<GCNSchedStrategy &>(*SchedImpl);
   if (!Regions.empty()) {
     BBLiveInMap = getRegionLiveInMap();
-    if (GCNTrackers)
+    if (S.useGCNTrackers())
       RegionLiveOuts.buildLiveRegMap();
   }
 
@@ -1676,14 +1130,12 @@ void GCNScheduleDAGMILive::runSchedStages() {
   }
 #endif
 
-  GCNSchedStrategy &S = static_cast<GCNSchedStrategy &>(*SchedImpl);
   while (S.advanceStage()) {
     auto Stage = createSchedStage(S.getCurrentStage());
     if (!Stage->initGCNSchedStage())
       continue;
 
     for (auto Region : Regions) {
-
       S.CollectedUse = false;
       RegionBegin = Region.first;
       RegionEnd = Region.second;
@@ -1694,7 +1146,7 @@ void GCNScheduleDAGMILive::runSchedStages() {
         continue;
       }
 
-      if (GCNTrackers) {
+      if (S.useGCNTrackers()) {
         GCNDownwardRPTracker *DownwardTracker = S.getDownwardTracker();
         GCNUpwardRPTracker *UpwardTracker = S.getUpwardTracker();
         GCNRPTracker::LiveRegSet *RegionLiveIns =
@@ -1841,7 +1293,7 @@ bool PreRARematStage::initGCNSchedStage() {
 
   // Rematerialize identified instructions and update scheduler's state.
   rematerialize();
-  if (GCNTrackers)
+  if (S.useGCNTrackers())
     DAG.RegionLiveOuts.buildLiveRegMap();
   REMAT_DEBUG({
     dbgs() << "Retrying function scheduling with new min. occupancy of "

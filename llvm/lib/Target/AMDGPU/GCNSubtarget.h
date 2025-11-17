@@ -295,6 +295,8 @@ protected:
   // Dummy feature to use for assembler in tablegen.
   bool FeatureDisable = false;
 
+  bool DisablePostMISched = false;
+
 private:
   SIInstrInfo InstrInfo;
   SITargetLowering TLInfo;
@@ -1429,6 +1431,10 @@ public:
   bool hasMinimum3Maximum3F32() const {
     return HasMinimum3Maximum3F32;
   }
+
+  bool enablePostRAScheduler() const override { return !DisablePostMISched; }
+
+  void setDisablePostMISched(bool Value) { DisablePostMISched = Value; }
 
   bool hasMinimum3Maximum3F16() const {
     return HasMinimum3Maximum3F16;

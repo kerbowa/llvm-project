@@ -24,6 +24,7 @@
 #include "AMDGPUIGroupLP.h"
 #include "AMDGPUISelDAGToDAG.h"
 #include "AMDGPULowerVGPREncoding.h"
+#include "AMDGPUMLSchedStrategy.h"
 #include "AMDGPUMacroFusion.h"
 #include "AMDGPUPerfHintAnalysis.h"
 #include "AMDGPUPreloadKernArgProlog.h"
@@ -630,6 +631,11 @@ static ScheduleDAGInstrs *createSIMachineScheduler(MachineSchedContext *C) {
   return new SIScheduleDAGMI(C);
 }
 
+static bool isMLWorkload(const Function &F) {
+  Attribute WorkloadAttr = F.getFnAttribute("amdgpu-workload-type");
+  return WorkloadAttr.isValid() && WorkloadAttr.getValueAsString() == "ml";
+}
+
 static ScheduleDAGInstrs *
 createGCNMaxOccupancyMachineScheduler(MachineSchedContext *C) {
   const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
@@ -650,6 +656,22 @@ createGCNMaxILPMachineScheduler(MachineSchedContext *C) {
   ScheduleDAGMILive *DAG =
       new GCNScheduleDAGMILive(C, std::make_unique<GCNMaxILPSchedStrategy>(C));
   DAG->addMutation(createIGroupLPDAGMutation(AMDGPU::SchedulingPhase::Initial));
+  return DAG;
+}
+
+static ScheduleDAGInstrs *createGCNMLMachineScheduler(MachineSchedContext *C) {
+  const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
+  const_cast<GCNSubtarget *>(&ST)->setDisablePostMISched(true);
+
+  ScheduleDAGMILive *DAG =
+      new GCNScheduleDAGMILive(C, std::make_unique<AMDGPUMLSchedStrategy>(C));
+  DAG->addMutation(createLoadClusterDAGMutation(DAG->TII, DAG->TRI));
+  if (ST.shouldClusterStores())
+    DAG->addMutation(createStoreClusterDAGMutation(DAG->TII, DAG->TRI));
+  DAG->addMutation(createIGroupLPDAGMutation(AMDGPU::SchedulingPhase::Initial));
+  DAG->addMutation(createAMDGPUMacroFusionDAGMutation());
+  DAG->addMutation(createAMDGPUExportClusteringDAGMutation());
+  DAG->addMutation(createAMDGPUBarrierLatencyDAGMutation());
   return DAG;
 }
 
@@ -1159,8 +1181,12 @@ Error GCNTargetMachine::buildCodeGenPipeline(
 ScheduleDAGInstrs *
 GCNTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
   const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
+  const_cast<GCNSubtarget *>(&ST)->setDisablePostMISched(false);
   if (ST.enableSIScheduler())
     return createSIMachineScheduler(C);
+
+  if (isMLWorkload(C->MF->getFunction()))
+    return createGCNMLMachineScheduler(C);
 
   Attribute SchedStrategyAttr =
       C->MF->getFunction().getFnAttribute("amdgpu-sched-strategy");
@@ -1183,11 +1209,19 @@ GCNTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
   if (SchedStrategy == "iterative-maxocc")
     return createIterativeGCNMaxOccupancyMachineScheduler(C);
 
+  if (SchedStrategy == "ml")
+    return createGCNMLMachineScheduler(C);
+
   return createGCNMaxOccupancyMachineScheduler(C);
 }
 
 ScheduleDAGInstrs *
 GCNTargetMachine::createPostMachineScheduler(MachineSchedContext *C) const {
+  if (isMLWorkload(C->MF->getFunction()))
+    return new GCNPostScheduleDAGMILive(
+        C, std::make_unique<AMDGPUMLPostSchedStrategy>(C),
+        /*RemoveKillFlags=*/true);
+
   ScheduleDAGMI *DAG =
       new GCNPostScheduleDAGMILive(C, std::make_unique<PostGenericScheduler>(C),
                                    /*RemoveKillFlags=*/true);
