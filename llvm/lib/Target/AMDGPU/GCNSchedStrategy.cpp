@@ -396,7 +396,6 @@ void GCNSchedStrategy::updateCriticalResource() {
     if (HWUI.getTotalCycles() > MaxCycles) {
       assert(HWUI.getProcRes() && "Missing resource?");
       CriticalResourceIdx = I;
-      Updated = true;
       MaxCycles = HWUI.getTotalCycles();
     }
     I++;
@@ -429,6 +428,9 @@ void GCNSchedStrategy::collectUse() {
   SchedDSR.clear();
   SchedMFMA.clear();
 
+  if (!SchedModel || !SchedModel->hasInstrSchedModel())
+    return;
+
   for (auto &SU : DAG->SUnits) {
     const MCSchedClassDesc *SC = DAG->getSchedClass(&SU);
     for (TargetSchedModel::ProcResIter
@@ -454,7 +456,11 @@ void GCNSchedStrategy::collectUse() {
 
 bool GCNMaxOccupancySchedStrategy::tryCriticalResource(
     SchedCandidate &TryCand, SchedCandidate &Cand, SchedBoundary *Zone) const {
+  if (CriticalResourceIdx == SchedModel->getNumProcResourceKinds() + 1)
+    return false;
+
   unsigned MaxAvailableLat = Zone->findMaxLatency(Zone->Available.elements());
+
   HardwareUnitInfo HWUI = HWUInfo[CriticalResourceIdx];
   unsigned CriticalUsage = HWUI.getTotalCycles();
 
@@ -497,6 +503,9 @@ bool GCNMaxOccupancySchedStrategy::tryCriticalResource(
 bool GCNMaxOccupancySchedStrategy::tryCriticalResourceDependency(
     SchedCandidate &TryCand, SchedCandidate &Cand, SchedBoundary *Zone,
     unsigned ResourceIdx) const {
+  if (ResourceIdx == SchedModel->getNumProcResourceKinds() + 1)
+    return false;
+
   unsigned MaxAvailableLat = Zone->findMaxLatency(Zone->Available.elements());
   HardwareUnitInfo HWUI = HWUInfo[ResourceIdx];
   unsigned CriticalUsage = HWUI.getTotalCycles();
@@ -1055,10 +1064,6 @@ SUnit *GCNMaxOccupancySchedStrategy::pickNode(bool &IsTopNode) {
 // This function is mostly cut and pasted from
 // GenericScheduler::pickNode()
 SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
-  if (!CollectedUse) {
-    collectUse();
-  }
-
   if (DAG->top() == DAG->bottom()) {
     assert(Top.Available.empty() && Top.Pending.empty() &&
            Bot.Available.empty() && Bot.Pending.empty() && "ReadyQ garbage");
@@ -1129,21 +1134,24 @@ void GCNMaxOccupancySchedStrategy::schedNode(SUnit *SU, bool IsTopNode) {
   auto MI = SU->getInstr();
   const SIInstrInfo *SII = reinterpret_cast<const SIInstrInfo *>(DAG->TII);
 
-  const MCSchedClassDesc *SC = DAG->getSchedClass(SU);
-  for (TargetSchedModel::ProcResIter PI = SchedModel->getWriteProcResBegin(SC),
-                                     PE = SchedModel->getWriteProcResEnd(SC);
-       PI != PE; ++PI) {
-    HWUInfo[PI->ProcResourceIdx].schedule(SU, PI->ReleaseAtCycle);
+  if (SchedModel && SchedModel->hasInstrSchedModel()) {
+    const MCSchedClassDesc *SC = DAG->getSchedClass(SU);
+    for (TargetSchedModel::ProcResIter PI = SchedModel->getWriteProcResBegin(SC),
+                                      PE = SchedModel->getWriteProcResEnd(SC);
+        PI != PE; ++PI) {
+      HWUInfo[PI->ProcResourceIdx].schedule(SU, PI->ReleaseAtCycle);
+    }
+
+    updateCriticalResource();
+
+    if (SII->isMFMAorWMMA(*MI)) {
+      SchedMFMA.push_back(SU);
+    }
+    if (SII->isDS(*MI) && MI->mayLoad()) {
+      SchedDSR.push_back(SU);
+    }
   }
 
-  updateCriticalResource();
-
-  if (SII->isMFMAorWMMA(*MI)) {
-    SchedMFMA.push_back(SU);
-  }
-  if (SII->isDS(*MI) && MI->mayLoad()) {
-    SchedDSR.push_back(SU);
-  }
 
   GCNSchedStrategy::schedNode(SU, IsTopNode);
 }
