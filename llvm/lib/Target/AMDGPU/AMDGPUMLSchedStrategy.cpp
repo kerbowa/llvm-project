@@ -23,8 +23,6 @@ AMDGPUMLSchedStrategy::AMDGPUMLSchedStrategy(const MachineSchedContext *C)
   SchedStages.push_back(GCNSchedStageID::PreRARematerialize);
   // Use more accurate GCN pressure trackers.
   UseGCNTrackers = false;
-  // Always schedule top-down for better blancing of HW resource usage.
-  RegionPolicy.OnlyTopDown = true;
 }
 
 void AMDGPUMLSchedStrategy::initialize(ScheduleDAGMI *DAG) {

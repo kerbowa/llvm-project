@@ -2233,6 +2233,14 @@ GCNPostScheduleDAGMILive::GCNPostScheduleDAGMILive(
     : ScheduleDAGMI(C, std::move(S), RemoveKillFlags) {}
 
 void GCNPostScheduleDAGMILive::schedule() {
+  const Function &F = MF.getFunction();
+  Attribute WorkloadAttr = F.getFnAttribute("amdgpu-workload-type");
+  bool IsMLWorkload = WorkloadAttr.isValid() && WorkloadAttr.getValueAsString() == "ml";
+  if (IsMLWorkload) {
+    LLVM_DEBUG(dbgs() << "Post RA scheduling not implmemented for ML workloads\n");
+    return;
+  }
+
   HasIGLPInstrs = hasIGLPInstrs(this);
   if (HasIGLPInstrs) {
     SavedMutations.clear();
