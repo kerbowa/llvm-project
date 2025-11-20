@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "GCNSchedStrategy.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/CodeGen/MachineScheduler.h"
 
 namespace llvm {
@@ -19,8 +20,8 @@ namespace llvm {
 class HardwareUnitInfo {
 private:
   const MCProcResourceDesc *ProcRes = nullptr;
-  SmallPtrSet<SUnit *, 16> PrioritySUs;
-  SmallPtrSet<SUnit *, 16> AllSUs;
+  SmallSetVector<SUnit *, 16> PrioritySUs;
+  SmallSetVector<SUnit *, 16> AllSUs;
   unsigned TotalCycles = 0;
 
 public:
@@ -43,12 +44,12 @@ public:
   const MCProcResourceDesc *getProcRes() { return ProcRes; }
 
   void insert(SUnit *SU, unsigned ReleaseAtCycle) {
-    auto Inserted = AllSUs.insert(SU);
+    bool Inserted = AllSUs.insert(SU);
     TotalCycles += ReleaseAtCycle;
 
     // errs() << "TotalCycles increased to: " << TotalCycles << "\n";
 
-    assert(Inserted.second);
+    assert(Inserted);
     if (PrioritySUs.empty()) {
       PrioritySUs.insert(SU);
       return;
@@ -82,8 +83,8 @@ public:
   }
 
   void schedule(SUnit *SU, unsigned ReleaseAtCycle) {
-    AllSUs.erase(SU);
-    PrioritySUs.erase(SU);
+    AllSUs.remove(SU);
+    PrioritySUs.remove(SU);
     TotalCycles -= ReleaseAtCycle;
     if (AllSUs.empty())
       return;
