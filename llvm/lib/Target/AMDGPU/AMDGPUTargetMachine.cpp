@@ -661,7 +661,6 @@ createGCNMaxILPMachineScheduler(MachineSchedContext *C) {
 
 static ScheduleDAGInstrs *createGCNMLMachineScheduler(MachineSchedContext *C) {
   const GCNSubtarget &ST = C->MF->getSubtarget<GCNSubtarget>();
-  const_cast<GCNSubtarget *>(&ST)->setDisablePostMISched(true);
 
   ScheduleDAGMILive *DAG =
       new GCNScheduleDAGMILive(C, std::make_unique<AMDGPUMLSchedStrategy>(C));

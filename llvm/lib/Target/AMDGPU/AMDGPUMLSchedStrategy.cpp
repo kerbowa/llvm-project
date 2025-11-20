@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "AMDGPUMLSchedStrategy.h"
+#include "llvm/CodeGen/MachineScheduler.h"
 
 #define DEBUG_TYPE "machine-scheduler"
 
@@ -594,39 +595,26 @@ bool AMDGPUMLPostSchedStrategy::tryCandidate(SchedCandidate &Cand,
     return true;
   }
 
-  // Prioritize instructions that read unbuffered resources by stall cycles.
-  if (tryLess(Top.getLatencyStallCycles(TryCand.SU),
-              Top.getLatencyStallCycles(Cand.SU), TryCand, Cand, Stall))
-    return TryCand.Reason != NoCand;
 
-  // Keep clustered nodes together.
-  unsigned CandZoneCluster = Cand.AtTop ? TopClusterID : BotClusterID;
-  unsigned TryCandZoneCluster = TryCand.AtTop ? TopClusterID : BotClusterID;
-  bool CandIsClusterSucc =
-      isTheSameCluster(CandZoneCluster, Cand.SU->ParentClusterIdx);
-  bool TryCandIsClusterSucc =
-      isTheSameCluster(TryCandZoneCluster, TryCand.SU->ParentClusterIdx);
+  #if 0
+  // Prefer WMMA if there is no hazard.
+  if (Cand.SU && Cand.SU->getInstr() && TryCand.SU &&
+      TryCand.SU->getInstr()) {
+    const SIInstrInfo *SII = reinterpret_cast<const SIInstrInfo *>(DAG->TII);
+    bool CandIsWMMA = SII->isMFMAorWMMA(*Cand.SU->getInstr());
+    bool TryCandIsWMMA = SII->isMFMAorWMMA(*TryCand.SU->getInstr());
 
-  if (tryGreater(TryCandIsClusterSucc, CandIsClusterSucc, TryCand, Cand,
-                 Cluster))
-    return TryCand.Reason != NoCand;
-  // Avoid critical resource consumption and balance the schedule.
-  if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
-              TryCand, Cand, ResourceReduce))
-    return TryCand.Reason != NoCand;
-  if (tryGreater(TryCand.ResDelta.DemandedResources,
-                 Cand.ResDelta.DemandedResources, TryCand, Cand,
-                 ResourceDemand))
-    return TryCand.Reason != NoCand;
+    if (CandIsWMMA != TryCandIsWMMA) {
+      if (TryCandIsWMMA) {
+        TryCand.Reason = ResourceDemand;
+        return true;
+      }
 
-  // We only compare a subset of features when comparing nodes between
-  // Top and Bottom boundary.
-  if (Cand.AtTop == TryCand.AtTop) {
-    // Avoid serializing long latency dependence chains.
-    if (Cand.Policy.ReduceLatency &&
-        tryLatency(TryCand, Cand, Cand.AtTop ? Top : Bot))
-      return TryCand.Reason != NoCand;
+      Cand.Reason = ResourceDemand;
+      return false;
+    }
   }
+  # endif
 
   // Fall through to original instruction order.
   if (TryCand.SU->NodeNum < Cand.SU->NodeNum) {
