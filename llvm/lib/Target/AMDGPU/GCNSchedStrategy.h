@@ -196,13 +196,15 @@ public:
 class ScheduleMetrics {
   unsigned ScheduleLength;
   unsigned BubbleCycles;
+  unsigned StructuralStallCycles;
 
 public:
   ScheduleMetrics() = default;
-  ScheduleMetrics(unsigned L, unsigned BC)
-      : ScheduleLength(L), BubbleCycles(BC) {}
+  ScheduleMetrics(unsigned L, unsigned BC, unsigned SSC = 0)
+      : ScheduleLength(L), BubbleCycles(BC), StructuralStallCycles(SSC) {}
   unsigned getLength() const { return ScheduleLength; }
   unsigned getBubbles() const { return BubbleCycles; }
+  unsigned getStructuralStalls() const { return StructuralStallCycles; }
   unsigned getMetric() const {
     unsigned Metric = (BubbleCycles * ScaleFactor) / ScheduleLength;
     // Metric is zero if the amount of bubbles is less than 1% which is too
@@ -213,10 +215,11 @@ public:
 };
 
 inline raw_ostream &operator<<(raw_ostream &OS, const ScheduleMetrics &Sm) {
-  dbgs() << "\n Schedule Metric (scaled by "
-         << ScheduleMetrics::ScaleFactor
-         << " ) is: " << Sm.getMetric() << " [ " << Sm.getBubbles() << "/"
-         << Sm.getLength() << " ]\n";
+  dbgs() << "\n Schedule Metric (scaled by " << ScheduleMetrics::ScaleFactor
+         << ") is: " << Sm.getMetric() << " [ " << Sm.getBubbles() << "/"
+         << Sm.getLength() << " ] (" << Sm.getStructuralStalls()
+         << " structural stalls)\n"
+         << " Schedule Length: " << Sm.getLength() << " cycles\n";
   return OS;
 }
 

@@ -70,6 +70,12 @@ static cl::opt<bool> GCNTrackers(
     cl::desc("Use the AMDGPU specific RPTrackers during scheduling"),
     cl::init(false));
 
+static cl::opt<bool> PrintScheduleMetrics(
+    "amdgpu-print-schedule-metrics", cl::Hidden,
+    cl::desc("Print schedule metrics (length, stalls) after scheduling each "
+             "region."),
+    cl::init(false));
+
 static cl::opt<unsigned> PendingQueueLimit(
     "amdgpu-scheduler-pending-queue-limit", cl::Hidden,
     cl::desc(
@@ -1505,6 +1511,12 @@ void GCNSchedStage::finalizeGCNRegion() {
   // reason that the original schedule is better.
   checkScheduling();
 
+  // Print schedule metrics if requested.
+  if (PrintScheduleMetrics) {
+    ScheduleMetrics Metrics = getScheduleMetrics(DAG);
+    dbgs() << "Region " << RegionIdx << " (" << StageID << ")" << Metrics;
+  }
+
   if (DAG.RegionsWithIGLPInstrs[RegionIdx] &&
       StageID != GCNSchedStageID::UnclusteredHighRPReschedule)
     SavedMutations.swap(DAG.Mutations);
@@ -1630,6 +1642,42 @@ static void printScheduleModel(std::set<std::pair<MachineInstr *, unsigned>,
 }
 #endif
 
+/// Compute the structural stall cycles for an SUnit during metrics collection.
+/// This mirrors GCNSchedStrategy::getStructuralStallCycles but works outside
+/// the scheduling context, using tracked resource availability and optionally
+/// the hazard recognizer (when enabled, i.e., post-RA).
+static unsigned computeStructuralStallCycles(
+    const SUnit &SU, unsigned CurrCycle, const TargetSchedModel &SM,
+    DenseMap<unsigned, unsigned> &ResourceAvailCycles,
+    GCNHazardRecognizer *HR) {
+  unsigned Stall = 0;
+
+  // Query SchedModel for resource stalls (unbuffered resources).
+  if (SM.hasInstrSchedModel() && SU.hasReservedResource) {
+    const MCSchedClassDesc *SC = SM.resolveSchedClass(SU.getInstr());
+    for (const MCWriteProcResEntry &PE :
+         make_range(SM.getWriteProcResBegin(SC), SM.getWriteProcResEnd(SC))) {
+      const MCProcResourceDesc *Desc = SM.getProcResource(PE.ProcResourceIdx);
+      // Only track unbuffered resources.
+      if (Desc->BufferSize != 0)
+        continue;
+      unsigned NextAvail = ResourceAvailCycles.lookup(PE.ProcResourceIdx);
+      if (NextAvail > CurrCycle)
+        Stall = std::max(Stall, NextAvail - CurrCycle);
+      // Update resource availability for next instruction.
+      ResourceAvailCycles[PE.ProcResourceIdx] =
+          std::max(NextAvail, CurrCycle) + PE.ReleaseAtCycle;
+    }
+  }
+
+  // Query HazardRecognizer for sequence-dependent hazard penalties.
+  // HR is only non-null when enabled (post-RA, or future pre-RA enablement).
+  if (HR)
+    Stall = std::max(Stall, HR->getHazardWaitStates(SU.getInstr()));
+
+  return Stall;
+}
+
 ScheduleMetrics
 GCNSchedStage::getScheduleMetrics(const std::vector<SUnit> &InputSchedule) {
 #ifndef NDEBUG
@@ -1638,16 +1686,46 @@ GCNSchedStage::getScheduleMetrics(const std::vector<SUnit> &InputSchedule) {
 #endif
   const TargetSchedModel &SM = ST.getInstrInfo()->getSchedModel();
   unsigned SumBubbles = 0;
+  unsigned SumStructuralStalls = 0;
   DenseMap<unsigned, unsigned> ReadyCycles;
+  DenseMap<unsigned, unsigned> ResourceAvailCycles;
   unsigned CurrCycle = 0;
+
+  // Only use hazard recognizer post-RA (when DAG doesn't track VReg liveness).
+  // Pre-RA hazard recognizer support can be added in the future.
+  std::unique_ptr<GCNHazardRecognizer> HR;
+  if (!DAG.hasVRegLiveness())
+    HR = std::make_unique<GCNHazardRecognizer>(MF);
+
   for (auto &SU : InputSchedule) {
     unsigned ReadyCycle =
         computeSUnitReadyCycle(SU, CurrCycle, ReadyCycles, SM);
-    SumBubbles += ReadyCycle - CurrCycle;
+    unsigned LatencyStall = ReadyCycle - CurrCycle;
+
+    // Compute structural stall (resource conflicts + hazards).
+    unsigned StructuralStall =
+        computeStructuralStallCycles(SU, CurrCycle, SM, ResourceAvailCycles,
+                                     HR.get());
+
+    // Effective stall is the max of latency and structural stalls.
+    unsigned EffectiveStall = std::max(LatencyStall, StructuralStall);
+    SumBubbles += EffectiveStall;
+    if (StructuralStall > LatencyStall)
+      SumStructuralStalls += StructuralStall - LatencyStall;
+
+    // Advance cycle by effective stall.
+    CurrCycle += EffectiveStall;
+
+    // Emit instruction to hazard recognizer and advance.
+    if (HR) {
+      HR->EmitInstruction(const_cast<SUnit *>(&SU));
+      HR->AdvanceCycle();
+    }
+
 #ifndef NDEBUG
-    ReadyCyclesSorted.insert(std::make_pair(SU.getInstr(), ReadyCycle));
+    ReadyCyclesSorted.insert(std::make_pair(SU.getInstr(), CurrCycle));
 #endif
-    CurrCycle = ++ReadyCycle;
+    CurrCycle++;
   }
 #ifndef NDEBUG
   LLVM_DEBUG(
@@ -1660,7 +1738,7 @@ GCNSchedStage::getScheduleMetrics(const std::vector<SUnit> &InputSchedule) {
              << "\n\n");
 #endif
 
-  return ScheduleMetrics(CurrCycle, SumBubbles);
+  return ScheduleMetrics(CurrCycle, SumBubbles, SumStructuralStalls);
 }
 
 ScheduleMetrics
@@ -1671,19 +1749,49 @@ GCNSchedStage::getScheduleMetrics(const GCNScheduleDAGMILive &DAG) {
 #endif
   const TargetSchedModel &SM = ST.getInstrInfo()->getSchedModel();
   unsigned SumBubbles = 0;
+  unsigned SumStructuralStalls = 0;
   DenseMap<unsigned, unsigned> ReadyCycles;
+  DenseMap<unsigned, unsigned> ResourceAvailCycles;
   unsigned CurrCycle = 0;
+
+  // Only use hazard recognizer post-RA (when DAG doesn't track VReg liveness).
+  // Pre-RA hazard recognizer support can be added in the future.
+  std::unique_ptr<GCNHazardRecognizer> HR;
+  if (!DAG.hasVRegLiveness())
+    HR = std::make_unique<GCNHazardRecognizer>(MF);
+
   for (auto &MI : DAG) {
     SUnit *SU = DAG.getSUnit(&MI);
     if (!SU)
       continue;
     unsigned ReadyCycle =
         computeSUnitReadyCycle(*SU, CurrCycle, ReadyCycles, SM);
-    SumBubbles += ReadyCycle - CurrCycle;
+    unsigned LatencyStall = ReadyCycle - CurrCycle;
+
+    // Compute structural stall (resource conflicts + hazards).
+    unsigned StructuralStall =
+        computeStructuralStallCycles(*SU, CurrCycle, SM, ResourceAvailCycles,
+                                     HR.get());
+
+    // Effective stall is the max of latency and structural stalls.
+    unsigned EffectiveStall = std::max(LatencyStall, StructuralStall);
+    SumBubbles += EffectiveStall;
+    if (StructuralStall > LatencyStall)
+      SumStructuralStalls += StructuralStall - LatencyStall;
+
+    // Advance cycle by effective stall.
+    CurrCycle += EffectiveStall;
+
+    // Emit instruction to hazard recognizer and advance.
+    if (HR) {
+      HR->EmitInstruction(SU);
+      HR->AdvanceCycle();
+    }
+
 #ifndef NDEBUG
-    ReadyCyclesSorted.insert(std::make_pair(SU->getInstr(), ReadyCycle));
+    ReadyCyclesSorted.insert(std::make_pair(SU->getInstr(), CurrCycle));
 #endif
-    CurrCycle = ++ReadyCycle;
+    CurrCycle++;
   }
 #ifndef NDEBUG
   LLVM_DEBUG(
@@ -1696,7 +1804,7 @@ GCNSchedStage::getScheduleMetrics(const GCNScheduleDAGMILive &DAG) {
              << "\n\n");
 #endif
 
-  return ScheduleMetrics(CurrCycle, SumBubbles);
+  return ScheduleMetrics(CurrCycle, SumBubbles, SumStructuralStalls);
 }
 
 bool GCNSchedStage::shouldRevertScheduling(unsigned WavesAfter) {
