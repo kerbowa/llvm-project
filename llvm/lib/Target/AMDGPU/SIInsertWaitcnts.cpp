@@ -158,6 +158,7 @@ static constexpr VMEMID toVMEMID(MCRegUnit RU) {
   DECL(VGPR_DPMACC_WRITE)        /* write VGPR dest in DPMACC VALU */          \
   DECL(VGPR_TRANS_WRITE)         /* write VGPR dest in TRANS VALU */           \
   DECL(VGPR_XDL_WRITE)           /* write VGPR dest in XDL VALU */             \
+  DECL(VGPR_XDL_ORDERED_WRITE)   /* XDL ordered w/ Core/Side-MACC for VaVdst */\
   DECL(VGPR_LDS_READ)            /* read VGPR source in LDS */                 \
   DECL(VGPR_FLAT_READ)           /* read VGPR source in FLAT */                \
   DECL(VGPR_VMEM_READ)           /* read VGPR source in other VMEM */          \
@@ -464,7 +465,7 @@ protected:
           WaitEventSet({VMEM_GROUP, SMEM_GROUP}),
           WaitEventSet({ASYNC_ACCESS}),
           WaitEventSet({VGPR_CSMACC_WRITE, VGPR_DPMACC_WRITE, VGPR_TRANS_WRITE,
-                        VGPR_XDL_WRITE}),
+                        VGPR_XDL_WRITE, VGPR_XDL_ORDERED_WRITE}),
           WaitEventSet({VGPR_LDS_READ, VGPR_FLAT_READ, VGPR_VMEM_READ})};
 
 public:
@@ -1689,6 +1690,23 @@ bool WaitcntBrackets::counterOutOfOrder(InstCounterType T) const {
     return Events.twoOrMore();
   }
 
+  // XDL instructions with 32-bit accumulators (VGPR_XDL_ORDERED_WRITE)
+  // complete in-order with both Core/Side-MACC (VGPR_CSMACC_WRITE) and other
+  // XDL (VGPR_XDL_WRITE) for the VA_VDST counter. Remove XDL_ORDERED from the
+  // event set since it never contributes to out-of-order completion with those
+  // types. If neither CSMACC nor XDL is present, substitute CSMACC to preserve
+  // out-of-order detection against TRANS/DPMACC.
+  if (T == VA_VDST) {
+    WaitEventSet Events = PendingEvents & Context->getWaitEvents(T);
+    if (Events.contains(VGPR_XDL_ORDERED_WRITE)) {
+      Events.remove(VGPR_XDL_ORDERED_WRITE);
+      if (!Events.contains(VGPR_CSMACC_WRITE) &&
+          !Events.contains(VGPR_XDL_WRITE))
+        Events.insert(VGPR_CSMACC_WRITE);
+    }
+    return Events.twoOrMore();
+  }
+
   return hasMixedPendingEvents(T);
 }
 
@@ -2750,8 +2768,11 @@ SIInsertWaitcnts::getExpertSchedulingEventType(const MachineInstr &Inst) const {
     // out-of-order with respect to each other, so each of these classes
     // has its own event.
 
-    if (TII.isXDL(Inst))
+    if (TII.isXDL(Inst)) {
+      if (AMDGPU::getWMMAIsVAVDSTOrderedXDL(Inst.getOpcode()))
+        return VGPR_XDL_ORDERED_WRITE;
       return VGPR_XDL_WRITE;
+    }
 
     if (TII.isTRANS(Inst))
       return VGPR_TRANS_WRITE;
